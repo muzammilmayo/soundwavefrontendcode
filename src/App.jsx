@@ -106,11 +106,6 @@ function App() {
         {/* Forgot / Reset Password */}
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
-<Route path="/login" element={<Login />} />
-
-<Route path="/register" element={<Register />} />
-<Route path="/artist/register" element={<ArtistRegister />} />
-<Route path="/listener/register" element={<ListenerRegister />} />
         {/* Profile */}
         <Route
           path="/profile"

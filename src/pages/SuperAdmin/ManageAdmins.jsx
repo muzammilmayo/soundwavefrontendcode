@@ -30,6 +30,7 @@ import {
   Alert,
   CircularProgress,
   Snackbar,
+  InputAdornment,
 } from "@mui/material";
 import {
   Home as HomeIcon,
@@ -44,6 +45,9 @@ import {
   Info as InfoIcon,
   Close as CloseIcon,
   Refresh as RefreshIcon,
+  PersonAdd as PersonAddIcon,
+  Autorenew as AutorenewIcon,
+  ContentCopy as ContentCopyIcon,
 } from "@mui/icons-material";
 
 import { UserCheck, UserMinus } from "lucide-react";
@@ -86,6 +90,77 @@ export default function ManageAdmins() {
   const [toast, setToast] = useState({ open: false, message: "", severity: "success" });
   const showToast = (message, severity = "success") => {
     setToast({ open: true, message, severity });
+  };
+
+  // Create Admin dialog state
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [createForm, setCreateForm] = useState({ username: "", email: "", password: "" });
+  const [createLoading, setCreateLoading] = useState(false);
+
+  // Generate a strong random password
+  const generatePassword = () => {
+    const upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const lower = "abcdefghijklmnopqrstuvwxyz";
+    const digits = "0123456789";
+    const special = "!@#$%^&*()_+-=[]{}|;:,.<>?";
+    const all = upper + lower + digits + special;
+    let pwd = "";
+    // Guarantee at least one of each type
+    pwd += upper[Math.floor(Math.random() * upper.length)];
+    pwd += lower[Math.floor(Math.random() * lower.length)];
+    pwd += digits[Math.floor(Math.random() * digits.length)];
+    pwd += special[Math.floor(Math.random() * special.length)];
+    // Fill remaining characters
+    for (let i = 4; i < 16; i++) {
+      pwd += all[Math.floor(Math.random() * all.length)];
+    }
+    // Shuffle the result
+    pwd = pwd.split("").sort(() => Math.random() - 0.5).join("");
+    return pwd;
+  };
+
+  const openCreateDialog = () => {
+    setCreateForm({ username: "", email: "", password: generatePassword() });
+    setCreateDialogOpen(true);
+  };
+
+  const handleCreateAdmin = async () => {
+    if (!createForm.username.trim()) {
+      showToast("Username is required", "error");
+      return;
+    }
+    if (!createForm.email.trim()) {
+      showToast("Email is required", "error");
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(createForm.email)) {
+      showToast("Please provide a valid email address", "error");
+      return;
+    }
+
+    setCreateLoading(true);
+    try {
+      const res = await api.post("/superadmin/users", {
+        username: createForm.username,
+        email: createForm.email,
+        password: createForm.password,
+      });
+      showToast(res.data.message || "Admin account created successfully", "success");
+      setCreateDialogOpen(false);
+      setCreateForm({ username: "", email: "", password: "" });
+      await fetchUsers();
+    } catch (err) {
+      const msg = err.response?.data?.message || "Failed to create admin account";
+      showToast(msg, "error");
+    } finally {
+      setCreateLoading(false);
+    }
+  };
+
+  const copyToClipboard = (text) => {
+    navigator.clipboard.writeText(text);
+    showToast("Password copied to clipboard", "success");
   };
 
   const fetchUsers = async () => {
@@ -289,15 +364,26 @@ export default function ManageAdmins() {
                 Promote users to Admin, demote Admins, and manage Admin account status.
               </Typography>
             </Box>
-            <Button
-              variant="outlined"
-              color="inherit"
-              startIcon={<RefreshIcon />}
-              onClick={fetchUsers}
-              sx={{ borderRadius: 3, textTransform: "none", borderColor: "rgba(255,255,255,0.2)" }}
-            >
-              Sync Data
-            </Button>
+            <Box sx={{ display: "flex", gap: 2 }}>
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<PersonAddIcon />}
+                onClick={openCreateDialog}
+                sx={{ borderRadius: 3, textTransform: "none", fontWeight: "bold" }}
+              >
+                Create Admin
+              </Button>
+              <Button
+                variant="outlined"
+                color="inherit"
+                startIcon={<RefreshIcon />}
+                onClick={fetchUsers}
+                sx={{ borderRadius: 3, textTransform: "none", borderColor: "rgba(255,255,255,0.2)" }}
+              >
+                Sync Data
+              </Button>
+            </Box>
           </Box>
 
           {error && (
@@ -306,73 +392,7 @@ export default function ManageAdmins() {
             </Alert>
           )}
 
-          {/* Promote User Card */}
-          <Card sx={{ borderRadius: 4, border: "1px solid rgba(255,255,255,0.08)", mb: 5, bgcolor: "background.paper" }}>
-            <CardContent sx={{ p: 3 }}>
-              <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>
-                Promote User to Admin
-              </Typography>
-
-              <Box sx={{ display: "flex", alignItems: "center", bgcolor: "background.default", borderRadius: 3, px: 2, border: "1px solid rgba(255,255,255,0.08)", mb: 3 }}>
-                <SearchIcon sx={{ color: "text.secondary", mr: 1.5 }} />
-                <TextField
-                  variant="standard"
-                  placeholder="Search registered Listeners, Artists, or Moderators to promote..."
-                  value={nonAdminSearch}
-                  onChange={(e) => setNonAdminSearch(e.target.value)}
-                  fullWidth
-                  slotProps={{ input: { disableUnderline: true } }}
-                  sx={{ py: 1 }}
-                />
-              </Box>
-
-              <TableContainer sx={{ border: "1px solid rgba(255,255,255,0.08)", borderRadius: 3, maxHeight: 260 }}>
-                {loading ? (
-                  <Box sx={{ p: 4, display: "flex", justifyContent: "center" }}>
-                    <CircularProgress />
-                  </Box>
-                ) : nonAdminsList.length === 0 ? (
-                  <Typography sx={{ p: 4, color: "text.secondary", textAlign: "center" }}>No matching non-Admins found.</Typography>
-                ) : (
-                  <Table size="small">
-                    <TableHead sx={{ bgcolor: "#252525" }}>
-                      <TableRow>
-                        <TableCell sx={{ color: "#b3b3b3", fontWeight: "bold" }}>Username</TableCell>
-                        <TableCell sx={{ color: "#b3b3b3", fontWeight: "bold" }}>Email</TableCell>
-                        <TableCell sx={{ color: "#b3b3b3", fontWeight: "bold" }}>Current Role</TableCell>
-                        <TableCell sx={{ color: "#b3b3b3", fontWeight: "bold", textAlign: "center" }}>Action</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {nonAdminsList.slice(0, 10).map((u) => (
-                        <TableRow key={u.user_id} hover>
-                          <TableCell sx={{ borderBottom: "1px solid rgba(255,255,255,0.05)", fontWeight: "600" }}>{u.username}</TableCell>
-                          <TableCell sx={{ borderBottom: "1px solid rgba(255,255,255,0.05)", color: "text.secondary" }}>{u.email}</TableCell>
-                          <TableCell sx={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                            <Box sx={{ display: "inline-block", px: 1, py: 0.2, borderRadius: 2, bgcolor: "rgba(255,255,255,0.05)", fontSize: "0.7rem" }}>
-                              {u.role_name}
-                            </Box>
-                          </TableCell>
-                          <TableCell sx={{ borderBottom: "1px solid rgba(255,255,255,0.05)", textAlign: "center" }}>
-                            <Button
-                              variant="contained"
-                              color="primary"
-                              size="small"
-                              startIcon={<UserCheck />}
-                              onClick={() => updateUserRole(u.user_id, 2, "promote")}
-                              sx={{ textTransform: "none", borderRadius: 2, fontWeight: "bold" }}
-                            >
-                              Promote to Admin
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                )}
-              </TableContainer>
-            </CardContent>
-          </Card>
+      
 
           {/* List of Admins */}
           <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
@@ -548,6 +568,93 @@ export default function ManageAdmins() {
             </DialogActions>
           </>
         )}
+      </Dialog>
+
+      {/* Create Admin Dialog */}
+      <Dialog
+        open={createDialogOpen}
+        onClose={() => setCreateDialogOpen(false)}
+        PaperProps={{
+          sx: { borderRadius: 4, bgcolor: "background.paper", border: "1px solid rgba(255,255,255,0.08)", minWidth: 440 },
+        }}
+      >
+        <DialogTitle sx={{ m: 0, p: 3, fontWeight: "bold", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+          Create New Admin Account
+          <IconButton
+            onClick={() => setCreateDialogOpen(false)}
+            sx={{ position: "absolute", right: 16, top: 16, color: "text.secondary" }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ p: 3, display: "flex", flexDirection: "column", gap: 2.5, mt: 1 }}>
+          <TextField
+            label="Username"
+            type="text"
+            value={createForm.username}
+            onChange={(e) => setCreateForm({ ...createForm, username: e.target.value })}
+            fullWidth
+            required
+            variant="outlined"
+            autoFocus
+          />
+
+          <TextField
+            label="Email Address"
+            type="email"
+            value={createForm.email}
+            onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
+            fullWidth
+            required
+            variant="outlined"
+          />
+
+          <TextField
+            label="Temporary Password"
+            type="text"
+            value={createForm.password}
+            fullWidth
+            variant="outlined"
+            InputProps={{
+              readOnly: true,
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton onClick={() => copyToClipboard(createForm.password)} title="Copy Password">
+                    <ContentCopyIcon fontSize="small" />
+                  </IconButton>
+                  <IconButton onClick={() => setCreateForm({ ...createForm, password: generatePassword() })} title="Generate New Password">
+                    <AutorenewIcon fontSize="small" />
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+            sx={{ "& .MuiInputBase-input": { fontFamily: "monospace", letterSpacing: 1 } }}
+          />
+
+          <Alert severity="info" sx={{ borderRadius: 2 }}>
+            The temporary password is auto-generated. Share it securely with the new admin. They should change it after their first login.
+          </Alert>
+        </DialogContent>
+        <DialogActions sx={{ p: 3, borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+          <Button
+            variant="outlined"
+            color="inherit"
+            onClick={() => setCreateDialogOpen(false)}
+            sx={{ borderRadius: 3, textTransform: "none", borderColor: "rgba(255,255,255,0.2)" }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleCreateAdmin}
+            disabled={createLoading}
+            startIcon={createLoading ? <CircularProgress size={18} color="inherit" /> : <PersonAddIcon />}
+            sx={{ borderRadius: 3, textTransform: "none", fontWeight: "bold" }}
+          >
+            {createLoading ? "Creating..." : "Create Admin"}
+          </Button>
+        </DialogActions>
       </Dialog>
 
       <Snackbar

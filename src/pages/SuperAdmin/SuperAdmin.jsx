@@ -49,6 +49,8 @@ import {
   Info as InfoIcon,
   Close as CloseIcon,
   Refresh as RefreshIcon,
+  DeleteForever as DeleteForeverIcon,
+  WarningAmber as WarningAmberIcon,
 } from "@mui/icons-material";
 import api from "../../api";
 import authService from "../../services/authService";
@@ -94,6 +96,9 @@ export default function SuperAdminDashboard() {
     setToast({ open: true, message, severity });
   };
 
+  // Delete confirmation state
+  const [deleteConfirm, setDeleteConfirm] = useState({ open: false, user: null });
+
   useEffect(() => {
     if (location.state?.tab) {
       setCurrentTab(location.state.tab);
@@ -138,6 +143,21 @@ export default function SuperAdminDashboard() {
   const handleLogout = () => {
     authService.logout();
     navigate("/login");
+  };
+
+  const handleDeleteUser = async () => {
+    const user = deleteConfirm.user;
+    if (!user) return;
+    try {
+      const res = await api.delete(`/superadmin/users/${user.user_id}`);
+      showToast(res.data.message, "success");
+      setUsers((prev) => prev.filter((u) => u.user_id !== user.user_id));
+      setDeleteConfirm({ open: false, user: null });
+    } catch (err) {
+      const msg = err.response?.data?.message || "Failed to delete user";
+      showToast(msg, "error");
+      setDeleteConfirm({ open: false, user: null });
+    }
   };
 
   const filteredUsers = users.filter((u) => {
@@ -533,16 +553,6 @@ const inactiveUsersCount = users.filter((u) => u.status === "Inactive").length;
                           </TableCell>
                           <TableCell sx={{ textAlign: "center" }}>
                             <Box sx={{ display: "flex", justifyContent: "center", gap: 1 }}>
-                              {/* <Button
-                                variant="outlined"
-                                color="inherit"
-                                size="small"
-                                startIcon={<InfoIcon />}
-                                onClick={() => setSelectedUser(user)}
-                                sx={{ textTransform: "none", borderRadius: 2, borderColor: "rgba(255,255,255,0.2)" }}
-                              >
-                                Details
-                              </Button> */}
                               <Button
                                 variant="outlined"
                                 color={user.status === "Inactive" ? "primary" : "error"}
@@ -551,6 +561,16 @@ const inactiveUsersCount = users.filter((u) => u.status === "Inactive").length;
                                 sx={{ textTransform: "none", borderRadius: 2 }}
                               >
                                 {user.status === "Inactive" ? "Activate" : "Deactivate"}
+                              </Button>
+                              <Button
+                                variant="outlined"
+                                color="error"
+                                size="small"
+                                startIcon={<DeleteForeverIcon />}
+                                onClick={() => setDeleteConfirm({ open: true, user })}
+                                sx={{ textTransform: "none", borderRadius: 2, borderColor: "rgba(211,47,47,0.5)", color: "error.main", "&:hover": { bgcolor: "rgba(211,47,47,0.08)" } }}
+                              >
+                                Delete
                               </Button>
                             </Box>
                           </TableCell>
@@ -564,6 +584,61 @@ const inactiveUsersCount = users.filter((u) => u.status === "Inactive").length;
           )}
         </Box>
       </Box>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteConfirm.open}
+        onClose={() => setDeleteConfirm({ open: false, user: null })}
+        PaperProps={{
+          sx: { borderRadius: 4, bgcolor: "background.paper", border: "1px solid rgba(211,47,47,0.3)", minWidth: 420 },
+        }}
+      >
+        {deleteConfirm.user && (
+          <>
+            <DialogTitle sx={{ m: 0, p: 3, fontWeight: "bold", borderBottom: "1px solid rgba(255,255,255,0.08)", display: "flex", alignItems: "center", gap: 1 }}>
+              <WarningAmberIcon sx={{ color: "error.main" }} />
+              Confirm Permanent Deletion
+              <IconButton
+                onClick={() => setDeleteConfirm({ open: false, user: null })}
+                sx={{ position: "absolute", right: 16, top: 16, color: "text.secondary" }}
+              >
+                <CloseIcon />
+              </IconButton>
+            </DialogTitle>
+            <DialogContent sx={{ p: 3 }}>
+              <Alert severity="error" sx={{ borderRadius: 2, mb: 2 }}>
+                This action is <strong>irreversible</strong>. The user will be permanently removed from the database.
+              </Alert>
+              <Box sx={{ bgcolor: "rgba(255,255,255,0.03)", borderRadius: 2, p: 2, border: "1px solid rgba(255,255,255,0.06)" }}>
+                <Typography variant="body2" sx={{ color: "text.secondary", mb: 0.5 }}>Account to be deleted:</Typography>
+                <Typography sx={{ fontWeight: "bold" }}>{deleteConfirm.user.username}</Typography>
+                <Typography variant="body2" sx={{ color: "text.secondary" }}>{deleteConfirm.user.email}</Typography>
+                <Typography variant="body2" sx={{ color: "text.secondary", mt: 0.5 }}>Role: <strong style={{ color: "#fff" }}>{deleteConfirm.user.role_name}</strong></Typography>
+              </Box>
+            </DialogContent>
+            <DialogActions sx={{ p: 3, gap: 1, borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+              <Button
+                variant="outlined"
+                fullWidth
+                onClick={() => setDeleteConfirm({ open: false, user: null })}
+                sx={{ borderRadius: 3, py: 1, textTransform: "none", fontWeight: "bold", borderColor: "rgba(255,255,255,0.2)" }}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="contained"
+                color="error"
+                fullWidth
+                startIcon={<DeleteForeverIcon />}
+                onClick={handleDeleteUser}
+                sx={{ borderRadius: 3, py: 1, textTransform: "none", fontWeight: "bold" }}
+              >
+                Delete Permanently
+              </Button>
+            </DialogActions>
+          </>
+        )}
+      </Dialog>
 
       {/* Details View Modal */}
       <Dialog
