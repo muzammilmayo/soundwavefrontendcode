@@ -1,0 +1,94 @@
+/* ================= NAVBAR ================= */
+
+.navbar{
+    width:100%;
+    height:75px;
+    background:#181818;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:0 60px;
+    box-shadow:0 5px 15px rgba(0,0,0,.3);
+}
+
+.nav-logo a{
+    color:#1DB954;
+    font-size:30px;
+    font-weight:700;
+    text-decoration:none;
+}
+
+.nav-links{
+    display:flex;
+    gap:30px;
+}
+
+.nav-links a{
+    color:white;
+    text-decoration:none;
+    font-size:18px;
+    transition:.3s;
+}
+
+.nav-links a:hover{
+    color:#1DB954;
+}
+
+.nav-auth{
+    display:flex;
+    align-items:center;
+    gap:18px;
+}
+
+.nav-auth a{
+    color:white;
+    text-decoration:none;
+    font-size:17px;
+    transition:.3s;
+}
+
+.nav-auth a:hover{
+    color:#1DB954;
+}
+
+.logout-btn{
+    background:#e53935;
+    color:white;
+    border:none;
+    padding:10px 22px;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:16px;
+    font-weight:600;
+    transition:.3s;
+}
+
+.logout-btn:hover{
+    background:#c62828;
+    transform:translateY(-2px);
+}
+
+/* =============== MOBILE =============== */
+
+@media(max-width:768px){
+
+.navbar{
+    padding:20px;
+    flex-direction:column;
+    height:auto;
+    gap:15px;
+}
+
+.nav-logo a{
+    font-size:24px;
+}
+
+.nav-links{
+    gap:15px;
+}
+
+.nav-auth{
+    gap:15px;
+}
+
+}

@@ -1,0 +1,160 @@
+/* ===========================================
+   SOUNDWAVE HOME PAGE
+=========================================== */
+
+:root{
+    --primary:#1DB954;
+    --primary-dark:#169c45;
+    --bg:#121212;
+    --card:#1f1f1f;
+    --input:#2b2b2b;
+    --text:#ffffff;
+    --text2:#b3b3b3;
+}
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+}
+
+body{
+    background:var(--bg);
+    color:var(--text);
+}
+
+/* ================= HOME ================= */
+.hero{
+    width:100%;
+    text-align:center;
+    margin-bottom:60px;
+}
+
+.hero h1{
+    font-size:55px;
+    font-weight:700;
+    margin-bottom:20px;
+    background:linear-gradient(to right,#1DB954,#1ed760,#fff);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
+
+.hero p{
+    color:var(--text2);
+    font-size:20px;
+}
+/* ================= FORM ================= */
+.content{
+    display:flex;
+    justify-content:flex-end;
+}
+.change-password{
+    width:420px;
+    background:rgba(30,30,30,.95);
+    padding:35px;
+    border-radius:20px;
+    box-shadow:0 20px 50px rgba(0,0,0,.5);
+}
+
+.change-password h2{
+    text-align:center;
+    margin-bottom:30px;
+    font-size:28px;
+}
+
+.change-password form{
+    display:flex;
+    flex-direction:column;
+    gap:18px;
+}
+
+.change-password input{
+    width:100%;
+    padding:15px;
+    border:none;
+    border-radius:10px;
+    background:var(--input);
+    color:#fff;
+    font-size:16px;
+    transition:.3s;
+}
+
+.change-password input::placeholder{
+    color:#999;
+}
+
+.change-password input:focus{
+    outline:none;
+    border:2px solid var(--primary);
+    background:#333;
+}
+
+.change-password button{
+    width:100%;
+    padding:15px;
+    border:none;
+    border-radius:10px;
+    background:var(--primary);
+    color:white;
+    font-size:17px;
+    font-weight:bold;
+    cursor:pointer;
+    transition:.3s;
+}
+
+.change-password button:hover{
+    background:var(--primary-dark);
+    transform:translateY(-2px);
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media(max-width:900px){
+
+.home{
+    flex-direction:column;
+    justify-content:center;
+    text-align:center;
+    padding:40px 20px;
+    gap:50px;
+}
+
+.hero{
+    max-width:100%;
+}
+
+.hero h1{
+    font-size:40px;
+}
+
+.hero p{
+    font-size:18px;
+}
+
+.change-password{
+    width:100%;
+    max-width:420px;
+}
+
+}
+
+@media(max-width:500px){
+
+.hero h1{
+    font-size:32px;
+}
+
+.hero p{
+    font-size:16px;
+}
+
+.change-password{
+    padding:25px;
+}
+
+.change-password h2{
+    font-size:24px;
+}
+
+}
