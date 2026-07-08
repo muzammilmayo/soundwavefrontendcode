@@ -13,21 +13,22 @@ import {
   Snackbar,
   Alert,
 } from "@mui/material";
+import HeadsetIcon from "@mui/icons-material/Headset";
 import authService from "../../services/authService";
 
-const darkTheme = createTheme({
+const lightTheme = createTheme({
   palette: {
-    mode: "dark",
+    mode: "light",
     primary: {
-      main: "#1db954", // Spotify Green
+      main: "#F97316",
     },
     background: {
-      default: "#121212",
-      paper: "#1c1c1c",
+      default: "#FFF5F0",
+      paper: "#FFFFFF",
     },
     text: {
-      primary: "#ffffff",
-      secondary: "#b3b3b3",
+      primary: "#1E293B",
+      secondary: "#94A3B8",
     },
   },
   typography: {
@@ -35,7 +36,7 @@ const darkTheme = createTheme({
   },
 });
 
-export default function Register() {
+export default function ListenerRegister() {
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
@@ -45,7 +46,6 @@ export default function Register() {
     role_id: 5,
   });
 
-  // Toast state
   const [toast, setToast] = useState({ open: false, message: "", severity: "success" });
   const showToast = (message, severity = "success") => {
     setToast({ open: true, message, severity });
@@ -73,7 +73,7 @@ export default function Register() {
   };
 
   return (
-    <ThemeProvider theme={darkTheme}>
+    <ThemeProvider theme={lightTheme}>
       <CssBaseline />
       <Box
         sx={{
@@ -81,7 +81,7 @@ export default function Register() {
           alignItems: "center",
           justifyContent: "center",
           minHeight: "100vh",
-          bgcolor: "background.default",
+          bgcolor: "#FFF5F0",
           p: 3,
         }}
       >
@@ -90,25 +90,38 @@ export default function Register() {
             width: "100%",
             maxWidth: 420,
             borderRadius: 4,
-            border: "1px solid rgba(255,255,255,0.08)",
-            bgcolor: "background.paper",
-            boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+            border: "1px solid #FFF0E6",
+            bgcolor: "#FFFFFF",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.06)",
             p: 2,
           }}
         >
           <CardContent>
-            <Typography variant="h3" align="center" sx={{ mb: 1 }}>
-              🎧
-            </Typography>
+            <Box
+              sx={{
+                width: 56,
+                height: 56,
+                borderRadius: 3,
+                background: "linear-gradient(135deg, #FDBA74, #FB7185)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                mx: "auto",
+                mb: 2,
+                boxShadow: "0 4px 15px rgba(251,113,133,0.3)",
+              }}
+            >
+              <HeadsetIcon sx={{ color: "#FFFFFF", fontSize: 28 }} />
+            </Box>
             <Typography
               variant="h4"
               align="center"
-              sx={{ fontWeight: "bold", color: "primary.main", mb: 1, letterSpacing: -1 }}
+              sx={{ fontWeight: "bold", color: "#1E293B", mb: 1, letterSpacing: -0.5 }}
             >
-              Listener Signup
+              SoundWave
             </Typography>
-            <Typography variant="h6" align="center" sx={{ color: "text.secondary", mb: 4 }}>
-              Create Your Account
+            <Typography variant="h6" align="center" sx={{ color: "#94A3B8", mb: 4 }}>
+              Listener Signup
             </Typography>
 
             <Box component="form" onSubmit={ListenerRegister} sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
@@ -121,6 +134,7 @@ export default function Register() {
                 fullWidth
                 required
                 variant="outlined"
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
               />
 
               <TextField
@@ -132,6 +146,7 @@ export default function Register() {
                 fullWidth
                 required
                 variant="outlined"
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
               />
 
               <TextField
@@ -143,23 +158,23 @@ export default function Register() {
                 fullWidth
                 required
                 variant="outlined"
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
               />
 
               <Button
                 type="submit"
                 variant="contained"
-                color="primary"
                 fullWidth
-                sx={{ borderRadius: 3, py: 1.5, textTransform: "none", fontWeight: "bold", mt: 1 }}
+                sx={{ borderRadius: 3, py: 1.5, textTransform: "none", fontWeight: "bold", mt: 1, bgcolor: "#F97316", boxShadow: "0 4px 15px rgba(249,115,22,0.3)", "&:hover": { bgcolor: "#EA580C" } }}
               >
                 Create Account
               </Button>
             </Box>
 
             <Box sx={{ mt: 4, textAlign: "center" }}>
-              <Typography variant="body2" sx={{ color: "text.secondary" }}>
+              <Typography variant="body2" sx={{ color: "#94A3B8" }}>
                 Already have an account?{" "}
-                <Link component={RouterLink} to="/login" color="primary" sx={{ fontWeight: "bold", textDecoration: "none" }}>
+                <Link component={RouterLink} to="/login" sx={{ fontWeight: "bold", textDecoration: "none", color: "#F97316", "&:hover": { textDecoration: "underline" } }}>
                   Login
                 </Link>
               </Typography>
@@ -177,7 +192,7 @@ export default function Register() {
         <Alert
           onClose={() => setToast({ ...toast, open: false })}
           severity={toast.severity}
-          sx={{ width: "100%", borderRadius: 3 }}
+          sx={{ width: "100%", borderRadius: 3, boxShadow: "0 4px 20px rgba(0,0,0,0.1)" }}
         >
           {toast.message}
         </Alert>

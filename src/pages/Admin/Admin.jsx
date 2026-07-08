@@ -52,19 +52,19 @@ import {
 import api from "../../api";
 import authService from "../../services/authService";
 
-const darkTheme = createTheme({
+const lightTheme = createTheme({
   palette: {
-    mode: "dark",
+    mode: "light",
     primary: {
-      main: "#1db954",
+      main: "#F97316",
     },
     background: {
-      default: "#121212",
-      paper: "#1c1c1c",
+      default: "#FFF5F0",
+      paper: "#FFFFFF",
     },
     text: {
-      primary: "#ffffff",
-      secondary: "#b3b3b3",
+      primary: "#1E293B",
+      secondary: "#94A3B8",
     },
   },
   typography: {
@@ -105,17 +105,14 @@ export default function AdminDashboard() {
     fetchUsers();
   }, []);
 
-  // Toggle user status
   const toggleUserStatus = async (userId, currentStatus) => {
     const newStatus = currentStatus === "Active" ? "Inactive" : "Active";
     try {
       const res = await api.put(`/admin/users/${userId}/status`, { status: newStatus });
       showToast(res.data.message, "success");
-      
       setUsers((prevUsers) =>
         prevUsers.map((u) => (u.user_id === userId ? { ...u, status: newStatus } : u))
       );
-
       if (selectedUser && selectedUser.user_id === userId) {
         setSelectedUser((prev) => ({ ...prev, status: newStatus }));
       }
@@ -130,7 +127,6 @@ export default function AdminDashboard() {
     navigate("/login");
   };
 
-  // Filtered users calculation
   const filteredUsers = users.filter((u) => {
     const matchesSearch =
       u.username.toLowerCase().includes(search.toLowerCase()) ||
@@ -140,32 +136,20 @@ export default function AdminDashboard() {
     return matchesSearch && matchesRole && matchesStatus;
   });
 
-  // Calculate statistics (Super Admins are already excluded by the backend)
   const totalUsersCount = users.length;
   const artistsCount = users.filter((u) => u.role_name === "Artist").length;
   const listenersCount = users.filter((u) => u.role_name === "Listener").length;
   const activeUsersCount = users.filter((u) => u.status === "Active").length;
-const inactiveUsersCount = users.filter((u) => u.status === "Inactive").length;
+  const inactiveUsersCount = users.filter((u) => u.status === "Inactive").length;
+
   return (
-    <ThemeProvider theme={darkTheme}>
+    <ThemeProvider theme={lightTheme}>
       <CssBaseline />
-      <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "background.default" }}>
-        
+      <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "#FFF5F0" }}>
+
         {/* Sidebar */}
-        <Box sx={{ width: 260, bgcolor: "black", p: 3, display: "flex", flexDirection: "column" }}>
-          <Typography
-            variant="h4"
-            sx={{
-              fontWeight: "bold",
-              color: "primary.main",
-              mb: 5,
-              cursor: "pointer",
-              letterSpacing: -1,
-            }}
-            onClick={() => setCurrentTab("dashboard")}
-          >
-            SoundWave
-          </Typography>
+        <Box sx={{ width: 260, bgcolor: "#FFFFFF", p: 3, display: "flex", flexDirection: "column", boxShadow: "0 0 20px rgba(0,0,0,0.03)" }}>
+       
 
           <List sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
             <ListItem disablePadding>
@@ -173,14 +157,19 @@ const inactiveUsersCount = users.filter((u) => u.status === "Inactive").length;
                 onClick={() => setCurrentTab("dashboard")}
                 selected={currentTab === "dashboard"}
                 sx={{
-                  borderRadius: 2,
-                  "&.Mui-selected": { bgcolor: "rgba(29, 185, 84, 0.15)", color: "#1db954" },
+                  borderRadius: 3,
+                  py: 1.2,
+                  px: 2,
+                  bgcolor: currentTab === "dashboard" ? "#FFF5F0" : "transparent",
+                  color: currentTab === "dashboard" ? "#F97316" : "#64748B",
+                  "&.Mui-selected": { bgcolor: "#FFF5F0", color: "#F97316" },
+                  "&:hover": { bgcolor: "#FFF5F0" },
                 }}
               >
-                <ListItemIcon sx={{ color: currentTab === "dashboard" ? "primary.main" : "text.secondary" }}>
-                  <HomeIcon />
+                <ListItemIcon sx={{ minWidth: 36, color: currentTab === "dashboard" ? "#F97316" : "#94A3B8" }}>
+                  <HomeIcon sx={{ fontSize: 20 }} />
                 </ListItemIcon>
-                <ListItemText primary="Dashboard" />
+                <ListItemText primary="Dashboard" primaryTypographyProps={{ fontWeight: currentTab === "dashboard" ? "bold" : "500" }} />
               </ListItemButton>
             </ListItem>
 
@@ -189,115 +178,113 @@ const inactiveUsersCount = users.filter((u) => u.status === "Inactive").length;
                 onClick={() => setCurrentTab("users")}
                 selected={currentTab === "users"}
                 sx={{
-                  borderRadius: 2,
-                  "&.Mui-selected": { bgcolor: "rgba(29, 185, 84, 0.15)", color: "#1db954" },
+                  borderRadius: 3,
+                  py: 1.2,
+                  px: 2,
+                  bgcolor: currentTab === "users" ? "#FFF5F0" : "transparent",
+                  color: currentTab === "users" ? "#F97316" : "#64748B",
+                  "&.Mui-selected": { bgcolor: "#FFF5F0", color: "#F97316" },
+                  "&:hover": { bgcolor: "#FFF5F0" },
                 }}
               >
-                <ListItemIcon sx={{ color: currentTab === "users" ? "primary.main" : "text.secondary" }}>
-                  <PeopleIcon />
+                <ListItemIcon sx={{ minWidth: 36, color: currentTab === "users" ? "#F97316" : "#94A3B8" }}>
+                  <PeopleIcon sx={{ fontSize: 20 }} />
                 </ListItemIcon>
-                <ListItemText primary="Manage Users" />
+                <ListItemText primary="Manage Users" primaryTypographyProps={{ fontWeight: currentTab === "users" ? "bold" : "500" }} />
               </ListItemButton>
             </ListItem>
 
-            <Divider sx={{ my: 2, borderColor: "rgba(255,255,255,0.08)" }} />
-            <Typography variant="caption" sx={{ px: 2, color: "text.secondary", fontWeight: "bold", textTransform: "uppercase" }}>
+            <Divider sx={{ my: 2, borderColor: "rgba(0,0,0,0.06)" }} />
+            <Typography variant="caption" sx={{ px: 2, color: "#94A3B8", fontWeight: "bold", textTransform: "uppercase", letterSpacing: 1 }}>
               System Mocks
             </Typography>
 
             <ListItem disablePadding sx={{ opacity: 0.4 }}>
-              <ListItemButton disabled>
-                <ListItemIcon>
-                  <MusicNoteIcon />
+              <ListItemButton disabled sx={{ borderRadius: 3, py: 1.2, px: 2, color: "#64748B" }}>
+                <ListItemIcon sx={{ minWidth: 36, color: "#94A3B8" }}>
+                  <MusicNoteIcon sx={{ fontSize: 20 }} />
                 </ListItemIcon>
-                <ListItemText primary="Manage Songs" />
+                <ListItemText primary="Manage Songs" primaryTypographyProps={{ fontWeight: 500 }} />
               </ListItemButton>
             </ListItem>
 
             <ListItem disablePadding sx={{ opacity: 0.4 }}>
-              <ListItemButton disabled>
-                <ListItemIcon>
-                  <MicIcon />
+              <ListItemButton disabled sx={{ borderRadius: 3, py: 1.2, px: 2, color: "#64748B" }}>
+                <ListItemIcon sx={{ minWidth: 36, color: "#94A3B8" }}>
+                  <MicIcon sx={{ fontSize: 20 }} />
                 </ListItemIcon>
-                <ListItemText primary="Manage Artists" />
+                <ListItemText primary="Manage Artists" primaryTypographyProps={{ fontWeight: 500 }} />
               </ListItemButton>
             </ListItem>
 
             <ListItem disablePadding sx={{ opacity: 0.4 }}>
-              <ListItemButton disabled>
-                <ListItemIcon>
-                  <AssessmentIcon />
+              <ListItemButton disabled sx={{ borderRadius: 3, py: 1.2, px: 2, color: "#64748B" }}>
+                <ListItemIcon sx={{ minWidth: 36, color: "#94A3B8" }}>
+                  <AssessmentIcon sx={{ fontSize: 20 }} />
                 </ListItemIcon>
-                <ListItemText primary="Reports" />
+                <ListItemText primary="Reports" primaryTypographyProps={{ fontWeight: 500 }} />
               </ListItemButton>
             </ListItem>
 
-            <Divider sx={{ my: 2, borderColor: "rgba(255,255,255,0.08)" }} />
-            <Typography variant="caption" sx={{ px: 2, color: "text.secondary", fontWeight: "bold", textTransform: "uppercase" }}>
+            <Divider sx={{ my: 2, borderColor: "rgba(0,0,0,0.06)" }} />
+            <Typography variant="caption" sx={{ px: 2, color: "#94A3B8", fontWeight: "bold", textTransform: "uppercase", letterSpacing: 1 }}>
               Account
             </Typography>
 
             <ListItem disablePadding>
-              <ListItemButton onClick={() => navigate("/profile")} sx={{ borderRadius: 2 }}>
-                <ListItemIcon sx={{ color: "text.secondary" }}>
-                  <PersonIcon />
+              <ListItemButton onClick={() => navigate("/profile")} sx={{ borderRadius: 3, py: 1.2, px: 2, color: "#64748B", "&:hover": { bgcolor: "#FFF5F0" } }}>
+                <ListItemIcon sx={{ minWidth: 36, color: "#94A3B8" }}>
+                  <PersonIcon sx={{ fontSize: 20 }} />
                 </ListItemIcon>
-                <ListItemText primary="Profile" />
+                <ListItemText primary="Profile" primaryTypographyProps={{ fontWeight: 500 }} />
               </ListItemButton>
             </ListItem>
 
             <ListItem disablePadding>
-              <ListItemButton onClick={handleLogout} sx={{ borderRadius: 2 }}>
-                <ListItemIcon sx={{ color: "error.main" }}>
-                  <ExitToAppIcon />
+              <ListItemButton onClick={handleLogout} sx={{ borderRadius: 3, py: 1.2, px: 2, color: "#EF4444", "&:hover": { bgcolor: "#FEF2F2" } }}>
+                <ListItemIcon sx={{ minWidth: 36, color: "#EF4444" }}>
+                  <ExitToAppIcon sx={{ fontSize: 20 }} />
                 </ListItemIcon>
-                <ListItemText primary="Logout" sx={{ color: "error.main" }} />
+                <ListItemText primary="Logout" primaryTypographyProps={{ fontWeight: 500 }} />
               </ListItemButton>
             </ListItem>
           </List>
         </Box>
 
         {/* Main Content Area */}
-        <Box sx={{ flexGrow: 1, p: 4, overflowY: "auto" }}>
+        <Box sx={{ flexGrow: 1, p: 5, overflowY: "auto" }}>
           {/* Header */}
-          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 4, pb: 3, borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-            <Box>
-              <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                Admin Dashboard 🛡️
-              </Typography>
-              <Typography variant="body2" sx={{ color: "text.secondary", mt: 0.5 }}>
-                Manage users, update statuses, and monitor system parameters.
-              </Typography>
+          <Box sx={{ mb: 4, pb: 3 }}>
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <Box>
+                <Typography variant="h3" sx={{ fontWeight: "bold", color: "#1E293B" }}>
+                  Admin Dashboard 
+                </Typography>
+                <Typography variant="body1" sx={{ color: "#94A3B8", mt: 0.5 }}>
+                  Manage users, update statuses, and monitor system parameters.
+                </Typography>
+              </Box>
             </Box>
-            {/* <Button
-              variant="outlined"
-              color="inherit"
-              startIcon={<RefreshIcon />}
-              onClick={fetchUsers}
-              sx={{ borderRadius: 3, textTransform: "none", borderColor: "rgba(0,0,0,0.2)" }}
-            >
-              Sync Data
-            </Button> */}
           </Box>
 
           {error && (
-            <Alert severity="error" sx={{ mb: 3, borderRadius: 3 }}>
+            <Alert severity="error" sx={{ mb: 3, borderRadius: 3, bgcolor: "#FEF2F2", color: "#DC2626", border: "1px solid #FECACA" }}>
               {error}
             </Alert>
           )}
 
           {/* Dashboard Tab */}
           {currentTab === "dashboard" && (
-         <Box>
+            <Box>
               {/* Stats Cards */}
               <Grid container spacing={3} sx={{ mb: 5 }}>
                 <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
-                  <Card sx={{ borderRadius: 4, border: "1px solid rgba(255,255,255,0.05)", height: "100%", display: "flex", flexDirection: "column" }}>
-                    <CardContent>
-                      <Typography variant="subtitle2" sx={{ color: "text.secondary", textTransform: "uppercase", fontWeight: "bold" }}>
+                  <Card sx={{ borderRadius: 4, border: "1px solid #FFF0E6", boxShadow: "0 4px 20px rgba(0,0,0,0.03)", bgcolor: "#FFFFFF", height: "100%", display: "flex", flexDirection: "column", transition: "all 0.3s", "&:hover": { boxShadow: "0 8px 30px rgba(0,0,0,0.06)", transform: "translateY(-2px)" } }}>
+                    <CardContent sx={{ p: 4 }}>
+                      <Typography variant="caption" sx={{ color: "#94A3B8", textTransform: "uppercase", fontWeight: "bold", letterSpacing: 1.5, fontSize: "0.7rem" }}>
                         Total Users
                       </Typography>
-                      <Typography variant="h3" sx={{ fontWeight: "bold", mt: 1 }}>
+                      <Typography variant="h3" sx={{ fontWeight: "bold", mt: 1.5, color: "#1E293B" }}>
                         {loading ? <CircularProgress size={30} color="inherit" /> : totalUsersCount}
                       </Typography>
                     </CardContent>
@@ -305,12 +292,12 @@ const inactiveUsersCount = users.filter((u) => u.status === "Inactive").length;
                 </Grid>
 
                 <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
-                  <Card sx={{ borderRadius: 4, border: "1px solid rgba(255,255,255,0.05)", height: "100%", display: "flex", flexDirection: "column" }}>
-                    <CardContent>
-                      <Typography variant="subtitle2" sx={{ color: "text.secondary", textTransform: "uppercase", fontWeight: "bold" }}>
+                  <Card sx={{ borderRadius: 4, border: "1px solid #FFF0E6", boxShadow: "0 4px 20px rgba(0,0,0,0.03)", bgcolor: "#FFFFFF", height: "100%", display: "flex", flexDirection: "column", transition: "all 0.3s", "&:hover": { boxShadow: "0 8px 30px rgba(0,0,0,0.06)", transform: "translateY(-2px)" } }}>
+                    <CardContent sx={{ p: 4 }}>
+                      <Typography variant="caption" sx={{ color: "#94A3B8", textTransform: "uppercase", fontWeight: "bold", letterSpacing: 1.5, fontSize: "0.7rem" }}>
                         Artists Register
                       </Typography>
-                      <Typography variant="h3" sx={{ fontWeight: "bold",  mt: 1, color: "secondary.main" }}>
+                      <Typography variant="h3" sx={{ fontWeight: "bold", mt: 1.5, color: "#E91E63" }}>
                         {loading ? <CircularProgress size={30} color="inherit" /> : artistsCount}
                       </Typography>
                     </CardContent>
@@ -318,37 +305,38 @@ const inactiveUsersCount = users.filter((u) => u.status === "Inactive").length;
                 </Grid>
 
                 <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
-                  <Card sx={{ borderRadius: 4, border: "1px solid rgba(255,255,255,0.05)", height: "100%", display: "flex", flexDirection: "column" }}>
-                    <CardContent>
-                      <Typography variant="subtitle2" sx={{ color: "text.secondary", textTransform: "uppercase", fontWeight: "bold" }}>
+                  <Card sx={{ borderRadius: 4, border: "1px solid #FFF0E6", boxShadow: "0 4px 20px rgba(0,0,0,0.03)", bgcolor: "#FFFFFF", height: "100%", display: "flex", flexDirection: "column", transition: "all 0.3s", "&:hover": { boxShadow: "0 8px 30px rgba(0,0,0,0.06)", transform: "translateY(-2px)" } }}>
+                    <CardContent sx={{ p: 4 }}>
+                      <Typography variant="caption" sx={{ color: "#94A3B8", textTransform: "uppercase", fontWeight: "bold", letterSpacing: 1.5, fontSize: "0.7rem" }}>
                         Listeners Register
                       </Typography>
-                      <Typography variant="h3" sx={{ fontWeight: "bold", mt: 1, color: "info.main" }}>
-                 {loading ? <CircularProgress size={30} color="inherit" /> : listenersCount}
+                      <Typography variant="h3" sx={{ fontWeight: "bold", mt: 1.5, color: "#6366F1" }}>
+                        {loading ? <CircularProgress size={30} color="inherit" /> : listenersCount}
                       </Typography>
                     </CardContent>
                   </Card>
                 </Grid>
 
                 <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
-                  <Card sx={{ borderRadius: 4, border: "1px solid rgba(255,255,255,0.05)", height: "100%", display: "flex", flexDirection: "column" }}>
-                    <CardContent>
-                      <Typography variant="subtitle2" sx={{ color: "text.secondary", textTransform: "uppercase", fontWeight: "bold" }}>
+                  <Card sx={{ borderRadius: 4, border: "1px solid #FFF0E6", boxShadow: "0 4px 20px rgba(0,0,0,0.03)", bgcolor: "#FFFFFF", height: "100%", display: "flex", flexDirection: "column", transition: "all 0.3s", "&:hover": { boxShadow: "0 8px 30px rgba(0,0,0,0.06)", transform: "translateY(-2px)" } }}>
+                    <CardContent sx={{ p: 4 }}>
+                      <Typography variant="caption" sx={{ color: "#94A3B8", textTransform: "uppercase", fontWeight: "bold", letterSpacing: 1.5, fontSize: "0.7rem" }}>
                         Active Statuses
                       </Typography>
-                      <Typography variant="h3" sx={{ fontWeight: "bold", mt: 1, color: "primary.main" }}>
+                      <Typography variant="h3" sx={{ fontWeight: "bold", mt: 1.5, color: "#00BCD4" }}>
                         {loading ? <CircularProgress size={30} color="inherit" /> : activeUsersCount}
                       </Typography>
                     </CardContent>
                   </Card>
                 </Grid>
-                      <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
-                  <Card sx={{ borderRadius: 4, border: "1px solid rgba(255,255,255,0.05)", height: "100%", display: "flex", flexDirection: "column" }}>
-                    <CardContent>
-                      <Typography variant="subtitle2" sx={{ color: "text.secondary", textTransform: "uppercase", fontWeight: "bold" }}>
+
+                <Grid size={{ xs: 12, sm: 6, md: 2.4 }}>
+                  <Card sx={{ borderRadius: 4, border: "1px solid #FFF0E6", boxShadow: "0 4px 20px rgba(0,0,0,0.03)", bgcolor: "#FFFFFF", height: "100%", display: "flex", flexDirection: "column", transition: "all 0.3s", "&:hover": { boxShadow: "0 8px 30px rgba(0,0,0,0.06)", transform: "translateY(-2px)" } }}>
+                    <CardContent sx={{ p: 4 }}>
+                      <Typography variant="caption" sx={{ color: "#94A3B8", textTransform: "uppercase", fontWeight: "bold", letterSpacing: 1.5, fontSize: "0.7rem" }}>
                         InActive Statuses
                       </Typography>
-                      <Typography variant="h3" sx={{ fontWeight: "bold", mt: 1, color: "error.main" }}>
+                      <Typography variant="h3" sx={{ fontWeight: "bold", mt: 1.5, color: "#F44336" }}>
                         {loading ? <CircularProgress size={30} color="inherit" /> : inactiveUsersCount}
                       </Typography>
                     </CardContent>
@@ -358,43 +346,43 @@ const inactiveUsersCount = users.filter((u) => u.status === "Inactive").length;
 
               {/* Recent Users List */}
               <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2 }}>
-                <Typography variant="h5" sx={{ fontWeight: "bold" }}>
+                <Typography variant="h5" sx={{ fontWeight: "bold", color: "#1E293B" }}>
                   Registered Users
                 </Typography>
-                <Button color="primary" onClick={() => setCurrentTab("users")} sx={{ textTransform: "none", fontWeight: "bold" }}>
+                <Button onClick={() => setCurrentTab("users")} sx={{ textTransform: "none", fontWeight: "bold", color: "#F97316", "&:hover": { bgcolor: "transparent", textDecoration: "underline" } }}>
                   View All Users →
                 </Button>
               </Box>
 
-              <TableContainer component={Paper} sx={{ borderRadius: 4, border: "1px solid rgba(255,255,255,0.05)", height: "100%", display: "flex", flexDirection: "column" }}>
+              <TableContainer component={Paper} sx={{ borderRadius: 4, border: "1px solid #FFF0E6", boxShadow: "0 4px 20px rgba(0,0,0,0.03)", bgcolor: "#FFFFFF", height: "100%", display: "flex", flexDirection: "column" }}>
                 {loading ? (
                   <Box sx={{ p: 4, display: "flex", justifyContent: "center" }}>
                     <CircularProgress />
                   </Box>
                 ) : users.length === 0 ? (
-                  <Typography sx={{ p: 4, color: "text.secondary", textAlign: "center" }}>No registered users found.</Typography>
+                  <Typography sx={{ p: 4, color: "#94A3B8", textAlign: "center" }}>No registered users found.</Typography>
                 ) : (
                   <Table>
-                    <TableHead sx={{ bgcolor: "#282828" }}>
-                      <TableRow>
-                        <TableCell sx={{ fontWeight: "bold" }}>Username</TableCell>
-                        <TableCell sx={{ fontWeight: "bold" }}>Email</TableCell>
-                        <TableCell sx={{ fontWeight: "bold" }}>Role</TableCell>
-                        <TableCell sx={{ fontWeight: "bold" }}>Status</TableCell>
+                    <TableHead>
+                      <TableRow sx={{ bgcolor: "#FFF8F5" }}>
+                        <TableCell sx={{ fontWeight: "bold", color: "#64748B", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: 1 }}>Username</TableCell>
+                        <TableCell sx={{ fontWeight: "bold", color: "#64748B", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: 1 }}>Email</TableCell>
+                        <TableCell sx={{ fontWeight: "bold", color: "#64748B", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: 1 }}>Role</TableCell>
+                        <TableCell sx={{ fontWeight: "bold", color: "#64748B", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: 1 }}>Status</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
                       {users.slice(0, 5).map((user) => (
-                        <TableRow key={user.user_id} hover>
-                          <TableCell sx={{ fontWeight: "600" }}>{user.username}</TableCell>
-                          <TableCell sx={{ color: "text.secondary" }}>{user.email}</TableCell>
+                        <TableRow key={user.user_id} hover sx={{ "&:hover": { bgcolor: "#FFF8F5 !important" } }}>
+                          <TableCell sx={{ fontWeight: "600", color: "#1E293B" }}>{user.username}</TableCell>
+                          <TableCell sx={{ color: "#94A3B8" }}>{user.email}</TableCell>
                           <TableCell>
-                            <Box sx={{ display: "inline-block", px: 1.5, py: 0.5, borderRadius: 3, bgcolor: "rgba(0,0,0,0.05)", border: "1px solid rgba(0,0,0,0.1)", fontSize: "0.75rem", fontWeight: "medium" }}>
+                            <Box sx={{ display: "inline-block", px: 1.5, py: 0.5, borderRadius: 3, bgcolor: "#F8FAFC", border: "1px solid #E2E8F0", fontSize: "0.75rem", fontWeight: "medium", color: "#64748B" }}>
                               {user.role_name}
                             </Box>
                           </TableCell>
                           <TableCell>
-                            <Box sx={{ display: "inline-block", px: 1.5, py: 0.5, borderRadius: 3, bgcolor: user.status === "Active" ? "rgba(46, 125, 50, 0.1)" : "rgba(211, 47, 47, 0.1)", border: user.status === "Active" ? "1px solid rgba(46, 125, 50, 0.2)" : "1px solid rgba(211, 47, 47, 0.2)", color: user.status === "Active" ? "primary.main" : "error.main", fontSize: "0.75rem", fontWeight: "bold" }}>
+                            <Box sx={{ display: "inline-block", px: 1.5, py: 0.5, borderRadius: 3, bgcolor: user.status === "Active" ? "#ECFDF5" : "#FEF2F2", border: user.status === "Active" ? "1px solid #A7F3D0" : "1px solid #FECACA", color: user.status === "Active" ? "#059669" : "#DC2626", fontSize: "0.75rem", fontWeight: "bold" }}>
                               {user.status || "Active"}
                             </Box>
                           </TableCell>
@@ -412,15 +400,15 @@ const inactiveUsersCount = users.filter((u) => u.status === "Inactive").length;
             <Box>
               {/* Search and Filters */}
               <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mb: 3 }}>
-                <Box sx={{ flexGrow: 1, display: "flex", alignItems: "center", bgcolor: "background.paper", borderRadius: 3, px: 2, border: "1px solid rgba(255,255,255,0.08)" }}>
-                  <SearchIcon sx={{ color: "text.secondary", mr: 1.5 }} />
+                <Box sx={{ flexGrow: 1, display: "flex", alignItems: "center", bgcolor: "#FFFFFF", borderRadius: 3, px: 2, border: "1px solid #FFF0E6", boxShadow: "0 2px 10px rgba(0,0,0,0.02)" }}>
+                  <SearchIcon sx={{ color: "#94A3B8", mr: 1.5 }} />
                   <TextField
                     variant="standard"
                     placeholder="Search by username or email..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     fullWidth
-                    InputProps={{ disableUnderline: true }}
+                    slotProps={{ input: { disableUnderline: true } }}
                     sx={{ py: 1 }}
                   />
                 </Box>
@@ -459,36 +447,36 @@ const inactiveUsersCount = users.filter((u) => u.status === "Inactive").length;
               </Box>
 
               {/* Table */}
-              <TableContainer component={Paper} sx={{ borderRadius: 4, border: "1px solid rgba(255,255,255,0.05)", height: "100%", display: "flex", flexDirection: "column" }}>
+              <TableContainer component={Paper} sx={{ borderRadius: 4, border: "1px solid #FFF0E6", boxShadow: "0 4px 20px rgba(0,0,0,0.03)", bgcolor: "#FFFFFF", height: "100%", display: "flex", flexDirection: "column" }}>
                 {loading ? (
                   <Box sx={{ p: 6, display: "flex", justifyContent: "center" }}>
                     <CircularProgress />
                   </Box>
                 ) : filteredUsers.length === 0 ? (
-                  <Typography sx={{ p: 6, color: "text.secondary", textAlign: "center" }}>No users match your criteria.</Typography>
+                  <Typography sx={{ p: 6, color: "#94A3B8", textAlign: "center" }}>No users match your criteria.</Typography>
                 ) : (
                   <Table>
-                    <TableHead sx={{ bgcolor: "#282828" }}>
-                      <TableRow>
-                        <TableCell sx={{ fontWeight: "bold" }}>Username</TableCell>
-                        <TableCell sx={{ fontWeight: "bold" }}>Email</TableCell>
-                        <TableCell sx={{ fontWeight: "bold" }}>Role</TableCell>
-                        <TableCell sx={{ fontWeight: "bold" }}>Status</TableCell>
-                        <TableCell sx={{ fontWeight: "bold", textAlign: "center" }}>Actions</TableCell>
+                    <TableHead>
+                      <TableRow sx={{ bgcolor: "#FFF8F5" }}>
+                        <TableCell sx={{ fontWeight: "bold", color: "#64748B", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: 1 }}>Username</TableCell>
+                        <TableCell sx={{ fontWeight: "bold", color: "#64748B", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: 1 }}>Email</TableCell>
+                        <TableCell sx={{ fontWeight: "bold", color: "#64748B", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: 1 }}>Role</TableCell>
+                        <TableCell sx={{ fontWeight: "bold", color: "#64748B", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: 1 }}>Status</TableCell>
+                        <TableCell sx={{ fontWeight: "bold", color: "#64748B", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: 1, textAlign: "center" }}>Actions</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
                       {filteredUsers.map((user) => (
-                        <TableRow key={user.user_id} hover>
-                          <TableCell sx={{ fontWeight: "600" }}>{user.username}</TableCell>
-                          <TableCell sx={{ color: "text.secondary" }}>{user.email}</TableCell>
+                        <TableRow key={user.user_id} hover sx={{ "&:hover": { bgcolor: "#FFF8F5 !important" } }}>
+                          <TableCell sx={{ fontWeight: "600", color: "#1E293B" }}>{user.username}</TableCell>
+                          <TableCell sx={{ color: "#94A3B8" }}>{user.email}</TableCell>
                           <TableCell>
-                            <Box sx={{ display: "inline-block", px: 1.5, py: 0.5, borderRadius: 3, bgcolor: "rgba(0,0,0,0.05)", border: "1px solid rgba(0,0,0,0.1)", fontSize: "0.75rem", fontWeight: "medium" }}>
+                            <Box sx={{ display: "inline-block", px: 1.5, py: 0.5, borderRadius: 3, bgcolor: "#F8FAFC", border: "1px solid #E2E8F0", fontSize: "0.75rem", fontWeight: "medium", color: "#64748B" }}>
                               {user.role_name}
                             </Box>
                           </TableCell>
                           <TableCell>
-                            <Box sx={{ display: "inline-block", px: 1.5, py: 0.5, borderRadius: 3, bgcolor: user.status === "Active" ? "rgba(46, 125, 50, 0.1)" : "rgba(211, 47, 47, 0.1)", border: user.status === "Active" ? "1px solid rgba(46, 125, 50, 0.2)" : "1px solid rgba(211, 47, 47, 0.2)", color: user.status === "Active" ? "primary.main" : "error.main", fontSize: "0.75rem", fontWeight: "bold" }}>
+                            <Box sx={{ display: "inline-block", px: 1.5, py: 0.5, borderRadius: 3, bgcolor: user.status === "Active" ? "#ECFDF5" : "#FEF2F2", border: user.status === "Active" ? "1px solid #A7F3D0" : "1px solid #FECACA", color: user.status === "Active" ? "#059669" : "#DC2626", fontSize: "0.75rem", fontWeight: "bold" }}>
                               {user.status || "Active"}
                             </Box>
                           </TableCell>
@@ -496,11 +484,10 @@ const inactiveUsersCount = users.filter((u) => u.status === "Inactive").length;
                             <Box sx={{ display: "flex", justifyContent: "center", gap: 1 }}>
                               <Button
                                 variant="outlined"
-                                color="inherit"
                                 size="small"
                                 startIcon={<InfoIcon />}
                                 onClick={() => setSelectedUser(user)}
-                                sx={{ textTransform: "none", borderRadius: 2, borderColor: "rgba(255,255,255,0.2)" }}
+                                sx={{ textTransform: "none", borderRadius: 2, borderColor: "#E2E8F0", color: "#64748B", "&:hover": { borderColor: "#F97316", color: "#F97316", bgcolor: "#FFF5F0" } }}
                               >
                                 Details
                               </Button>
@@ -531,51 +518,51 @@ const inactiveUsersCount = users.filter((u) => u.status === "Inactive").length;
         open={Boolean(selectedUser)}
         onClose={() => setSelectedUser(null)}
         PaperProps={{
-          sx: { borderRadius: 4, bgcolor: "background.paper", border: "1px solid rgba(255,255,255,0.08)", minWidth: 400 },
+          sx: { borderRadius: 4, bgcolor: "#FFFFFF", border: "1px solid #FFF0E6", minWidth: 400 },
         }}
       >
         {selectedUser && (
           <>
-            <DialogTitle sx={{ m: 0, p: 3, fontWeight: "bold", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+            <DialogTitle sx={{ m: 0, p: 3, fontWeight: "bold", borderBottom: "1px solid #F1F5F9", color: "#1E293B" }}>
               User Metadata Details
               <IconButton
                 onClick={() => setSelectedUser(null)}
-                sx={{ position: "absolute", right: 16, top: 16, color: "text.secondary" }}
+                sx={{ position: "absolute", right: 16, top: 16, color: "#94A3B8" }}
               >
                 <CloseIcon />
               </IconButton>
             </DialogTitle>
             <DialogContent sx={{ p: 3, display: "flex", flexDirection: "column", gap: 2 }}>
-              <Box sx={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.04)", pb: 1 }}>
-                <Typography sx={{ color: "text.secondary" }}>User ID</Typography>
-                <Typography sx={{ fontWeight: "bold" }}>{selectedUser.user_id}</Typography>
+              <Box sx={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid #F1F5F9", pb: 1 }}>
+                <Typography sx={{ color: "#94A3B8" }}>User ID</Typography>
+                <Typography sx={{ fontWeight: "bold", color: "#1E293B" }}>{selectedUser.user_id}</Typography>
               </Box>
 
-              <Box sx={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.04)", pb: 1 }}>
-                <Typography sx={{ color: "text.secondary" }}>Username</Typography>
-                <Typography sx={{ fontWeight: "bold" }}>{selectedUser.username || "N/A"}</Typography>
+              <Box sx={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid #F1F5F9", pb: 1 }}>
+                <Typography sx={{ color: "#94A3B8" }}>Username</Typography>
+                <Typography sx={{ fontWeight: "bold", color: "#1E293B" }}>{selectedUser.username || "N/A"}</Typography>
               </Box>
 
-              <Box sx={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.04)", pb: 1 }}>
-                <Typography sx={{ color: "text.secondary" }}>Email Address</Typography>
-                <Typography sx={{ fontWeight: "bold" }}>{selectedUser.email}</Typography>
+              <Box sx={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid #F1F5F9", pb: 1 }}>
+                <Typography sx={{ color: "#94A3B8" }}>Email Address</Typography>
+                <Typography sx={{ fontWeight: "bold", color: "#1E293B" }}>{selectedUser.email}</Typography>
               </Box>
 
-              <Box sx={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.04)", pb: 1 }}>
-                <Typography sx={{ color: "text.secondary" }}>System Role</Typography>
-                <Typography sx={{ fontWeight: "bold", color: "primary.main" }}>{selectedUser.role_name}</Typography>
+              <Box sx={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid #F1F5F9", pb: 1 }}>
+                <Typography sx={{ color: "#94A3B8" }}>System Role</Typography>
+                <Typography sx={{ fontWeight: "bold", color: "#F97316" }}>{selectedUser.role_name}</Typography>
               </Box>
 
-              <Box sx={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.04)", pb: 1 }}>
-                <Typography sx={{ color: "text.secondary" }}>Status</Typography>
-                <Typography sx={{ fontWeight: "bold", color: selectedUser.status === "Inactive" ? "error.main" : "primary.main" }}>
+              <Box sx={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid #F1F5F9", pb: 1 }}>
+                <Typography sx={{ color: "#94A3B8" }}>Status</Typography>
+                <Typography sx={{ fontWeight: "bold", color: selectedUser.status === "Inactive" ? "#DC2626" : "#059669" }}>
                   {selectedUser.status || "Active"}
                 </Typography>
               </Box>
 
-              <Box sx={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.04)", pb: 1 }}>
-                <Typography sx={{ color: "text.secondary" }}>Joined Date</Typography>
-                <Typography sx={{ fontWeight: "bold" }}>
+              <Box sx={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid #F1F5F9", pb: 1 }}>
+                <Typography sx={{ color: "#94A3B8" }}>Joined Date</Typography>
+                <Typography sx={{ fontWeight: "bold", color: "#1E293B" }}>
                   {selectedUser.created_at
                     ? new Date(selectedUser.created_at).toLocaleDateString("en-US", {
                         year: "numeric",
@@ -587,11 +574,11 @@ const inactiveUsersCount = users.filter((u) => u.status === "Inactive").length;
               </Box>
 
               <Box sx={{ display: "flex", justifyContent: "space-between", pb: 1 }}>
-                <Typography sx={{ color: "text.secondary" }}>Home Address</Typography>
-                <Typography sx={{ fontWeight: "bold" }}>{selectedUser.address || "Not Provided"}</Typography>
+                <Typography sx={{ color: "#94A3B8" }}>Home Address</Typography>
+                <Typography sx={{ fontWeight: "bold", color: "#1E293B" }}>{selectedUser.address || "Not Provided"}</Typography>
               </Box>
             </DialogContent>
-            <DialogActions sx={{ p: 3, borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+            <DialogActions sx={{ p: 3, borderTop: "1px solid #F1F5F9" }}>
               <Button
                 variant="contained"
                 fullWidth
@@ -615,7 +602,7 @@ const inactiveUsersCount = users.filter((u) => u.status === "Inactive").length;
         <Alert
           onClose={() => setToast({ ...toast, open: false })}
           severity={toast.severity}
-          sx={{ width: "100%", borderRadius: 3 }}
+          sx={{ width: "100%", borderRadius: 3, boxShadow: "0 4px 20px rgba(0,0,0,0.1)" }}
         >
           {toast.message}
         </Alert>

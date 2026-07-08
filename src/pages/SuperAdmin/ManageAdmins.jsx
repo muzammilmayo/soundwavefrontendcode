@@ -54,19 +54,19 @@ import { UserCheck, UserMinus } from "lucide-react";
 import api from "../../api";
 import authService from "../../services/authService";
 
-const darkTheme = createTheme({
+const lightTheme = createTheme({
   palette: {
-    mode: "dark",
+    mode: "light",
     primary: {
-      main: "#1db954",
+      main: "#F97316",
     },
     background: {
-      default: "#121212",
-      paper: "#1c1c1c",
+      default: "#FFF5F0",
+      paper: "#FFFFFF",
     },
     text: {
-      primary: "#ffffff",
-      secondary: "#b3b3b3",
+      primary: "#1E293B",
+      secondary: "#94A3B8",
     },
   },
   typography: {
@@ -86,18 +86,15 @@ export default function ManageAdmins() {
 
   const [selectedUser, setSelectedUser] = useState(null);
 
-  // Toast notification state
   const [toast, setToast] = useState({ open: false, message: "", severity: "success" });
   const showToast = (message, severity = "success") => {
     setToast({ open: true, message, severity });
   };
 
-  // Create Admin dialog state
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [createForm, setCreateForm] = useState({ username: "", email: "", password: "" });
   const [createLoading, setCreateLoading] = useState(false);
 
-  // Generate a strong random password
   const generatePassword = () => {
     const upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
     const lower = "abcdefghijklmnopqrstuvwxyz";
@@ -105,16 +102,13 @@ export default function ManageAdmins() {
     const special = "!@#$%^&*()_+-=[]{}|;:,.<>?";
     const all = upper + lower + digits + special;
     let pwd = "";
-    // Guarantee at least one of each type
     pwd += upper[Math.floor(Math.random() * upper.length)];
     pwd += lower[Math.floor(Math.random() * lower.length)];
     pwd += digits[Math.floor(Math.random() * digits.length)];
     pwd += special[Math.floor(Math.random() * special.length)];
-    // Fill remaining characters
     for (let i = 4; i < 16; i++) {
       pwd += all[Math.floor(Math.random() * all.length)];
     }
-    // Shuffle the result
     pwd = pwd.split("").sort(() => Math.random() - 0.5).join("");
     return pwd;
   };
@@ -234,48 +228,36 @@ export default function ManageAdmins() {
   });
 
   return (
-    <ThemeProvider theme={darkTheme}>
+    <ThemeProvider theme={lightTheme}>
       <CssBaseline />
-      <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "background.default" }}>
+      <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "#FFF5F0" }}>
 
         {/* Sidebar */}
-        <Box sx={{ width: 260, bgcolor: "black", p: 3, display: "flex", flexDirection: "column" }}>
-          <Typography
-            variant="h4"
-            sx={{
-              fontWeight: "bold",
-              color: "primary.main",
-              mb: 5,
-              cursor: "pointer",
-              letterSpacing: -1,
-            }}
-            onClick={() => navigate("/SuperAdmin/dashboard")}
-          >
-            SoundWave
-          </Typography>
+        <Box sx={{ width: 260, bgcolor: "#FFFFFF", p: 3, display: "flex", flexDirection: "column", boxShadow: "0 0 20px rgba(0,0,0,0.03)" }}>
+        
 
           <List sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
             <ListItem disablePadding>
               <ListItemButton
                 onClick={() => navigate("/SuperAdmin/dashboard", { state: { tab: "dashboard" } })}
-                sx={{ borderRadius: 2 }}
+                sx={{ borderRadius: 3, py: 1.2, px: 2, color: "#64748B", "&:hover": { bgcolor: "#FFF5F0" } }}
               >
-                <ListItemIcon sx={{ color: "text.secondary" }}>
-                  <HomeIcon />
+                <ListItemIcon sx={{ minWidth: 36, color: "#94A3B8" }}>
+                  <HomeIcon sx={{ fontSize: 20 }} />
                 </ListItemIcon>
-                <ListItemText primary="Dashboard" />
+                <ListItemText primary="Dashboard" primaryTypographyProps={{ fontWeight: 500 }} />
               </ListItemButton>
             </ListItem>
 
             <ListItem disablePadding>
               <ListItemButton
                 onClick={() => navigate("/SuperAdmin/dashboard", { state: { tab: "users" } })}
-                sx={{ borderRadius: 2 }}
+                sx={{ borderRadius: 3, py: 1.2, px: 2, color: "#64748B", "&:hover": { bgcolor: "#FFF5F0" } }}
               >
-                <ListItemIcon sx={{ color: "text.secondary" }}>
-                  <PeopleIcon />
+                <ListItemIcon sx={{ minWidth: 36, color: "#94A3B8" }}>
+                  <PeopleIcon sx={{ fontSize: 20 }} />
                 </ListItemIcon>
-                <ListItemText primary="Manage Users" />
+                <ListItemText primary="Manage Users" primaryTypographyProps={{ fontWeight: 500 }} />
               </ListItemButton>
             </ListItem>
 
@@ -284,123 +266,126 @@ export default function ManageAdmins() {
                 onClick={() => navigate("/SuperAdmin/admins")}
                 selected
                 sx={{
-                  borderRadius: 2,
-                  "&.Mui-selected": { bgcolor: "rgba(29, 185, 84, 0.15)", color: "primary.main" },
+                  borderRadius: 3,
+                  py: 1.2,
+                  px: 2,
+                  bgcolor: "#FFF5F0",
+                  color: "#F97316",
+                  "&.Mui-selected": { bgcolor: "#FFF5F0", color: "#F97316" },
+                  "&:hover": { bgcolor: "#FFF5F0" },
                 }}
               >
-                <ListItemIcon sx={{ color: "primary.main" }}>
-                  <ShieldIcon />
+                <ListItemIcon sx={{ minWidth: 36, color: "#F97316" }}>
+                  <ShieldIcon sx={{ fontSize: 20 }} />
                 </ListItemIcon>
-                <ListItemText primary="Manage Admins" />
+                <ListItemText primary="Manage Admins" primaryTypographyProps={{ fontWeight: "bold" }} />
               </ListItemButton>
             </ListItem>
 
-            <Divider sx={{ my: 2, borderColor: "rgba(255,255,255,0.08)" }} />
-            <Typography variant="caption" sx={{ px: 2, color: "text.secondary", fontWeight: "bold", textTransform: "uppercase" }}>
+            <Divider sx={{ my: 2, borderColor: "rgba(0,0,0,0.06)" }} />
+            <Typography variant="caption" sx={{ px: 2, color: "#94A3B8", fontWeight: "bold", textTransform: "uppercase", letterSpacing: 1 }}>
               System Mocks
             </Typography>
 
             <ListItem disablePadding sx={{ opacity: 0.4 }}>
-              <ListItemButton disabled>
-                <ListItemIcon>
-                  <MusicNoteIcon />
+              <ListItemButton disabled sx={{ borderRadius: 3, py: 1.2, px: 2, color: "#64748B" }}>
+                <ListItemIcon sx={{ minWidth: 36, color: "#94A3B8" }}>
+                  <MusicNoteIcon sx={{ fontSize: 20 }} />
                 </ListItemIcon>
-                <ListItemText primary="Manage Songs" />
+                <ListItemText primary="Manage Songs" primaryTypographyProps={{ fontWeight: 500 }} />
               </ListItemButton>
             </ListItem>
 
             <ListItem disablePadding sx={{ opacity: 0.4 }}>
-              <ListItemButton disabled>
-                <ListItemIcon>
-                  <MicIcon />
+              <ListItemButton disabled sx={{ borderRadius: 3, py: 1.2, px: 2, color: "#64748B" }}>
+                <ListItemIcon sx={{ minWidth: 36, color: "#94A3B8" }}>
+                  <MicIcon sx={{ fontSize: 20 }} />
                 </ListItemIcon>
-                <ListItemText primary="Manage Artists" />
+                <ListItemText primary="Manage Artists" primaryTypographyProps={{ fontWeight: 500 }} />
               </ListItemButton>
             </ListItem>
 
             <ListItem disablePadding sx={{ opacity: 0.4 }}>
-              <ListItemButton disabled>
-                <ListItemIcon>
-                  <AssessmentIcon />
+              <ListItemButton disabled sx={{ borderRadius: 3, py: 1.2, px: 2, color: "#64748B" }}>
+                <ListItemIcon sx={{ minWidth: 36, color: "#94A3B8" }}>
+                  <AssessmentIcon sx={{ fontSize: 20 }} />
                 </ListItemIcon>
-                <ListItemText primary="Reports" />
+                <ListItemText primary="Reports" primaryTypographyProps={{ fontWeight: 500 }} />
               </ListItemButton>
             </ListItem>
 
-            <Divider sx={{ my: 2, borderColor: "rgba(255,255,255,0.08)" }} />
-            <Typography variant="caption" sx={{ px: 2, color: "text.secondary", fontWeight: "bold", textTransform: "uppercase" }}>
+            <Divider sx={{ my: 2, borderColor: "rgba(0,0,0,0.06)" }} />
+            <Typography variant="caption" sx={{ px: 2, color: "#94A3B8", fontWeight: "bold", textTransform: "uppercase", letterSpacing: 1 }}>
               Account
             </Typography>
 
             <ListItem disablePadding>
-              <ListItemButton onClick={() => navigate("/profile")} sx={{ borderRadius: 2 }}>
-                <ListItemIcon sx={{ color: "text.secondary" }}>
-                  <PersonIcon />
+              <ListItemButton onClick={() => navigate("/profile")} sx={{ borderRadius: 3, py: 1.2, px: 2, color: "#64748B", "&:hover": { bgcolor: "#FFF5F0" } }}>
+                <ListItemIcon sx={{ minWidth: 36, color: "#94A3B8" }}>
+                  <PersonIcon sx={{ fontSize: 20 }} />
                 </ListItemIcon>
-                <ListItemText primary="Profile" />
+                <ListItemText primary="Profile" primaryTypographyProps={{ fontWeight: 500 }} />
               </ListItemButton>
             </ListItem>
 
             <ListItem disablePadding>
-              <ListItemButton onClick={handleLogout} sx={{ borderRadius: 2 }}>
-                <ListItemIcon sx={{ color: "error.main" }}>
-                  <ExitToAppIcon />
+              <ListItemButton onClick={handleLogout} sx={{ borderRadius: 3, py: 1.2, px: 2, color: "#EF4444", "&:hover": { bgcolor: "#FEF2F2" } }}>
+                <ListItemIcon sx={{ minWidth: 36, color: "#EF4444" }}>
+                  <ExitToAppIcon sx={{ fontSize: 20 }} />
                 </ListItemIcon>
-                <ListItemText primary="Logout" sx={{ color: "error.main" }} />
+                <ListItemText primary="Logout" primaryTypographyProps={{ fontWeight: 500 }} />
               </ListItemButton>
             </ListItem>
           </List>
         </Box>
 
         {/* Main Content Area */}
-        <Box sx={{ flexGrow: 1, p: 4, overflowY: "auto" }}>
+        <Box sx={{ flexGrow: 1, p: 5, overflowY: "auto" }}>
           {/* Header */}
-          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 4, pb: 3, borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
-            <Box>
-              <Typography variant="h4" sx={{ fontWeight: "bold" }}>
-                Manage Admins 🛡️
-              </Typography>
-              <Typography variant="body2" sx={{ color: "text.secondary", mt: 0.5 }}>
-                Promote users to Admin, demote Admins, and manage Admin account status.
-              </Typography>
-            </Box>
-            <Box sx={{ display: "flex", gap: 2 }}>
-              <Button
-                variant="contained"
-                color="primary"
-                startIcon={<PersonAddIcon />}
-                onClick={openCreateDialog}
-                sx={{ borderRadius: 3, textTransform: "none", fontWeight: "bold" }}
-              >
-                Create Admin
-              </Button>
-              <Button
-                variant="outlined"
-                color="inherit"
-                startIcon={<RefreshIcon />}
-                onClick={fetchUsers}
-                sx={{ borderRadius: 3, textTransform: "none", borderColor: "rgba(255,255,255,0.2)" }}
-              >
-                Sync Data
-              </Button>
+          <Box sx={{ mb: 4, pb: 3 }}>
+            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <Box>
+                <Typography variant="h3" sx={{ fontWeight: "bold", color: "#1E293B" }}>
+                  Manage Admins 
+                </Typography>
+                <Typography variant="body1" sx={{ color: "#94A3B8", mt: 0.5 }}>
+                  Create Admin and  demote Admins
+                </Typography>
+              </Box>
+              <Box sx={{ display: "flex", gap: 2 }}>
+                <Button
+                  variant="contained"
+                  startIcon={<PersonAddIcon />}
+                  onClick={openCreateDialog}
+                  sx={{ borderRadius: 3, textTransform: "none", fontWeight: "bold", bgcolor: "#F97316", boxShadow: "0 4px 15px rgba(249,115,22,0.3)", "&:hover": { bgcolor: "#EA580C" } }}
+                >
+                  Create Admin
+                </Button>
+                <Button
+                  variant="outlined"
+                  startIcon={<RefreshIcon />}
+                  onClick={fetchUsers}
+                  sx={{ borderRadius: 3, textTransform: "none", fontWeight: "bold", borderColor: "#E2E8F0", color: "#64748B", "&:hover": { borderColor: "#F97316", color: "#F97316", bgcolor: "#FFF5F0" } }}
+                >
+                  Sync Data
+                </Button>
+              </Box>
             </Box>
           </Box>
 
           {error && (
-            <Alert severity="error" sx={{ mb: 3, borderRadius: 3 }}>
+            <Alert severity="error" sx={{ mb: 3, borderRadius: 3, bgcolor: "#FEF2F2", color: "#DC2626", border: "1px solid #FECACA" }}>
               {error}
             </Alert>
           )}
 
-      
-
           {/* List of Admins */}
           <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
-            <Typography variant="h5" sx={{ fontWeight: "bold" }}>
+            <Typography variant="h5" sx={{ fontWeight: "bold", color: "#1E293B" }}>
               System Admins
             </Typography>
-            <Box sx={{ display: "flex", alignItems: "center", bgcolor: "background.paper", borderRadius: 3, px: 2, border: "1px solid rgba(255,255,255,0.08)", width: 260 }}>
-              <SearchIcon sx={{ color: "text.secondary", mr: 1, fontSize: 18 }} />
+            <Box sx={{ display: "flex", alignItems: "center", bgcolor: "#FFFFFF", borderRadius: 3, px: 2, border: "1px solid #FFF0E6", boxShadow: "0 2px 10px rgba(0,0,0,0.02)", width: 260 }}>
+              <SearchIcon sx={{ color: "#94A3B8", mr: 1, fontSize: 18 }} />
               <TextField
                 variant="standard"
                 placeholder="Filter Admins list..."
@@ -412,30 +397,30 @@ export default function ManageAdmins() {
             </Box>
           </Box>
 
-          <TableContainer component={Paper} sx={{ borderRadius: 4, border: "1px solid rgba(255,255,255,0.05)" }}>
+          <TableContainer component={Paper} sx={{ borderRadius: 4, border: "1px solid #FFF0E6", boxShadow: "0 4px 20px rgba(0,0,0,0.03)", bgcolor: "#FFFFFF" }}>
             {loading ? (
               <Box sx={{ p: 6, display: "flex", justifyContent: "center" }}>
                 <CircularProgress />
               </Box>
             ) : adminsList.length === 0 ? (
-              <Typography sx={{ p: 6, color: "text.secondary", textAlign: "center" }}>No Admins match filter.</Typography>
+              <Typography sx={{ p: 6, color: "#94A3B8", textAlign: "center" }}>No Admins match filter.</Typography>
             ) : (
               <Table>
-                <TableHead sx={{ bgcolor: "#282828" }}>
-                  <TableRow>
-                    <TableCell sx={{ fontWeight: "bold" }}>Username</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>Email</TableCell>
-                    <TableCell sx={{ fontWeight: "bold" }}>Status</TableCell>
-                    <TableCell sx={{ fontWeight: "bold", textAlign: "center" }}>Actions</TableCell>
+                <TableHead>
+                  <TableRow sx={{ bgcolor: "#FFF8F5" }}>
+                    <TableCell sx={{ fontWeight: "bold", color: "#64748B", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: 1 }}>Username</TableCell>
+                    <TableCell sx={{ fontWeight: "bold", color: "#64748B", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: 1 }}>Email</TableCell>
+                    <TableCell sx={{ fontWeight: "bold", color: "#64748B", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: 1 }}>Status</TableCell>
+                    <TableCell sx={{ fontWeight: "bold", color: "#64748B", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: 1, textAlign: "center" }}>Actions</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
                   {adminsList.map((user) => (
-                    <TableRow key={user.user_id} hover>
-                      <TableCell sx={{ fontWeight: "600" }}>{user.username}</TableCell>
-                      <TableCell sx={{ color: "text.secondary" }}>{user.email}</TableCell>
+                    <TableRow key={user.user_id} hover sx={{ "&:hover": { bgcolor: "#FFF8F5 !important" } }}>
+                      <TableCell sx={{ fontWeight: "600", color: "#1E293B" }}>{user.username}</TableCell>
+                      <TableCell sx={{ color: "#94A3B8" }}>{user.email}</TableCell>
                       <TableCell>
-                        <Box sx={{ display: "inline-block", px: 1.5, py: 0.5, borderRadius: 3, bgcolor: user.status === "Active" ? "rgba(46, 125, 50, 0.1)" : "rgba(211, 47, 47, 0.1)", border: user.status === "Active" ? "1px solid rgba(46, 125, 50, 0.2)" : "1px solid rgba(211, 47, 47, 0.2)", color: user.status === "Active" ? "primary.main" : "error.main", fontSize: "0.75rem", fontWeight: "bold" }}>
+                        <Box sx={{ display: "inline-block", px: 1.5, py: 0.5, borderRadius: 3, bgcolor: user.status === "Active" ? "#ECFDF5" : "#FEF2F2", border: user.status === "Active" ? "1px solid #A7F3D0" : "1px solid #FECACA", color: user.status === "Active" ? "#059669" : "#DC2626", fontSize: "0.75rem", fontWeight: "bold" }}>
                           {user.status || "Active"}
                         </Box>
                       </TableCell>
@@ -443,11 +428,10 @@ export default function ManageAdmins() {
                         <Box sx={{ display: "flex", justifyContent: "center", gap: 1 }}>
                           <Button
                             variant="outlined"
-                            color="inherit"
                             size="small"
                             startIcon={<InfoIcon />}
                             onClick={() => setSelectedUser(user)}
-                            sx={{ textTransform: "none", borderRadius: 2, borderColor: "rgba(255,255,255,0.2)" }}
+                            sx={{ textTransform: "none", borderRadius: 2, borderColor: "#E2E8F0", color: "#64748B", "&:hover": { borderColor: "#F97316", color: "#F97316", bgcolor: "#FFF5F0" } }}
                           >
                             Details
                           </Button>
@@ -486,51 +470,51 @@ export default function ManageAdmins() {
         open={Boolean(selectedUser)}
         onClose={() => setSelectedUser(null)}
         PaperProps={{
-          sx: { borderRadius: 4, bgcolor: "background.paper", border: "1px solid rgba(255,255,255,0.08)", minWidth: 400 },
+          sx: { borderRadius: 4, bgcolor: "#FFFFFF", border: "1px solid #FFF0E6", minWidth: 400 },
         }}
       >
         {selectedUser && (
           <>
-            <DialogTitle sx={{ m: 0, p: 3, fontWeight: "bold", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+            <DialogTitle sx={{ m: 0, p: 3, fontWeight: "bold", borderBottom: "1px solid #F1F5F9", color: "#1E293B" }}>
               Admin Metadata Details
               <IconButton
                 onClick={() => setSelectedUser(null)}
-                sx={{ position: "absolute", right: 16, top: 16, color: "text.secondary" }}
+                sx={{ position: "absolute", right: 16, top: 16, color: "#94A3B8" }}
               >
                 <CloseIcon />
               </IconButton>
             </DialogTitle>
             <DialogContent sx={{ p: 3, display: "flex", flexDirection: "column", gap: 2 }}>
-              <Box sx={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.04)", pb: 1 }}>
-                <Typography sx={{ color: "text.secondary" }}>User ID</Typography>
-                <Typography sx={{ fontWeight: "bold" }}>{selectedUser.user_id}</Typography>
+              <Box sx={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid #F1F5F9", pb: 1 }}>
+                <Typography sx={{ color: "#94A3B8" }}>User ID</Typography>
+                <Typography sx={{ fontWeight: "bold", color: "#1E293B" }}>{selectedUser.user_id}</Typography>
               </Box>
 
-              <Box sx={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.04)", pb: 1 }}>
-                <Typography sx={{ color: "text.secondary" }}>Username</Typography>
-                <Typography sx={{ fontWeight: "bold" }}>{selectedUser.username || "N/A"}</Typography>
+              <Box sx={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid #F1F5F9", pb: 1 }}>
+                <Typography sx={{ color: "#94A3B8" }}>Username</Typography>
+                <Typography sx={{ fontWeight: "bold", color: "#1E293B" }}>{selectedUser.username || "N/A"}</Typography>
               </Box>
 
-              <Box sx={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.04)", pb: 1 }}>
-                <Typography sx={{ color: "text.secondary" }}>Email Address</Typography>
-                <Typography sx={{ fontWeight: "bold" }}>{selectedUser.email}</Typography>
+              <Box sx={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid #F1F5F9", pb: 1 }}>
+                <Typography sx={{ color: "#94A3B8" }}>Email Address</Typography>
+                <Typography sx={{ fontWeight: "bold", color: "#1E293B" }}>{selectedUser.email}</Typography>
               </Box>
 
-              <Box sx={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.04)", pb: 1 }}>
-                <Typography sx={{ color: "text.secondary" }}>System Role</Typography>
-                <Typography sx={{ fontWeight: "bold", color: "primary.main" }}>{selectedUser.role_name}</Typography>
+              <Box sx={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid #F1F5F9", pb: 1 }}>
+                <Typography sx={{ color: "#94A3B8" }}>System Role</Typography>
+                <Typography sx={{ fontWeight: "bold", color: "#F97316" }}>{selectedUser.role_name}</Typography>
               </Box>
 
-              <Box sx={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.04)", pb: 1 }}>
-                <Typography sx={{ color: "text.secondary" }}>Status</Typography>
-                <Typography sx={{ fontWeight: "bold", color: selectedUser.status === "Inactive" ? "error.main" : "primary.main" }}>
+              <Box sx={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid #F1F5F9", pb: 1 }}>
+                <Typography sx={{ color: "#94A3B8" }}>Status</Typography>
+                <Typography sx={{ fontWeight: "bold", color: selectedUser.status === "Inactive" ? "#DC2626" : "#059669" }}>
                   {selectedUser.status || "Active"}
                 </Typography>
               </Box>
 
-              <Box sx={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid rgba(255,255,255,0.04)", pb: 1 }}>
-                <Typography sx={{ color: "text.secondary" }}>Joined Date</Typography>
-                <Typography sx={{ fontWeight: "bold" }}>
+              <Box sx={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid #F1F5F9", pb: 1 }}>
+                <Typography sx={{ color: "#94A3B8" }}>Joined Date</Typography>
+                <Typography sx={{ fontWeight: "bold", color: "#1E293B" }}>
                   {selectedUser.created_at
                     ? new Date(selectedUser.created_at).toLocaleDateString("en-US", {
                         year: "numeric",
@@ -542,11 +526,11 @@ export default function ManageAdmins() {
               </Box>
 
               <Box sx={{ display: "flex", justifyContent: "space-between", pb: 1 }}>
-                <Typography sx={{ color: "text.secondary" }}>Home Address</Typography>
-                <Typography sx={{ fontWeight: "bold" }}>{selectedUser.address || "Not Provided"}</Typography>
+                <Typography sx={{ color: "#94A3B8" }}>Home Address</Typography>
+                <Typography sx={{ fontWeight: "bold", color: "#1E293B" }}>{selectedUser.address || "Not Provided"}</Typography>
               </Box>
             </DialogContent>
-            <DialogActions sx={{ p: 3, borderTop: "1px solid rgba(255,255,255,0.08)", display: "flex", flexDirection: "column", gap: 1.5 }}>
+            <DialogActions sx={{ p: 3, borderTop: "1px solid #F1F5F9", display: "flex", flexDirection: "column", gap: 1.5 }}>
               <Button
                 variant="contained"
                 fullWidth
@@ -575,14 +559,14 @@ export default function ManageAdmins() {
         open={createDialogOpen}
         onClose={() => setCreateDialogOpen(false)}
         PaperProps={{
-          sx: { borderRadius: 4, bgcolor: "background.paper", border: "1px solid rgba(255,255,255,0.08)", minWidth: 440 },
+          sx: { borderRadius: 4, bgcolor: "#FFFFFF", border: "1px solid #FFF0E6", minWidth: 440 },
         }}
       >
-        <DialogTitle sx={{ m: 0, p: 3, fontWeight: "bold", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+        <DialogTitle sx={{ m: 0, p: 3, fontWeight: "bold", borderBottom: "1px solid #F1F5F9", color: "#1E293B" }}>
           Create New Admin Account
           <IconButton
             onClick={() => setCreateDialogOpen(false)}
-            sx={{ position: "absolute", right: 16, top: 16, color: "text.secondary" }}
+            sx={{ position: "absolute", right: 16, top: 16, color: "#94A3B8" }}
           >
             <CloseIcon />
           </IconButton>
@@ -597,6 +581,7 @@ export default function ManageAdmins() {
             required
             variant="outlined"
             autoFocus
+            sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
           />
 
           <TextField
@@ -607,6 +592,7 @@ export default function ManageAdmins() {
             fullWidth
             required
             variant="outlined"
+            sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
           />
 
           <TextField
@@ -615,42 +601,40 @@ export default function ManageAdmins() {
             value={createForm.password}
             fullWidth
             variant="outlined"
+            sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 }, "& .MuiInputBase-input": { fontFamily: "monospace", letterSpacing: 1 } }}
             InputProps={{
               readOnly: true,
               endAdornment: (
                 <InputAdornment position="end">
-                  <IconButton onClick={() => copyToClipboard(createForm.password)} title="Copy Password">
+                  <IconButton onClick={() => copyToClipboard(createForm.password)} title="Copy Password" sx={{ color: "#94A3B8" }}>
                     <ContentCopyIcon fontSize="small" />
                   </IconButton>
-                  <IconButton onClick={() => setCreateForm({ ...createForm, password: generatePassword() })} title="Generate New Password">
+                  <IconButton onClick={() => setCreateForm({ ...createForm, password: generatePassword() })} title="Generate New Password" sx={{ color: "#94A3B8" }}>
                     <AutorenewIcon fontSize="small" />
                   </IconButton>
                 </InputAdornment>
               ),
             }}
-            sx={{ "& .MuiInputBase-input": { fontFamily: "monospace", letterSpacing: 1 } }}
           />
 
-          <Alert severity="info" sx={{ borderRadius: 2 }}>
+          <Alert severity="info" sx={{ borderRadius: 2, bgcolor: "#EFF6FF", color: "#1E40AF", border: "1px solid #BFDBFE" }}>
             The temporary password is auto-generated. Share it securely with the new admin. They should change it after their first login.
           </Alert>
         </DialogContent>
-        <DialogActions sx={{ p: 3, borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+        <DialogActions sx={{ p: 3, borderTop: "1px solid #F1F5F9", gap: 1.5 }}>
           <Button
             variant="outlined"
-            color="inherit"
             onClick={() => setCreateDialogOpen(false)}
-            sx={{ borderRadius: 3, textTransform: "none", borderColor: "rgba(255,255,255,0.2)" }}
+            sx={{ borderRadius: 3, textTransform: "none", fontWeight: "bold", borderColor: "#E2E8F0", color: "#64748B", px: 3, py: 1, "&:hover": { borderColor: "#F97316", color: "#F97316", bgcolor: "#FFF5F0" } }}
           >
             Cancel
           </Button>
           <Button
             variant="contained"
-            color="primary"
             onClick={handleCreateAdmin}
             disabled={createLoading}
             startIcon={createLoading ? <CircularProgress size={18} color="inherit" /> : <PersonAddIcon />}
-            sx={{ borderRadius: 3, textTransform: "none", fontWeight: "bold" }}
+            sx={{ borderRadius: 3, textTransform: "none", fontWeight: "bold", bgcolor: "#F97316", px: 3, py: 1, boxShadow: "0 4px 15px rgba(249,115,22,0.3)", "&:hover": { bgcolor: "#EA580C" } }}
           >
             {createLoading ? "Creating..." : "Create Admin"}
           </Button>
@@ -666,7 +650,7 @@ export default function ManageAdmins() {
         <Alert
           onClose={() => setToast({ ...toast, open: false })}
           severity={toast.severity}
-          sx={{ width: "100%", borderRadius: 3 }}
+          sx={{ width: "100%", borderRadius: 3, boxShadow: "0 4px 20px rgba(0,0,0,0.1)" }}
         >
           {toast.message}
         </Alert>

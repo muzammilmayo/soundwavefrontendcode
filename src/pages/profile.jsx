@@ -14,28 +14,36 @@ import {
   Tab,
   TextField,
   Snackbar,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  IconButton,
 } from "@mui/material";
 import {
   ArrowBack as ArrowBackIcon,
   Person as PersonIcon,
   Lock as LockIcon,
+  DeleteForever as DeleteForeverIcon,
+  WarningAmber as WarningAmberIcon,
+  Close as CloseIcon,
 } from "@mui/icons-material";
 import api from "../api";
 import authService from "../services/authService";
 
-const darkTheme = createTheme({
+const lightTheme = createTheme({
   palette: {
-    mode: "dark",
+    mode: "light",
     primary: {
-      main: "#1db954",
+      main: "#F97316",
     },
     background: {
-      default: "#121212",
-      paper: "#1c1c1c",
+      default: "#FFF5F0",
+      paper: "#FFFFFF",
     },
     text: {
-      primary: "#ffffff",
-      secondary: "#b3b3b3",
+      primary: "#1E293B",
+      secondary: "#94A3B8",
     },
   },
   typography: {
@@ -54,6 +62,7 @@ export default function Profile() {
     role: "",
     address: "",
     avatar: "",
+    phone: "",
     created_at: "",
   });
 
@@ -62,11 +71,12 @@ export default function Profile() {
     newPassword: "",
   });
 
-  // Toast notification state
   const [toast, setToast] = useState({ open: false, message: "", severity: "success" });
   const showToast = (message, severity = "success") => {
     setToast({ open: true, message, severity });
   };
+
+  const [deleteConfirm, setDeleteConfirm] = useState({ open: false, confirmText: "" });
 
   const fetchProfile = async () => {
     setLoading(true);
@@ -78,6 +88,7 @@ export default function Profile() {
         role: res.data.user.role || "",
         address: res.data.user.address || "",
         avatar: res.data.user.avatar || "",
+        phone: res.data.user.phone || "",
         created_at: res.data.user.created_at || "",
       });
       localStorage.setItem("user", JSON.stringify(res.data.user));
@@ -92,6 +103,7 @@ export default function Profile() {
           role: parsed.role || "",
           address: parsed.address || "",
           avatar: parsed.avatar || "",
+          phone: parsed.phone || "",
           created_at: parsed.created_at || "",
         });
       }
@@ -126,6 +138,7 @@ export default function Profile() {
       const res = await api.put("/auth/profile", {
         username: profile.username,
         address: profile.address,
+        phone: profile.phone,
         avatar: profile.avatar,
       });
       const msg = res.data.message || "Profile saved successfully";
@@ -178,8 +191,24 @@ export default function Profile() {
     }
   };
 
+  const handleDeleteAccount = async () => {
+    if (deleteConfirm.confirmText !== profile.username) {
+      showToast("Username does not match. Please try again.", "error");
+      return;
+    }
+    try {
+      await api.delete("/auth/account");
+      authService.logout();
+      navigate("/login");
+    } catch (err) {
+      const msg = err.response?.data?.message || "Failed to delete account";
+      showToast(msg, "error");
+      setDeleteConfirm({ open: false, confirmText: "" });
+    }
+  };
+
   return (
-    <ThemeProvider theme={darkTheme}>
+    <ThemeProvider theme={lightTheme}>
       <CssBaseline />
       <Box
         sx={{
@@ -189,15 +218,14 @@ export default function Profile() {
           justifyContent: "center",
           minHeight: "100vh",
           p: 3,
-          bgcolor: "background.default",
+          bgcolor: "#FFF5F0",
         }}
       >
         <Button
           variant="outlined"
-          color="primary"
           startIcon={<ArrowBackIcon />}
           onClick={goBackToDashboard}
-          sx={{ mb: 4, borderRadius: 3, textTransform: "none", fontWeight: "bold" }}
+          sx={{ mb: 4, borderRadius: 3, textTransform: "none", fontWeight: "bold", borderColor: "#E2E8F0", color: "#64748B", px: 3, py: 1, "&:hover": { borderColor: "#F97316", color: "#F97316", bgcolor: "#FFF5F0" } }}
         >
           Back to Dashboard
         </Button>
@@ -207,18 +235,19 @@ export default function Profile() {
             width: "100%",
             maxWidth: 500,
             borderRadius: 4,
-            border: "1px solid rgba(255,255,255,0.08)",
-            bgcolor: "background.paper",
+            border: "1px solid #FFF0E6",
+            bgcolor: "#FFFFFF",
+            boxShadow: "0 4px 20px rgba(0,0,0,0.03)",
             p: 2,
           }}
         >
           <CardContent>
-            <Typography variant="h4" align="center" sx={{ fontWeight: "bold", mb: 3 }}>
+            <Typography variant="h4" align="center" sx={{ fontWeight: "bold", mb: 3, color: "#1E293B" }}>
               🎵 SoundWave Profile
             </Typography>
 
             {message.text && (
-              <Alert severity={message.type} sx={{ mb: 3, borderRadius: 3 }}>
+              <Alert severity={message.type} sx={{ mb: 3, borderRadius: 3, bgcolor: message.type === "success" ? "#ECFDF5" : "#FEF2F2", color: message.type === "success" ? "#059669" : "#DC2626", border: message.type === "success" ? "1px solid #A7F3D0" : "1px solid #FECACA" }}>
                 {message.text}
               </Alert>
             )}
@@ -232,10 +261,11 @@ export default function Profile() {
               variant="fullWidth"
               textColor="primary"
               indicatorColor="primary"
-              sx={{ borderBottom: "1px solid rgba(255,255,255,0.08)", mb: 3 }}
+              sx={{ borderBottom: "1px solid #FFF0E6", mb: 3 }}
             >
-              <Tab icon={<PersonIcon />} label="My Profile" sx={{ textTransform: "none", fontWeight: "bold" }} />
-              <Tab icon={<LockIcon />} label="Security" sx={{ textTransform: "none", fontWeight: "bold" }} />
+              <Tab icon={<PersonIcon />} label="My Profile" sx={{ textTransform: "none", fontWeight: "bold", color: "#64748B" }} />
+              <Tab icon={<LockIcon />} label="Security" sx={{ textTransform: "none", fontWeight: "bold", color: "#64748B" }} />
+              <Tab icon={<DeleteForeverIcon />} label="Danger Zone" sx={{ textTransform: "none", fontWeight: "bold", color: activeTab === 2 ? "#DC2626" : "#64748B" }} />
             </Tabs>
 
             {/* Tab 0: Profile form */}
@@ -250,6 +280,7 @@ export default function Profile() {
                   required
                   variant="outlined"
                   slotProps={{ inputLabel: { shrink: true } }}
+                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
                 />
 
                 <TextField
@@ -259,6 +290,7 @@ export default function Profile() {
                   disabled
                   variant="outlined"
                   slotProps={{ inputLabel: { shrink: true } }}
+                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 }, "& .Mui-disabled": { color: "#94A3B8", bgcolor: "#F8FAFC" } }}
                 />
 
                 <TextField
@@ -269,6 +301,18 @@ export default function Profile() {
                   fullWidth
                   variant="outlined"
                   slotProps={{ inputLabel: { shrink: true } }}
+                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
+                />
+
+                <TextField
+                  label="Phone Number"
+                  name="phone"
+                  value={profile.phone}
+                  onChange={handleProfileChange}
+                  fullWidth
+                  variant="outlined"
+                  slotProps={{ inputLabel: { shrink: true } }}
+                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
                 />
 
                 <TextField
@@ -279,24 +323,24 @@ export default function Profile() {
                   fullWidth
                   variant="outlined"
                   slotProps={{ inputLabel: { shrink: true } }}
+                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
                 />
 
                 <Box sx={{ display: "flex", justifyContent: "space-between", mt: 1, px: 0.5 }}>
-                  <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                    Role: <strong style={{ color: "#fff" }}>{profile.role}</strong>
+                  <Typography variant="body2" sx={{ color: "#94A3B8" }}>
+                    Role: <strong style={{ color: "#1E293B" }}>{profile.role}</strong>
                   </Typography>
-                  <Typography variant="body2" sx={{ color: "text.secondary" }}>
-                    Joined: <strong style={{ color: "#fff" }}>{profile.created_at ? new Date(profile.created_at).toLocaleDateString() : "N/A"}</strong>
+                  <Typography variant="body2" sx={{ color: "#94A3B8" }}>
+                    Joined: <strong style={{ color: "#1E293B" }}>{profile.created_at ? new Date(profile.created_at).toLocaleDateString() : "N/A"}</strong>
                   </Typography>
                 </Box>
 
                 <Button
                   type="submit"
                   variant="contained"
-                  color="primary"
                   fullWidth
                   disabled={loading}
-                  sx={{ borderRadius: 3, py: 1.5, textTransform: "none", fontWeight: "bold", mt: 1 }}
+                  sx={{ borderRadius: 3, py: 1.5, textTransform: "none", fontWeight: "bold", mt: 1, bgcolor: "#F97316", boxShadow: "0 4px 15px rgba(249,115,22,0.3)", "&:hover": { bgcolor: "#EA580C" } }}
                 >
                   {loading ? <CircularProgress size={24} color="inherit" /> : "Save Profile"}
                 </Button>
@@ -315,6 +359,7 @@ export default function Profile() {
                   fullWidth
                   required
                   variant="outlined"
+                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
                 />
 
                 <TextField
@@ -326,22 +371,108 @@ export default function Profile() {
                   fullWidth
                   required
                   variant="outlined"
+                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
                 />
 
                 <Button
                   type="submit"
                   variant="contained"
-                  color="primary"
                   fullWidth
-                  sx={{ borderRadius: 3, py: 1.5, textTransform: "none", fontWeight: "bold", mt: 1 }}
+                  sx={{ borderRadius: 3, py: 1.5, textTransform: "none", fontWeight: "bold", mt: 1, bgcolor: "#F97316", boxShadow: "0 4px 15px rgba(249,115,22,0.3)", "&:hover": { bgcolor: "#EA580C" } }}
                 >
                   Update Password
                 </Button>
               </Box>
             )}
+
+            {/* Tab 2: Danger Zone */}
+            {activeTab === 2 && (
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                <Alert severity="error" sx={{ borderRadius: 2, bgcolor: "#FEF2F2", color: "#DC2626", border: "1px solid #FECACA" }}>
+                  Deleting your account is <strong>permanent and irreversible</strong>. All your data will be removed from the system.
+                </Alert>
+
+                <Box sx={{ bgcolor: "#FEF2F2", border: "1px solid #FECACA", borderRadius: 3, p: 3 }}>
+                  <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
+                    <WarningAmberIcon sx={{ color: "#DC2626" }} />
+                    <Typography sx={{ fontWeight: "bold", color: "#DC2626" }}>Delete My Account</Typography>
+                  </Box>
+                  <Typography variant="body2" sx={{ color: "#94A3B8", mb: 2 }}>
+                    Once deleted, your account (<strong style={{ color: "#1E293B" }}>{profile.email}</strong>) cannot be recovered.
+                  </Typography>
+                  <Button
+                    variant="contained"
+                    color="error"
+                    fullWidth
+                    startIcon={<DeleteForeverIcon />}
+                    onClick={() => setDeleteConfirm({ open: true, confirmText: "" })}
+                    sx={{ borderRadius: 3, py: 1.2, textTransform: "none", fontWeight: "bold" }}
+                  >
+                    Delete My Account Permanently
+                  </Button>
+                </Box>
+              </Box>
+            )}
           </CardContent>
         </Card>
       </Box>
+
+      {/* Delete Account Confirmation Dialog */}
+      <Dialog
+        open={deleteConfirm.open}
+        onClose={() => setDeleteConfirm({ open: false, confirmText: "" })}
+        PaperProps={{
+          sx: { borderRadius: 4, bgcolor: "#FFFFFF", border: "1px solid #FECACA", minWidth: 420 },
+        }}
+      >
+        <DialogTitle sx={{ p: 3, fontWeight: "bold", borderBottom: "1px solid #F1F5F9", display: "flex", alignItems: "center", gap: 1, color: "#1E293B" }}>
+          <WarningAmberIcon sx={{ color: "#DC2626" }} />
+          Confirm Account Deletion
+          <IconButton
+            onClick={() => setDeleteConfirm({ open: false, confirmText: "" })}
+            sx={{ position: "absolute", right: 16, top: 16, color: "#94A3B8" }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ p: 3 }}>
+          <Alert severity="error" sx={{ borderRadius: 2, mb: 3, bgcolor: "#FEF2F2", color: "#DC2626", border: "1px solid #FECACA" }}>
+            This will <strong>permanently delete</strong> your account and all associated data. This cannot be undone.
+          </Alert>
+          <Typography variant="body2" sx={{ color: "#94A3B8", mb: 1 }}>
+            To confirm, type your username: <strong style={{ color: "#1E293B" }}>{profile.username}</strong>
+          </Typography>
+          <TextField
+            fullWidth
+            variant="outlined"
+            placeholder={profile.username}
+            value={deleteConfirm.confirmText}
+            onChange={(e) => setDeleteConfirm({ ...deleteConfirm, confirmText: e.target.value })}
+            sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
+          />
+        </DialogContent>
+        <DialogActions sx={{ p: 3, gap: 1.5, borderTop: "1px solid #F1F5F9" }}>
+          <Button
+            variant="outlined"
+            fullWidth
+            onClick={() => setDeleteConfirm({ open: false, confirmText: "" })}
+            sx={{ borderRadius: 3, py: 1, textTransform: "none", fontWeight: "bold", borderColor: "#E2E8F0", color: "#64748B", "&:hover": { borderColor: "#F97316", color: "#F97316", bgcolor: "#FFF5F0" } }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            fullWidth
+            startIcon={<DeleteForeverIcon />}
+            disabled={deleteConfirm.confirmText !== profile.username}
+            onClick={handleDeleteAccount}
+            sx={{ borderRadius: 3, py: 1, textTransform: "none", fontWeight: "bold" }}
+          >
+            Delete My Account
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Snackbar
         open={toast.open}
@@ -352,7 +483,7 @@ export default function Profile() {
         <Alert
           onClose={() => setToast({ ...toast, open: false })}
           severity={toast.severity}
-          sx={{ width: "100%", borderRadius: 3 }}
+          sx={{ width: "100%", borderRadius: 3, boxShadow: "0 4px 20px rgba(0,0,0,0.1)" }}
         >
           {toast.message}
         </Alert>
