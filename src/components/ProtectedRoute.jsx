@@ -1,16 +1,26 @@
 import { Navigate } from "react-router-dom";
-import authService from "../services/authService";
+import { useSelector } from "react-redux";
 
 export default function ProtectedRoute({ children, allowedRoles }) {
-  const token = localStorage.getItem("token");
-  const user = authService.getUser();
+  const { user, status } = useSelector((state) => state.auth);
 
-  if (!token) {
-    return <Navigate to="/" />;
+  // While authentication status is loading (e.g., on page refresh), show loading spinner
+  if (status === 'loading') {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <p style={{ color: '#aaa', fontSize: '1rem' }}>Loading...</p>
+      </div>
+    );
   }
 
-  if (allowedRoles && (!user || !allowedRoles.includes(user.role))) {
-    return <Navigate to="/" />;
+  // If loading is finished and user is not authenticated, redirect to login
+  if (!user) {
+    return <Navigate to="/" replace />;
+  }
+
+  // If role check is specified and fails, redirect to login
+  if (allowedRoles && !allowedRoles.includes(user.role)) {
+    return <Navigate to="/" replace />;
   }
 
   return children;

@@ -303,12 +303,14 @@ export default function ForgotPassword() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   disabled={loading}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <EmailIcon sx={{ color: textSecondary, fontSize: 20 }} />
-                      </InputAdornment>
-                    ),
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <EmailIcon sx={{ color: textSecondary, fontSize: 20 }} />
+                        </InputAdornment>
+                      ),
+                    },
                   }}
                   sx={{
                     mb: 3,

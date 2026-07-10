@@ -1,4 +1,5 @@
 import api from "../api";
+import store from "../store";
 
 const authService = {
   // Register
@@ -10,10 +11,6 @@ const authService = {
   // Login
   login: async (data) => {
     const res = await api.post("/auth/login", data);
-
-    localStorage.setItem("token", res.data.token);
-    localStorage.setItem("user", JSON.stringify(res.data.user));
-
     return res.data;
   },
 
@@ -25,11 +22,9 @@ const authService = {
     return res.data;
   },
 
-  // Reset Password
-  resetPassword: async (token, newPassword) => {
-    const res = await api.put(`/auth/reset-password/${token}`, {
-      newPassword,
-    });
+  // Get current logged in user (via HttpOnly cookie)
+  getCurrentUser: async () => {
+    const res = await api.get("/auth/profile");
     return res.data;
   },
 
@@ -46,19 +41,18 @@ const authService = {
     } catch (err) {
       console.log(err);
     }
-
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    // Clear Redux state
+    store.dispatch({ type: "auth/clearAuth" });
   },
 
   // Check Login
   isLoggedIn: () => {
-    return !!localStorage.getItem("token");
+    return !!store.getState().auth.user;
   },
 
   // Get User
   getUser: () => {
-    return JSON.parse(localStorage.getItem("user"));
+    return store.getState().auth.user;
   },
 };
 

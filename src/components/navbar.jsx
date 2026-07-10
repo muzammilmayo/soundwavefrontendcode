@@ -10,6 +10,7 @@ import MusicNoteIcon from "@mui/icons-material/MusicNote";
 import LogoutIcon from "@mui/icons-material/Logout";
 import LoginIcon from "@mui/icons-material/Login";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import { useSelector } from "react-redux";
 import authService from "../services/authService";
 
 export default function Navbar() {
@@ -72,7 +73,7 @@ export default function Navbar() {
 
         {/* Auth Buttons */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-          {authService.isLoggedIn() ? (
+          {useSelector(state => !!state.auth?.user) ? (
             <Button
               variant="outlined"
               onClick={logout}

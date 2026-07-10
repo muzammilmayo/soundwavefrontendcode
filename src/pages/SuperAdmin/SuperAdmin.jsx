@@ -39,8 +39,6 @@ import {
   Chip,
   LinearProgress,
   Tooltip,
-  Switch,
-  FormControlLabel,
 } from "@mui/material";
 import {
   Home as HomeIcon,
@@ -54,7 +52,6 @@ import {
   ExitToApp as ExitToAppIcon,
   Info as InfoIcon,
   Close as CloseIcon,
-  Refresh as RefreshIcon,
   DeleteForever as DeleteForeverIcon,
   WarningAmber as WarningAmberIcon,
   Edit as EditIcon,
@@ -327,7 +324,10 @@ export default function SuperAdminDashboard() {
                 <ListItemIcon sx={{ minWidth: 36, color: currentTab === "dashboard" ? "#F97316" : sidebarIcon }}>
                   <HomeIcon sx={{ fontSize: 20 }} />
                 </ListItemIcon>
-                <ListItemText primary="Dashboard" primaryTypographyProps={{ fontWeight: currentTab === "dashboard" ? "bold" : "500" }} />
+                <ListItemText 
+                  primary="Dashboard" 
+                  slotProps={{ primary: { fontWeight: currentTab === "dashboard" ? "bold" : "500" } }} 
+                />
               </ListItemButton>
             </ListItem>
 
@@ -348,7 +348,10 @@ export default function SuperAdminDashboard() {
                 <ListItemIcon sx={{ minWidth: 36, color: currentTab === "users" ? "#F97316" : sidebarIcon }}>
                   <PeopleIcon sx={{ fontSize: 20 }} />
                 </ListItemIcon>
-                <ListItemText primary="Manage Users" primaryTypographyProps={{ fontWeight: currentTab === "users" ? "bold" : "500" }} />
+                <ListItemText 
+                  primary="Manage Users" 
+                  slotProps={{ primary: { fontWeight: currentTab === "users" ? "bold" : "500" } }} 
+                />
               </ListItemButton>
             </ListItem>
 
@@ -360,7 +363,10 @@ export default function SuperAdminDashboard() {
                 <ListItemIcon sx={{ minWidth: 36, color: sidebarIcon }}>
                   <ShieldIcon sx={{ fontSize: 20 }} />
                 </ListItemIcon>
-                <ListItemText primary="Manage Admins" primaryTypographyProps={{ fontWeight: 500 }} />
+                <ListItemText 
+                  primary="Manage Admins" 
+                  slotProps={{ primary: { fontWeight: 500 } }} 
+                />
               </ListItemButton>
             </ListItem>
 
@@ -374,7 +380,10 @@ export default function SuperAdminDashboard() {
                 <ListItemIcon sx={{ minWidth: 36, color: sidebarIcon }}>
                   <MusicNoteIcon sx={{ fontSize: 20 }} />
                 </ListItemIcon>
-                <ListItemText primary="Manage Songs" primaryTypographyProps={{ fontWeight: 500 }} />
+                <ListItemText 
+                  primary="Manage Songs" 
+                  slotProps={{ primary: { fontWeight: 500 } }} 
+                />
               </ListItemButton>
             </ListItem>
 
@@ -383,7 +392,10 @@ export default function SuperAdminDashboard() {
                 <ListItemIcon sx={{ minWidth: 36, color: sidebarIcon }}>
                   <MicIcon sx={{ fontSize: 20 }} />
                 </ListItemIcon>
-                <ListItemText primary="Manage Artists" primaryTypographyProps={{ fontWeight: 500 }} />
+                <ListItemText 
+                  primary="Manage Artists" 
+                  slotProps={{ primary: { fontWeight: 500 } }} 
+                />
               </ListItemButton>
             </ListItem>
 
@@ -392,7 +404,10 @@ export default function SuperAdminDashboard() {
                 <ListItemIcon sx={{ minWidth: 36, color: sidebarIcon }}>
                   <AssessmentIcon sx={{ fontSize: 20 }} />
                 </ListItemIcon>
-                <ListItemText primary="Reports" primaryTypographyProps={{ fontWeight: 500 }} />
+                <ListItemText 
+                  primary="Reports" 
+                  slotProps={{ primary: { fontWeight: 500 } }} 
+                />
               </ListItemButton>
             </ListItem>
 
@@ -406,7 +421,10 @@ export default function SuperAdminDashboard() {
                 <ListItemIcon sx={{ minWidth: 36, color: sidebarIcon }}>
                   <PersonIcon sx={{ fontSize: 20 }} />
                 </ListItemIcon>
-                <ListItemText primary="Profile" primaryTypographyProps={{ fontWeight: 500 }} />
+                <ListItemText 
+                  primary="Profile" 
+                  slotProps={{ primary: { fontWeight: 500 } }} 
+                />
               </ListItemButton>
             </ListItem>
 
@@ -415,7 +433,10 @@ export default function SuperAdminDashboard() {
                 <ListItemIcon sx={{ minWidth: 36, color: "#EF4444" }}>
                   <ExitToAppIcon sx={{ fontSize: 20 }} />
                 </ListItemIcon>
-                <ListItemText primary="Logout" primaryTypographyProps={{ fontWeight: 500 }} />
+                <ListItemText 
+                  primary="Logout" 
+                  slotProps={{ primary: { fontWeight: 500 } }} 
+                />
               </ListItemButton>
             </ListItem>
           </List>

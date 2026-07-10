@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import authService from "../../services/authService";
+import { useDispatch } from "react-redux";
+import { loginUser } from "../../features/auth/authSlice";
 
 export default function AdminLogin() {
   const navigate = useNavigate();
@@ -19,19 +20,17 @@ export default function AdminLogin() {
 
   const login = async (e) => {
     e.preventDefault();
-
     try {
-      const res = await authService.login(user);
-      if (res.user.role !== "Admin") {
+      const result = await dispatch(loginUser(user)).unwrap();
+      if (result.user.role !== "Admin") {
         alert("Access Denied: You do not have the Admin role.");
-        await authService.logout();
+        dispatch(logoutUser());
         return;
       }
-
       alert("Admin Login Successfully");
       navigate("/Admin/dashboard");
     } catch (err) {
-      alert(err.response?.data?.message || "Login Failed");
+      alert(err?.message || "Login Failed");
     }
   };
 

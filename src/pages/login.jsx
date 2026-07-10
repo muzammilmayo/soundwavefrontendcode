@@ -14,7 +14,8 @@ import {
   Alert,
 } from "@mui/material";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
-import authService from "../services/authService";
+import { useDispatch } from "react-redux";
+import { loginUser } from "../features/auth/authSlice";
 
 const lightTheme = createTheme({
   palette: {
@@ -38,6 +39,7 @@ const lightTheme = createTheme({
 
 export default function Login() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const [user, setUser] = useState({
     email: "",
@@ -60,7 +62,7 @@ export default function Login() {
     e.preventDefault();
 
     try {
-      const res = await authService.login(user);
+      const res = await dispatch(loginUser(user)).unwrap();
       showToast("Login Successful", "success");
 
       const role = res.user.role;
@@ -77,11 +79,11 @@ export default function Login() {
           navigate("/listener/dashboard");
         } else {
           showToast("Unknown user role: " + role, "error");
-          authService.logout();
         }
       }, 800);
     } catch (err) {
-      showToast(err.response?.data?.message || "Login Failed", "error");
+      const message = err?.message || (typeof err === 'string' ? err : 'Login Failed');
+      showToast(message, "error");
     }
   };
 

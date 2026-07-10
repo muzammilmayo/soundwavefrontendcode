@@ -51,6 +51,12 @@ const lightTheme = createTheme({
   },
 });
 
+// Helper to get role from authService or fallback
+const getUserRole = () => {
+  const user = authService.getUser?.() || null;
+  return user?.role || "";
+};
+
 export default function Profile() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(0);
@@ -59,7 +65,7 @@ export default function Profile() {
   const [profile, setProfile] = useState({
     username: "",
     email: "",
-    role: "",
+    role: getUserRole(),
     address: "",
     avatar: "",
     phone: "",
@@ -82,38 +88,30 @@ export default function Profile() {
     setLoading(true);
     try {
       const res = await api.get("/auth/profile");
+      const user = res.data?.user || {};
       setProfile({
-        username: res.data.user.username || "",
-        email: res.data.user.email || "",
-        role: res.data.user.role || "",
-        address: res.data.user.address || "",
-        avatar: res.data.user.avatar || "",
-        phone: res.data.user.phone || "",
-        created_at: res.data.user.created_at || "",
+        username: user.username ?? "",
+        email: user.email ?? "",
+        role: user.role ?? getUserRole(),
+        address: user.address ?? "",
+        avatar: user.avatar ?? "",
+        phone: user.phone ?? "",
+        created_at: user.created_at ?? "",
       });
-      localStorage.setItem("user", JSON.stringify(res.data.user));
     } catch (err) {
       console.error("Failed to load profile:", err);
-      const cached = localStorage.getItem("user");
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        setProfile({
-          username: parsed.username || "",
-          email: parsed.email || "",
-          role: parsed.role || "",
-          address: parsed.address || "",
-          avatar: parsed.avatar || "",
-          phone: parsed.phone || "",
-          created_at: parsed.created_at || "",
-        });
-      }
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchProfile();
+    const role = getUserRole();
+    if (role === "Artist") {
+      navigate("/artist/profile", { replace: true });
+    } else {
+      fetchProfile();
+    }
   }, []);
 
   const handleProfileChange = (e) => {
@@ -141,11 +139,19 @@ export default function Profile() {
         phone: profile.phone,
         avatar: profile.avatar,
       });
-      const msg = res.data.message || "Profile saved successfully";
+      const msg = res.data?.message || "Profile saved successfully";
       showToast(msg, "success");
       setMessage({ text: msg, type: "success" });
-      setProfile(res.data.user);
-      localStorage.setItem("user", JSON.stringify(res.data.user));
+      const user = res.data?.user || {};
+      setProfile({
+        username: user.username ?? "",
+        email: user.email ?? "",
+        role: user.role ?? getUserRole(),
+        address: user.address ?? "",
+        avatar: user.avatar ?? "",
+        phone: user.phone ?? "",
+        created_at: user.created_at ?? "",
+      });
     } catch (err) {
       const msg = err.response?.data?.message || "Failed to save profile";
       showToast(msg, "error");
@@ -160,7 +166,7 @@ export default function Profile() {
     setMessage({ text: "", type: "success" });
     try {
       const res = await authService.changePassword(passwordForm);
-      const msg = res.message || "Password updated successfully";
+      const msg = res?.message || "Password updated successfully";
       showToast(msg, "success");
       setMessage({ text: msg, type: "success" });
       setPasswordForm({
@@ -175,20 +181,7 @@ export default function Profile() {
   };
 
   const goBackToDashboard = () => {
-    const role = profile.role;
-    if (role === "Super Admin") {
-      navigate("/SuperAdmin/dashboard");
-    } else if (role === "Admin") {
-      navigate("/Admin/dashboard");
-    } else if (role === "Moderator") {
-      navigate("/Moderator/dashboard");
-    } else if (role === "Artist") {
-      navigate("/artist/dashboard");
-    } else if (role === "Listener") {
-      navigate("/listener/dashboard");
-    } else {
-      navigate("/");
-    }
+    navigate(-1);
   };
 
   const handleDeleteAccount = async () => {
@@ -328,7 +321,7 @@ export default function Profile() {
 
                 <Box sx={{ display: "flex", justifyContent: "space-between", mt: 1, px: 0.5 }}>
                   <Typography variant="body2" sx={{ color: "#94A3B8" }}>
-                    Role: <strong style={{ color: "#1E293B" }}>{profile.role}</strong>
+                    Role: <strong style={{ color: "#1E293B" }}>{profile.role || "Unknown"}</strong>
                   </Typography>
                   <Typography variant="body2" sx={{ color: "#94A3B8" }}>
                     Joined: <strong style={{ color: "#1E293B" }}>{profile.created_at ? new Date(profile.created_at).toLocaleDateString() : "N/A"}</strong>

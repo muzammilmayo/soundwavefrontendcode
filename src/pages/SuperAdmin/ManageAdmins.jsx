@@ -245,7 +245,13 @@ export default function ManageAdmins() {
                 <ListItemIcon sx={{ minWidth: 36, color: "#94A3B8" }}>
                   <HomeIcon sx={{ fontSize: 20 }} />
                 </ListItemIcon>
-                <ListItemText primary="Dashboard" primaryTypographyProps={{ fontWeight: 500 }} />
+                <ListItemText 
+                  primary={
+                    <Typography sx={{ fontWeight: 500 }}>
+                      Dashboard
+                    </Typography>
+                  } 
+                />
               </ListItemButton>
             </ListItem>
 
@@ -257,7 +263,13 @@ export default function ManageAdmins() {
                 <ListItemIcon sx={{ minWidth: 36, color: "#94A3B8" }}>
                   <PeopleIcon sx={{ fontSize: 20 }} />
                 </ListItemIcon>
-                <ListItemText primary="Manage Users" primaryTypographyProps={{ fontWeight: 500 }} />
+                <ListItemText 
+                  primary={
+                    <Typography sx={{ fontWeight: 500 }}>
+                      Manage Users
+                    </Typography>
+                  } 
+                />
               </ListItemButton>
             </ListItem>
 
@@ -278,7 +290,13 @@ export default function ManageAdmins() {
                 <ListItemIcon sx={{ minWidth: 36, color: "#F97316" }}>
                   <ShieldIcon sx={{ fontSize: 20 }} />
                 </ListItemIcon>
-                <ListItemText primary="Manage Admins" primaryTypographyProps={{ fontWeight: "bold" }} />
+                <ListItemText 
+                  primary={
+                    <Typography sx={{ fontWeight: "bold" }}>
+                      Manage Admins
+                    </Typography>
+                  } 
+                />
               </ListItemButton>
             </ListItem>
 
@@ -292,7 +310,13 @@ export default function ManageAdmins() {
                 <ListItemIcon sx={{ minWidth: 36, color: "#94A3B8" }}>
                   <MusicNoteIcon sx={{ fontSize: 20 }} />
                 </ListItemIcon>
-                <ListItemText primary="Manage Songs" primaryTypographyProps={{ fontWeight: 500 }} />
+                <ListItemText 
+                  primary={
+                    <Typography sx={{ fontWeight: 500 }}>
+                      Manage Songs
+                    </Typography>
+                  } 
+                />
               </ListItemButton>
             </ListItem>
 
@@ -301,7 +325,13 @@ export default function ManageAdmins() {
                 <ListItemIcon sx={{ minWidth: 36, color: "#94A3B8" }}>
                   <MicIcon sx={{ fontSize: 20 }} />
                 </ListItemIcon>
-                <ListItemText primary="Manage Artists" primaryTypographyProps={{ fontWeight: 500 }} />
+                <ListItemText 
+                  primary={
+                    <Typography sx={{ fontWeight: 500 }}>
+                      Manage Artists
+                    </Typography>
+                  } 
+                />
               </ListItemButton>
             </ListItem>
 
@@ -310,7 +340,13 @@ export default function ManageAdmins() {
                 <ListItemIcon sx={{ minWidth: 36, color: "#94A3B8" }}>
                   <AssessmentIcon sx={{ fontSize: 20 }} />
                 </ListItemIcon>
-                <ListItemText primary="Reports" primaryTypographyProps={{ fontWeight: 500 }} />
+                <ListItemText 
+                  primary={
+                    <Typography sx={{ fontWeight: 500 }}>
+                      Reports
+                    </Typography>
+                  } 
+                />
               </ListItemButton>
             </ListItem>
 
@@ -324,7 +360,13 @@ export default function ManageAdmins() {
                 <ListItemIcon sx={{ minWidth: 36, color: "#94A3B8" }}>
                   <PersonIcon sx={{ fontSize: 20 }} />
                 </ListItemIcon>
-                <ListItemText primary="Profile" primaryTypographyProps={{ fontWeight: 500 }} />
+                <ListItemText 
+                  primary={
+                    <Typography sx={{ fontWeight: 500 }}>
+                      Profile
+                    </Typography>
+                  } 
+                />
               </ListItemButton>
             </ListItem>
 
@@ -333,7 +375,13 @@ export default function ManageAdmins() {
                 <ListItemIcon sx={{ minWidth: 36, color: "#EF4444" }}>
                   <ExitToAppIcon sx={{ fontSize: 20 }} />
                 </ListItemIcon>
-                <ListItemText primary="Logout" primaryTypographyProps={{ fontWeight: 500 }} />
+                <ListItemText 
+                  primary={
+                    <Typography sx={{ fontWeight: 500 }}>
+                      Logout
+                    </Typography>
+                  } 
+                />
               </ListItemButton>
             </ListItem>
           </List>
@@ -602,18 +650,20 @@ export default function ManageAdmins() {
             fullWidth
             variant="outlined"
             sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 }, "& .MuiInputBase-input": { fontFamily: "monospace", letterSpacing: 1 } }}
-            InputProps={{
-              readOnly: true,
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton onClick={() => copyToClipboard(createForm.password)} title="Copy Password" sx={{ color: "#94A3B8" }}>
-                    <ContentCopyIcon fontSize="small" />
-                  </IconButton>
-                  <IconButton onClick={() => setCreateForm({ ...createForm, password: generatePassword() })} title="Generate New Password" sx={{ color: "#94A3B8" }}>
-                    <AutorenewIcon fontSize="small" />
-                  </IconButton>
-                </InputAdornment>
-              ),
+            slotProps={{
+              input: {
+                readOnly: true,
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={() => copyToClipboard(createForm.password)} title="Copy Password" sx={{ color: "#94A3B8" }}>
+                      <ContentCopyIcon fontSize="small" />
+                    </IconButton>
+                    <IconButton onClick={() => setCreateForm({ ...createForm, password: generatePassword() })} title="Generate New Password" sx={{ color: "#94A3B8" }}>
+                      <AutorenewIcon fontSize="small" />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              },
             }}
           />
 
