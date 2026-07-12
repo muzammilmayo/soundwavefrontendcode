@@ -25,6 +25,12 @@ const artistService = {
     return res.data;
   },
 
+  // Fetch artist's aggregated stats
+  getStats: async () => {
+    const res = await api.get("/artist/stats");
+    return res.data;
+  },
+
   // Upload a new song (handles multipart/form-data for audio and cover art files)
   uploadSong: async (formData) => {
     const res = await api.post("/artist/songs/upload", formData, {

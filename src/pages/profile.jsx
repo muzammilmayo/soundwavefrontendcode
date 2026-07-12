@@ -27,23 +27,28 @@ import {
   DeleteForever as DeleteForeverIcon,
   WarningAmber as WarningAmberIcon,
   Close as CloseIcon,
+  MusicNote as MusicIcon,
 } from "@mui/icons-material";
 import api from "../api";
 import authService from "../services/authService";
 
-const lightTheme = createTheme({
+// --- Custom Neon Dark Theme ---
+const synthTheme = createTheme({
   palette: {
-    mode: "light",
+    mode: "dark",
     primary: {
-      main: "#F97316",
+      main: "#01F2EA", // Neon Cyan
+    },
+    error: {
+      main: "#EF4444",
     },
     background: {
-      default: "#FFF5F0",
-      paper: "#FFFFFF",
+      default: "#100B29", // Deep Purple
+      paper: "#1A153A", // Purple Card
     },
     text: {
-      primary: "#1E293B",
-      secondary: "#94A3B8",
+      primary: "#FFFFFF",
+      secondary: "#A2A0D5", // Soft Lavender
     },
   },
   typography: {
@@ -51,7 +56,6 @@ const lightTheme = createTheme({
   },
 });
 
-// Helper to get role from authService or fallback
 const getUserRole = () => {
   const user = authService.getUser?.() || null;
   return user?.role || "";
@@ -200,8 +204,20 @@ export default function Profile() {
     }
   };
 
+  // Input styling shortcut to remove boilerplate
+  const textFieldStyles = {
+    "& .MuiOutlinedInput-root": {
+      borderRadius: 3,
+      bgcolor: "rgba(255, 255, 255, 0.02)",
+      "& fieldset": { borderColor: "rgba(162, 160, 213, 0.2)" },
+      "&:hover fieldset": { borderColor: "#01F2EA" },
+    },
+    "& .MuiInputLabel-root": { color: "text.secondary" },
+    "& .MuiInputLabel-root.Mui-focused": { color: "#01F2EA" },
+  };
+
   return (
-    <ThemeProvider theme={lightTheme}>
+    <ThemeProvider theme={synthTheme}>
       <CssBaseline />
       <Box
         sx={{
@@ -211,14 +227,32 @@ export default function Profile() {
           justifyContent: "center",
           minHeight: "100vh",
           p: 3,
-          bgcolor: "#FFF5F0",
+          bgcolor: "background.default",
+          backgroundImage:
+            "linear-gradient(#201948 1px, transparent 1px), linear-gradient(90deg, #201948 1px, transparent 1px)",
+          backgroundSize: "20px 20px",
         }}
       >
         <Button
           variant="outlined"
           startIcon={<ArrowBackIcon />}
           onClick={goBackToDashboard}
-          sx={{ mb: 4, borderRadius: 3, textTransform: "none", fontWeight: "bold", borderColor: "#E2E8F0", color: "#64748B", px: 3, py: 1, "&:hover": { borderColor: "#F97316", color: "#F97316", bgcolor: "#FFF5F0" } }}
+          sx={{
+            mb: 4,
+            borderRadius: 3,
+            textTransform: "none",
+            fontWeight: "bold",
+            borderColor: "rgba(162, 160, 213, 0.3)",
+            color: "#A2A0D5",
+            px: 3,
+            py: 1,
+            "&:hover": {
+              borderColor: "#01F2EA",
+              color: "#01F2EA",
+              bgcolor: "rgba(1, 242, 234, 0.05)",
+              boxShadow: "0 0 12px rgba(1, 242, 234, 0.2)",
+            },
+          }}
         >
           Back to Dashboard
         </Button>
@@ -226,21 +260,35 @@ export default function Profile() {
         <Card
           sx={{
             width: "100%",
-            maxWidth: 500,
+            maxWidth: 520,
             borderRadius: 4,
-            border: "1px solid #FFF0E6",
-            bgcolor: "#FFFFFF",
-            boxShadow: "0 4px 20px rgba(0,0,0,0.03)",
+            border: "1px solid rgba(162, 160, 213, 0.2)",
+            bgcolor: "background.paper",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
             p: 2,
           }}
         >
           <CardContent>
-            <Typography variant="h4" align="center" sx={{ fontWeight: "bold", mb: 3, color: "#1E293B" }}>
-              🎵 SoundWave Profile
+            <Typography
+              variant="h5"
+              align="center"
+              sx={{ fontWeight: "bold", mb: 3, color: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center", gap: 1 }}
+            >
+              <MusicIcon sx={{ color: "#01F2EA", filter: "drop-shadow(0 0 4px #01F2EA)" }} />
+              SoundWave Profile
             </Typography>
 
             {message.text && (
-              <Alert severity={message.type} sx={{ mb: 3, borderRadius: 3, bgcolor: message.type === "success" ? "#ECFDF5" : "#FEF2F2", color: message.type === "success" ? "#059669" : "#DC2626", border: message.type === "success" ? "1px solid #A7F3D0" : "1px solid #FECACA" }}>
+              <Alert
+                severity={message.type}
+                sx={{
+                  mb: 3,
+                  borderRadius: 3,
+                  bgcolor: message.type === "success" ? "rgba(16, 185, 129, 0.1)" : "rgba(239, 68, 68, 0.1)",
+                  color: message.type === "success" ? "#10B981" : "#EF4444",
+                  border: message.type === "success" ? "1px solid rgba(16, 185, 129, 0.3)" : "1px solid rgba(239, 68, 68, 0.3)",
+                }}
+              >
                 {message.text}
               </Alert>
             )}
@@ -254,11 +302,15 @@ export default function Profile() {
               variant="fullWidth"
               textColor="primary"
               indicatorColor="primary"
-              sx={{ borderBottom: "1px solid #FFF0E6", mb: 3 }}
+              sx={{
+                borderBottom: "1px solid rgba(162, 160, 213, 0.15)",
+                mb: 3,
+                "& .MuiTabs-indicator": { bgcolor: activeTab === 2 ? "#EF4444" : "#01F2EA" },
+              }}
             >
-              <Tab icon={<PersonIcon />} label="My Profile" sx={{ textTransform: "none", fontWeight: "bold", color: "#64748B" }} />
-              <Tab icon={<LockIcon />} label="Security" sx={{ textTransform: "none", fontWeight: "bold", color: "#64748B" }} />
-              <Tab icon={<DeleteForeverIcon />} label="Danger Zone" sx={{ textTransform: "none", fontWeight: "bold", color: activeTab === 2 ? "#DC2626" : "#64748B" }} />
+              <Tab icon={<PersonIcon />} label="My Profile" sx={{ textTransform: "none", fontWeight: "bold", color: "#A2A0D5", "&.Mui-selected": { color: "#01F2EA" } }} />
+              <Tab icon={<LockIcon />} label="Security" sx={{ textTransform: "none", fontWeight: "bold", color: "#A2A0D5", "&.Mui-selected": { color: "#01F2EA" } }} />
+              <Tab icon={<DeleteForeverIcon />} label="Danger Zone" sx={{ textTransform: "none", fontWeight: "bold", color: "#A2A0D5", "&.Mui-selected": { color: "#EF4444" } }} />
             </Tabs>
 
             {/* Tab 0: Profile form */}
@@ -273,7 +325,7 @@ export default function Profile() {
                   required
                   variant="outlined"
                   slotProps={{ inputLabel: { shrink: true } }}
-                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
+                  sx={textFieldStyles}
                 />
 
                 <TextField
@@ -283,7 +335,14 @@ export default function Profile() {
                   disabled
                   variant="outlined"
                   slotProps={{ inputLabel: { shrink: true } }}
-                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 }, "& .Mui-disabled": { color: "#94A3B8", bgcolor: "#F8FAFC" } }}
+                  sx={{
+                    ...textFieldStyles,
+                    "& .MuiOutlinedInput-root.Mui-disabled": {
+                      bgcolor: "rgba(255, 255, 255, 0.01)",
+                      "& fieldset": { borderColor: "rgba(162, 160, 213, 0.1)" },
+                    },
+                    "& .Mui-disabled": { color: "rgba(162, 160, 213, 0.4)", WebkitTextFillColor: "rgba(162, 160, 213, 0.4)" },
+                  }}
                 />
 
                 <TextField
@@ -294,7 +353,7 @@ export default function Profile() {
                   fullWidth
                   variant="outlined"
                   slotProps={{ inputLabel: { shrink: true } }}
-                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
+                  sx={textFieldStyles}
                 />
 
                 <TextField
@@ -305,7 +364,7 @@ export default function Profile() {
                   fullWidth
                   variant="outlined"
                   slotProps={{ inputLabel: { shrink: true } }}
-                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
+                  sx={textFieldStyles}
                 />
 
                 <TextField
@@ -316,15 +375,15 @@ export default function Profile() {
                   fullWidth
                   variant="outlined"
                   slotProps={{ inputLabel: { shrink: true } }}
-                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
+                  sx={textFieldStyles}
                 />
 
                 <Box sx={{ display: "flex", justifyContent: "space-between", mt: 1, px: 0.5 }}>
-                  <Typography variant="body2" sx={{ color: "#94A3B8" }}>
-                    Role: <strong style={{ color: "#1E293B" }}>{profile.role || "Unknown"}</strong>
+                  <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                    Role: <strong style={{ color: "#CE04F2" }}>{profile.role || "Unknown"}</strong>
                   </Typography>
-                  <Typography variant="body2" sx={{ color: "#94A3B8" }}>
-                    Joined: <strong style={{ color: "#1E293B" }}>{profile.created_at ? new Date(profile.created_at).toLocaleDateString() : "N/A"}</strong>
+                  <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                    Joined: <strong style={{ color: "#FFFFFF" }}>{profile.created_at ? new Date(profile.created_at).toLocaleDateString() : "N/A"}</strong>
                   </Typography>
                 </Box>
 
@@ -333,7 +392,17 @@ export default function Profile() {
                   variant="contained"
                   fullWidth
                   disabled={loading}
-                  sx={{ borderRadius: 3, py: 1.5, textTransform: "none", fontWeight: "bold", mt: 1, bgcolor: "#F97316", boxShadow: "0 4px 15px rgba(249,115,22,0.3)", "&:hover": { bgcolor: "#EA580C" } }}
+                  sx={{
+                    borderRadius: 3,
+                    py: 1.5,
+                    textTransform: "none",
+                    fontWeight: "bold",
+                    mt: 1,
+                    bgcolor: "#01F2EA",
+                    color: "#100B29",
+                    boxShadow: "0 4px 14px rgba(1, 242, 234, 0.3)",
+                    "&:hover": { bgcolor: "#00DDD5", boxShadow: "0 6px 20px rgba(1, 242, 234, 0.5)" },
+                  }}
                 >
                   {loading ? <CircularProgress size={24} color="inherit" /> : "Save Profile"}
                 </Button>
@@ -352,7 +421,7 @@ export default function Profile() {
                   fullWidth
                   required
                   variant="outlined"
-                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
+                  sx={textFieldStyles}
                 />
 
                 <TextField
@@ -364,14 +433,24 @@ export default function Profile() {
                   fullWidth
                   required
                   variant="outlined"
-                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
+                  sx={textFieldStyles}
                 />
 
                 <Button
                   type="submit"
                   variant="contained"
                   fullWidth
-                  sx={{ borderRadius: 3, py: 1.5, textTransform: "none", fontWeight: "bold", mt: 1, bgcolor: "#F97316", boxShadow: "0 4px 15px rgba(249,115,22,0.3)", "&:hover": { bgcolor: "#EA580C" } }}
+                  sx={{
+                    borderRadius: 3,
+                    py: 1.5,
+                    textTransform: "none",
+                    fontWeight: "bold",
+                    mt: 1,
+                    bgcolor: "#01F2EA",
+                    color: "#100B29",
+                    boxShadow: "0 4px 14px rgba(1, 242, 234, 0.3)",
+                    "&:hover": { bgcolor: "#00DDD5", boxShadow: "0 6px 20px rgba(1, 242, 234, 0.5)" },
+                  }}
                 >
                   Update Password
                 </Button>
@@ -381,17 +460,25 @@ export default function Profile() {
             {/* Tab 2: Danger Zone */}
             {activeTab === 2 && (
               <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                <Alert severity="error" sx={{ borderRadius: 2, bgcolor: "#FEF2F2", color: "#DC2626", border: "1px solid #FECACA" }}>
+                <Alert
+                  severity="error"
+                  sx={{
+                    borderRadius: 2,
+                    bgcolor: "rgba(239, 68, 68, 0.1)",
+                    color: "#EF4444",
+                    border: "1px solid rgba(239, 68, 68, 0.2)",
+                  }}
+                >
                   Deleting your account is <strong>permanent and irreversible</strong>. All your data will be removed from the system.
                 </Alert>
 
-                <Box sx={{ bgcolor: "#FEF2F2", border: "1px solid #FECACA", borderRadius: 3, p: 3 }}>
+                <Box sx={{ bgcolor: "rgba(255, 255, 255, 0.02)", border: "1px solid rgba(239, 68, 68, 0.2)", borderRadius: 3, p: 3 }}>
                   <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
-                    <WarningAmberIcon sx={{ color: "#DC2626" }} />
-                    <Typography sx={{ fontWeight: "bold", color: "#DC2626" }}>Delete My Account</Typography>
+                    <WarningAmberIcon sx={{ color: "#EF4444" }} />
+                    <Typography sx={{ fontWeight: "bold", color: "#EF4444" }}>Delete My Account</Typography>
                   </Box>
-                  <Typography variant="body2" sx={{ color: "#94A3B8", mb: 2 }}>
-                    Once deleted, your account (<strong style={{ color: "#1E293B" }}>{profile.email}</strong>) cannot be recovered.
+                  <Typography variant="body2" sx={{ color: "text.secondary", mb: 2 }}>
+                    Once deleted, your account (<strong style={{ color: "#FFFFFF" }}>{profile.email}</strong>) cannot be recovered.
                   </Typography>
                   <Button
                     variant="contained"
@@ -399,7 +486,7 @@ export default function Profile() {
                     fullWidth
                     startIcon={<DeleteForeverIcon />}
                     onClick={() => setDeleteConfirm({ open: true, confirmText: "" })}
-                    sx={{ borderRadius: 3, py: 1.2, textTransform: "none", fontWeight: "bold" }}
+                    sx={{ borderRadius: 3, py: 1.2, textTransform: "none", fontWeight: "bold", boxShadow: "0 4px 14px rgba(239, 68, 68, 0.3)" }}
                   >
                     Delete My Account Permanently
                   </Button>
@@ -415,25 +502,25 @@ export default function Profile() {
         open={deleteConfirm.open}
         onClose={() => setDeleteConfirm({ open: false, confirmText: "" })}
         PaperProps={{
-          sx: { borderRadius: 4, bgcolor: "#FFFFFF", border: "1px solid #FECACA", minWidth: 420 },
+          sx: { borderRadius: 4, bgcolor: "background.paper", border: "1px solid rgba(239, 68, 68, 0.3)", minWidth: 420 },
         }}
       >
-        <DialogTitle sx={{ p: 3, fontWeight: "bold", borderBottom: "1px solid #F1F5F9", display: "flex", alignItems: "center", gap: 1, color: "#1E293B" }}>
-          <WarningAmberIcon sx={{ color: "#DC2626" }} />
+        <DialogTitle sx={{ p: 3, fontWeight: "bold", borderBottom: "1px solid rgba(162, 160, 213, 0.15)", display: "flex", alignItems: "center", gap: 1, color: "#FFFFFF" }}>
+          <WarningAmberIcon sx={{ color: "#EF4444" }} />
           Confirm Account Deletion
           <IconButton
             onClick={() => setDeleteConfirm({ open: false, confirmText: "" })}
-            sx={{ position: "absolute", right: 16, top: 16, color: "#94A3B8" }}
+            sx={{ position: "absolute", right: 16, top: 16, color: "#A2A0D5" }}
           >
             <CloseIcon />
           </IconButton>
         </DialogTitle>
         <DialogContent sx={{ p: 3 }}>
-          <Alert severity="error" sx={{ borderRadius: 2, mb: 3, bgcolor: "#FEF2F2", color: "#DC2626", border: "1px solid #FECACA" }}>
+          <Alert severity="error" sx={{ borderRadius: 2, mb: 3, bgcolor: "rgba(239, 68, 68, 0.1)", color: "#EF4444", border: "1px solid rgba(239, 68, 68, 0.2)" }}>
             This will <strong>permanently delete</strong> your account and all associated data. This cannot be undone.
           </Alert>
-          <Typography variant="body2" sx={{ color: "#94A3B8", mb: 1 }}>
-            To confirm, type your username: <strong style={{ color: "#1E293B" }}>{profile.username}</strong>
+          <Typography variant="body2" sx={{ color: "text.secondary", mb: 1 }}>
+            To confirm, type your username: <strong style={{ color: "#FFFFFF" }}>{profile.username}</strong>
           </Typography>
           <TextField
             fullWidth
@@ -441,15 +528,23 @@ export default function Profile() {
             placeholder={profile.username}
             value={deleteConfirm.confirmText}
             onChange={(e) => setDeleteConfirm({ ...deleteConfirm, confirmText: e.target.value })}
-            sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
+            sx={textFieldStyles}
           />
         </DialogContent>
-        <DialogActions sx={{ p: 3, gap: 1.5, borderTop: "1px solid #F1F5F9" }}>
+        <DialogActions sx={{ p: 3, gap: 1.5, borderTop: "1px solid rgba(162, 160, 213, 0.15)" }}>
           <Button
             variant="outlined"
             fullWidth
             onClick={() => setDeleteConfirm({ open: false, confirmText: "" })}
-            sx={{ borderRadius: 3, py: 1, textTransform: "none", fontWeight: "bold", borderColor: "#E2E8F0", color: "#64748B", "&:hover": { borderColor: "#F97316", color: "#F97316", bgcolor: "#FFF5F0" } }}
+            sx={{
+              borderRadius: 3,
+              py: 1,
+              textTransform: "none",
+              fontWeight: "bold",
+              borderColor: "rgba(162, 160, 213, 0.3)",
+              color: "#A2A0D5",
+              "&:hover": { borderColor: "#01F2EA", color: "#01F2EA", bgcolor: "rgba(1, 242, 234, 0.05)" },
+            }}
           >
             Cancel
           </Button>
@@ -476,7 +571,15 @@ export default function Profile() {
         <Alert
           onClose={() => setToast({ ...toast, open: false })}
           severity={toast.severity}
-          sx={{ width: "100%", borderRadius: 3, boxShadow: "0 4px 20px rgba(0,0,0,0.1)" }}
+          sx={{
+            width: "100%",
+            borderRadius: 3,
+            boxShadow: "0 8px 24px rgba(0,0,0,0.3)",
+            bgcolor: toast.severity === "success" ? "#10B981" : "#EF4444",
+            color: "#100B29",
+            fontWeight: "bold",
+            "& .MuiAlert-icon": { color: "#100B29" },
+          }}
         >
           {toast.message}
         </Alert>
