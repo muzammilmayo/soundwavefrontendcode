@@ -14,21 +14,23 @@ import {
   Alert,
 } from "@mui/material";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
-import authService from "../services/authService";
+import { useDispatch } from "react-redux";
+import { loginUser } from "../features/auth/authSlice";
 
-const lightTheme = createTheme({
+// --- Custom Neon Dark Theme ---
+const synthTheme = createTheme({
   palette: {
-    mode: "light",
+    mode: "dark",
     primary: {
-      main: "#F97316",
+      main: "#01F2EA", // Neon Cyan
     },
     background: {
-      default: "#FFF5F0",
-      paper: "#FFFFFF",
+      default: "#100B29", // Deep Purple
+      paper: "#1A153A", // Purple Card
     },
     text: {
-      primary: "#1E293B",
-      secondary: "#94A3B8",
+      primary: "#FFFFFF",
+      secondary: "#A2A0D5", // Soft Lavender
     },
   },
   typography: {
@@ -38,6 +40,7 @@ const lightTheme = createTheme({
 
 export default function Login() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const [user, setUser] = useState({
     email: "",
@@ -60,7 +63,7 @@ export default function Login() {
     e.preventDefault();
 
     try {
-      const res = await authService.login(user);
+      const res = await dispatch(loginUser(user)).unwrap();
       showToast("Login Successful", "success");
 
       const role = res.user.role;
@@ -77,16 +80,28 @@ export default function Login() {
           navigate("/listener/dashboard");
         } else {
           showToast("Unknown user role: " + role, "error");
-          authService.logout();
         }
       }, 800);
     } catch (err) {
-      showToast(err.response?.data?.message || "Login Failed", "error");
+      const message = err?.message || (typeof err === 'string' ? err : 'Login Failed');
+      showToast(message, "error");
     }
   };
 
+  // Reusable custom visual specs for inputs
+  const textFieldStyles = {
+    "& .MuiOutlinedInput-root": {
+      borderRadius: 3,
+      bgcolor: "rgba(255, 255, 255, 0.02)",
+      "& fieldset": { borderColor: "rgba(162, 160, 213, 0.2)" },
+      "&:hover fieldset": { borderColor: "#01F2EA" },
+    },
+    "& .MuiInputLabel-root": { color: "text.secondary" },
+    "& .MuiInputLabel-root.Mui-focused": { color: "#01F2EA" },
+  };
+
   return (
-    <ThemeProvider theme={lightTheme}>
+    <ThemeProvider theme={synthTheme}>
       <CssBaseline />
       <Box
         sx={{
@@ -94,46 +109,52 @@ export default function Login() {
           alignItems: "center",
           justifyContent: "center",
           minHeight: "100vh",
-          bgcolor: "#FFF5F0",
+          bgcolor: "background.default",
           p: 3,
+          backgroundImage:
+            "linear-gradient(#201948 1px, transparent 1px), linear-gradient(90deg, #201948 1px, transparent 1px)",
+          backgroundSize: "20px 20px",
         }}
       >
         <Card
           sx={{
             width: "100%",
-            maxWidth: 420,
+            maxWidth: 440,
             borderRadius: 4,
-            border: "1px solid #FFF0E6",
-            bgcolor: "#FFFFFF",
-            boxShadow: "0 8px 32px rgba(0,0,0,0.06)",
+            border: "1px solid rgba(162, 160, 213, 0.2)",
+            bgcolor: "background.paper",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
             p: 2,
           }}
         >
           <CardContent>
+            {/* Brand Logo Wrapper */}
             <Box
               sx={{
                 width: 56,
                 height: 56,
                 borderRadius: 3,
-                background: "linear-gradient(135deg, #FDBA74, #FB7185)",
+                background: "rgba(255, 255, 255, 0.04)",
+                border: "1px solid rgba(1, 242, 234, 0.4)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 mx: "auto",
                 mb: 2,
-                boxShadow: "0 4px 15px rgba(251,113,133,0.3)",
+                boxShadow: "0 0 15px rgba(1, 242, 234, 0.2)",
               }}
             >
-              <MusicNoteIcon sx={{ color: "#FFFFFF", fontSize: 28 }} />
+              <MusicNoteIcon sx={{ color: "#01F2EA", fontSize: 28, filter: "drop-shadow(0 0 6px #01F2EA)" }} />
             </Box>
+            
             <Typography
               variant="h4"
               align="center"
-              sx={{ fontWeight: "bold", color: "#1E293B", mb: 1, letterSpacing: -0.5 }}
+              sx={{ fontWeight: "bold", color: "#FFFFFF", mb: 0.5, letterSpacing: -0.5 }}
             >
               SoundWave
             </Typography>
-            <Typography variant="h6" align="center" sx={{ color: "#94A3B8", mb: 4 }}>
+            <Typography variant="body1" align="center" sx={{ color: "text.secondary", mb: 4 }}>
               Welcome Back
             </Typography>
 
@@ -147,7 +168,7 @@ export default function Login() {
                 fullWidth
                 required
                 variant="outlined"
-                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
+                sx={textFieldStyles}
               />
 
               <TextField
@@ -159,28 +180,60 @@ export default function Login() {
                 fullWidth
                 required
                 variant="outlined"
-                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
+                sx={textFieldStyles}
               />
 
               <Button
                 type="submit"
                 variant="contained"
                 fullWidth
-                sx={{ borderRadius: 3, py: 1.5, textTransform: "none", fontWeight: "bold", mt: 1, bgcolor: "#F97316", boxShadow: "0 4px 15px rgba(249,115,22,0.3)", "&:hover": { bgcolor: "#EA580C" } }}
+                sx={{
+                  borderRadius: 3,
+                  py: 1.5,
+                  textTransform: "none",
+                  fontWeight: "bold",
+                  mt: 1,
+                  bgcolor: "#01F2EA",
+                  color: "#100B29",
+                  boxShadow: "0 4px 14px rgba(1, 242, 234, 0.3)",
+                  "&:hover": {
+                    bgcolor: "#00DDD5",
+                    boxShadow: "0 6px 20px rgba(1, 242, 234, 0.5)",
+                  },
+                }}
               >
                 Login
               </Button>
             </Box>
 
-            <Box sx={{ mt: 4, textAlign: "center", display: "flex", flexDirection: "column", gap: 1 }}>
-              <Typography variant="body2" sx={{ color: "#94A3B8" }}>
+            {/* Custom Interactive Hyperlinks */}
+            <Box sx={{ mt: 4, textAlign: "center", display: "flex", flexDirection: "column", gap: 1.5 }}>
+              <Typography variant="body2" sx={{ color: "text.secondary" }}>
                 Don't have an account?{" "}
-                <Link component={RouterLink} to="/register" sx={{ fontWeight: "bold", textDecoration: "none", color: "#F97316", "&:hover": { textDecoration: "underline" } }}>
+                <Link
+                  component={RouterLink}
+                  to="/register"
+                  sx={{
+                    fontWeight: "bold",
+                    textDecoration: "none",
+                    color: "#01F2EA",
+                    "&:hover": { textDecoration: "underline" },
+                  }}
+                >
                   Register
                 </Link>
               </Typography>
               <Typography variant="body2">
-                <Link component={RouterLink} to="/forgot-password" sx={{ fontWeight: "bold", textDecoration: "none", color: "#F97316", "&:hover": { textDecoration: "underline" } }}>
+                <Link
+                  component={RouterLink}
+                  to="/forgot-password"
+                  sx={{
+                    fontWeight: "bold",
+                    textDecoration: "none",
+                    color: "#CE04F2", // Neon Magenta Accent
+                    "&:hover": { textDecoration: "underline" },
+                  }}
+                >
                   Forgot Password?
                 </Link>
               </Typography>
@@ -189,6 +242,7 @@ export default function Login() {
         </Card>
       </Box>
 
+      {/* Styled Response Feedback Toast */}
       <Snackbar
         open={toast.open}
         autoHideDuration={4000}
@@ -198,7 +252,15 @@ export default function Login() {
         <Alert
           onClose={() => setToast({ ...toast, open: false })}
           severity={toast.severity}
-          sx={{ width: "100%", borderRadius: 3, boxShadow: "0 4px 20px rgba(0,0,0,0.1)" }}
+          sx={{
+            width: "100%",
+            borderRadius: 3,
+            boxShadow: "0 8px 24px rgba(0,0,0,0.3)",
+            bgcolor: toast.severity === "success" ? "#10B981" : "#EF4444",
+            color: "#100B29",
+            fontWeight: "bold",
+            "& .MuiAlert-icon": { color: "#100B29" },
+          }}
         >
           {toast.message}
         </Alert>

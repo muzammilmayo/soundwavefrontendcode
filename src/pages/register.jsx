@@ -19,21 +19,23 @@ import {
   Favorite as FavoriteIcon,
   PlaylistPlay as PlaylistIcon,
   HighQuality as QualityIcon,
+  KeyboardArrowRight as ArrowIcon,
 } from "@mui/icons-material";
 
-const lightTheme = createTheme({
+// --- Custom Theme ---
+const synthTheme = createTheme({
   palette: {
-    mode: "light",
+    mode: "dark",
     primary: {
-      main: "#F97316",
+      main: "#01F2EA", // Neon Cyan
     },
     background: {
-      default: "#FFF5F0",
-      paper: "#FFFFFF",
+      default: "#100B29", // Deep Purple
+      paper: "#1A153A", // Purple Card
     },
     text: {
-      primary: "#1E293B",
-      secondary: "#94A3B8",
+      primary: "#FFFFFF",
+      secondary: "#A2A0D5", // Soft Lavender
     },
   },
   typography: {
@@ -41,13 +43,13 @@ const lightTheme = createTheme({
   },
 });
 
+// --- Role Data ---
 const ROLES = [
   {
     id: "artist",
     title: "Artist",
-    icon: <MusicIcon sx={{ fontSize: 40 }} />,
-    color: "#9333EA",
-    hoverColor: "#C084FC",
+    icon: <MusicIcon sx={{ fontSize: 48 }} />, // Larger icon
+    color: "#CE04F2", // Neon Magenta
     features: [
       { icon: <UploadIcon fontSize="small" />, text: "Upload Songs" },
       { icon: <AlbumIcon fontSize="small" />, text: "Create Albums" },
@@ -59,9 +61,8 @@ const ROLES = [
   {
     id: "listener",
     title: "Listener",
-    icon: <HeadsetIcon sx={{ fontSize: 40 }} />,
-    color: "#F97316",
-    hoverColor: "#FB923C",
+    icon: <HeadsetIcon sx={{ fontSize: 48 }} />, // Larger icon
+    color: "#01F2EA", // Neon Cyan
     features: [
       { icon: <MusicIcon fontSize="small" />, text: "Stream Music" },
       { icon: <FavoriteIcon fontSize="small" />, text: "Like Songs" },
@@ -76,15 +77,19 @@ export default function Register() {
   const navigate = useNavigate();
 
   return (
-    <ThemeProvider theme={lightTheme}>
+    <ThemeProvider theme={synthTheme}>
       <Box
         sx={{
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           minHeight: "100vh",
-          bgcolor: "#FFF5F0",
+          bgcolor: "background.default",
           p: 3,
+          // Subtle digital pattern background
+          backgroundImage:
+            "linear-gradient(#201948 1px, transparent 1px), linear-gradient(90deg, #201948 1px, transparent 1px)",
+          backgroundSize: "20px 20px",
         }}
       >
         <Card
@@ -92,71 +97,92 @@ export default function Register() {
             width: "100%",
             maxWidth: 600,
             borderRadius: 4,
-            border: "1px solid #FFF0E6",
-            bgcolor: "#FFFFFF",
-            boxShadow: "0 8px 32px rgba(0,0,0,0.06)",
+            border: "1px solid rgba(162, 160, 213, 0.2)",
+            bgcolor: "background.paper",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.4)", // Stronger shadow for dark mode
           }}
         >
           <CardContent sx={{ p: 5, textAlign: "center" }}>
-            {/* Logo */}
+            {/* --- Logo & Title Group --- */}
             <Box
               sx={{
-                width: 56,
-                height: 56,
-                borderRadius: 3,
-                background: "linear-gradient(135deg, #FDBA74, #FB7185)",
                 display: "flex",
+                flexDirection: "column",
                 alignItems: "center",
-                justifyContent: "center",
-                mx: "auto",
-                mb: 2,
-                boxShadow: "0 4px 15px rgba(251,113,133,0.3)",
+                mb: 6,
               }}
             >
-              <MusicIcon sx={{ color: "#FFFFFF", fontSize: 28 }} />
+              {/* Neon Wave Icon from image_a1f6e6.jpg */}
+              <MusicIcon
+                sx={{
+                  color: "#01F2EA",
+                  fontSize: 56,
+                  filter: "drop-shadow(0 0 8px #01F2EA)", // Neon Glow
+                  mb: 1,
+                }}
+              />
+              <Typography
+                variant="h4"
+                sx={{
+                  fontWeight: "bold",
+                  color: "#FFFFFF",
+                  letterSpacing: -1,
+                  display: "flex",
+                  alignItems: "baseline",
+                  gap: 0.5,
+                }}
+              >
+                Sound Wave
+                <Typography
+                  variant="body2"
+                  sx={{ color: "text.secondary", fontWeight: 400 }}
+                >
+                
+                </Typography>
+              </Typography>
             </Box>
-            <Typography
-              variant="h4"
-              sx={{ fontWeight: "bold", color: "#1E293B", mb: 1, letterSpacing: -0.5 }}
-            >
-              SoundWave
-            </Typography>
 
-            <Typography variant="h5" sx={{ fontWeight: "bold", mb: 4, color: "#1E293B" }}>
+            <Typography
+              variant="h5"
+              sx={{ fontWeight: "bold", mb: 4, color: "#FFFFFF" }}
+            >
               Create Your Account
             </Typography>
 
-            {/* Role Selection Cards */}
-            <Grid container spacing={3} sx={{ mb: 4 }}>
+            {/* --- Role Selection Cards --- */}
+            <Grid container spacing={3} sx={{ mb: 6 }}>
               {ROLES.map((role) => (
                 <Grid size={{ xs: 12, sm: 6 }} key={role.id}>
                   <Box
                     onClick={() => navigate(role.path)}
                     sx={{
-                      bgcolor: "#FFFFFF",
+                      bgcolor: "rgba(255, 255, 255, 0.05)", // Ultra-subtle glass
                       p: 4,
                       borderRadius: 3,
                       cursor: "pointer",
-                      border: "2px solid #FFF0E6",
-                      transition: "all 0.25s ease",
+                      border: "2px solid rgba(162, 160, 213, 0.15)", // Subtle gray border
+                      transition: "all 0.3s ease-out",
                       height: "100%",
                       display: "flex",
                       flexDirection: "column",
                       alignItems: "center",
                       gap: 2,
-                      boxShadow: "0 2px 10px rgba(0,0,0,0.02)",
                       "&:hover": {
-                        transform: "translateY(-5px)",
+                        // Neon Border Glow on hover
                         borderColor: role.color,
-                        boxShadow: "0 8px 30px rgba(0,0,0,0.06)",
+                        boxShadow: `0 0 20px ${role.color}`, // Intense glow
+                        "& .role-icon": {
+                          filter: `drop-shadow(0 0 6px ${role.color})`, // Glow the icon
+                        },
                       },
                     }}
                   >
                     {/* Icon */}
                     <Box
+                      className="role-icon"
                       sx={{
                         color: role.color,
-                        mb: 1,
+                        transition: "filter 0.3s ease",
                       }}
                     >
                       {role.icon}
@@ -167,7 +193,7 @@ export default function Register() {
                       variant="h6"
                       sx={{
                         fontWeight: "bold",
-                        color: "#1E293B",
+                        color: "#FFFFFF",
                       }}
                     >
                       {role.title}
@@ -191,7 +217,7 @@ export default function Register() {
                             display: "flex",
                             alignItems: "center",
                             gap: 1.5,
-                            color: "#94A3B8",
+                            color: "text.secondary",
                             fontSize: "0.9rem",
                           }}
                         >
@@ -202,23 +228,21 @@ export default function Register() {
                         </Box>
                       ))}
                     </Box>
-
-                    {/* Select Button */}
+                    
+                    {/* Register Arrow Button */}
                     <Button
-                      variant="outlined"
+                      variant="text"
                       fullWidth
+                      endIcon={<ArrowIcon fontSize="small" />}
                       sx={{
                         mt: 2,
-                        borderColor: role.color,
                         color: role.color,
-                        borderRadius: 3,
                         textTransform: "none",
-                        fontWeight: "bold",
-                        py: 1,
+                        fontWeight: "500",
+                        justifyContent: "center",
                         "&:hover": {
-                          bgcolor: role.color,
-                          color: "#FFFFFF",
-                          borderColor: role.color,
+                          bgcolor: "transparent",
+                          fontWeight: "bold",
                         },
                       }}
                     >
@@ -229,13 +253,13 @@ export default function Register() {
               ))}
             </Grid>
 
-            {/* Login Link */}
-            <Typography variant="body2" sx={{ color: "#94A3B8" }}>
+            {/* --- Login Link --- */}
+            <Typography variant="body2" sx={{ color: "text.secondary" }}>
               Already have an account?{" "}
               <Link
                 to="/login"
                 style={{
-                  color: "#F97316",
+                  color: "#01F2EA", // Neon Cyan
                   textDecoration: "none",
                   fontWeight: "bold",
                 }}

@@ -10,10 +10,14 @@ import MusicNoteIcon from "@mui/icons-material/MusicNote";
 import LogoutIcon from "@mui/icons-material/Logout";
 import LoginIcon from "@mui/icons-material/Login";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import { useSelector } from "react-redux";
 import authService from "../services/authService";
 
 export default function Navbar() {
   const navigate = useNavigate();
+  
+  // Checking auth status safely from Redux state
+  const isAuthenticated = useSelector(state => !!state.auth?.user);
 
   const logout = () => {
     authService.logout();
@@ -25,14 +29,14 @@ export default function Navbar() {
       position="sticky"
       elevation={0}
       sx={{
-        backgroundColor: "#FFFFFF",
-        color: "#1E293B",
-        borderBottom: "1px solid #FFF0E6",
-        boxShadow: "0 2px 10px rgba(0,0,0,0.02)",
+        backgroundColor: "#1A153A", // Purple Card Background from Dashboard
+        color: "#FFFFFF",
+        borderBottom: "1px solid rgba(162, 160, 213, 0.15)", // Subtle container border
+        boxShadow: "0 4px 20px rgba(0, 0, 0, 0.3)",
       }}
     >
-      <Toolbar sx={{ justifyContent: "space-between", px: 4 }}>
-        {/* Logo */}
+      <Toolbar sx={{ justifyContent: "space-between", px: { xs: 2, sm: 4 } }}>
+        {/* --- Logo & Brand --- */}
         <Box
           component={Link}
           to="/"
@@ -44,25 +48,33 @@ export default function Navbar() {
             color: "inherit",
           }}
         >
+          {/* Glowing Neon Icon container */}
           <Box
             sx={{
-              width: 36,
-              height: 36,
+              width: 38,
+              height: 38,
               borderRadius: 2.5,
-              background: "linear-gradient(135deg, #FDBA74, #FB7185)",
+              background: "rgba(255, 255, 255, 0.05)",
+              border: "1px solid rgba(1, 242, 234, 0.4)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              boxShadow: "0 4px 12px rgba(251,113,133,0.3)",
+              boxShadow: "0 0 10px rgba(1, 242, 234, 0.2)",
             }}
           >
-            <MusicNoteIcon sx={{ color: "#FFFFFF", fontSize: 20 }} />
+            <MusicNoteIcon 
+              sx={{ 
+                color: "#01F2EA", // Neon Cyan 
+                fontSize: 22,
+                filter: "drop-shadow(0 0 4px #01F2EA)" 
+              }} 
+            />
           </Box>
           <Typography
             variant="h5"
             sx={{
               fontWeight: "bold",
-              color: "#1E293B",
+              color: "#FFFFFF",
               letterSpacing: "-0.5px",
             }}
           >
@@ -70,9 +82,9 @@ export default function Navbar() {
           </Typography>
         </Box>
 
-        {/* Auth Buttons */}
+        {/* --- Dynamic Auth Action Buttons --- */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-          {authService.isLoggedIn() ? (
+          {isAuthenticated ? (
             <Button
               variant="outlined"
               onClick={logout}
@@ -81,13 +93,15 @@ export default function Navbar() {
                 borderRadius: 3,
                 textTransform: "none",
                 fontWeight: "bold",
-                borderColor: "#FECACA",
-                color: "#DC2626",
+                borderColor: "rgba(254, 202, 202, 0.3)",
+                color: "#EF4444", // Crisp warning red
                 px: 3,
-                py: 1,
+                py: 0.8,
+                transition: "all 0.2s ease-in-out",
                 "&:hover": {
-                  borderColor: "#DC2626",
-                  bgcolor: "#FEF2F2",
+                  borderColor: "#EF4444",
+                  bgcolor: "rgba(239, 68, 68, 0.1)",
+                  boxShadow: "0 0 12px rgba(239, 68, 68, 0.2)",
                 },
               }}
             >
@@ -95,6 +109,7 @@ export default function Navbar() {
             </Button>
           ) : (
             <>
+              {/* Login Button (Neon Borderless/Subtle look) */}
               <Button
                 component={Link}
                 to="/login"
@@ -104,19 +119,23 @@ export default function Navbar() {
                   borderRadius: 3,
                   textTransform: "none",
                   fontWeight: "bold",
-                  color: "#64748B",
-                  borderColor: "#E2E8F0",
+                  color: "#A2A0D5", // Soft Lavender Text
+                  borderColor: "rgba(162, 160, 213, 0.3)",
                   px: 3,
-                  py: 1,
+                  py: 0.8,
+                  transition: "all 0.2s ease-in-out",
                   "&:hover": {
-                    borderColor: "#F97316",
-                    color: "#F97316",
-                    bgcolor: "#FFF5F0",
+                    borderColor: "#01F2EA", // Hovering Neon Cyan
+                    color: "#01F2EA",
+                    bgcolor: "rgba(1, 242, 234, 0.05)",
+                    boxShadow: "0 0 12px rgba(1, 242, 234, 0.2)",
                   },
                 }}
               >
                 Login
               </Button>
+
+              {/* Register Button (Solid Filled Neon Cyan) */}
               <Button
                 component={Link}
                 to="/register"
@@ -126,13 +145,15 @@ export default function Navbar() {
                   borderRadius: 3,
                   textTransform: "none",
                   fontWeight: "bold",
-                  backgroundColor: "#F97316",
+                  backgroundColor: "#01F2EA", // Vibrant Neon Cyan Action
+                  color: "#100B29", // Dark contrast text color
                   px: 3,
-                  py: 1,
-                  boxShadow: "0 4px 15px rgba(249,115,22,0.3)",
+                  py: 0.8,
+                  boxShadow: "0 4px 14px rgba(1, 242, 234, 0.4)",
+                  transition: "all 0.2s ease-in-out",
                   "&:hover": {
-                    backgroundColor: "#EA580C",
-                    boxShadow: "0 6px 20px rgba(249,115,22,0.4)",
+                    backgroundColor: "#00DDD5",
+                    boxShadow: "0 6px 20px rgba(1, 242, 234, 0.6)",
                   },
                 }}
               >

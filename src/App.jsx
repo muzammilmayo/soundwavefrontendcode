@@ -1,4 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
+import { useDispatch } from "react-redux";
+import { refreshAuth } from "./features/auth/authSlice";
 
 import Navbar from "./components/navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -17,9 +20,10 @@ import Register from "./pages/register";
 import ListenerRegister from "./pages/Listener/register";
 import ListenerDashboard from "./pages/Listener/listener";
 
-// Artist Register & Dashboard
-import ArtistRegister from "./pages/Arstist/register";
-import ArtistDashboard from "./pages/Arstist/Arstist";
+// Artist Register, Dashboard & Profile
+import ArtistRegister from "./pages/Artist/register";
+import ArtistDashboard from "./pages/Artist/Artist";
+import ArtistProfile from "./pages/Artist/profile";
 
 // Admin
 import AdminDashboard from "./pages/Admin/Admin";
@@ -32,6 +36,12 @@ import ManageAdmins from "./pages/SuperAdmin/ManageAdmins";
 import ModeratorDashboard from "./pages/Moderator/Moderator";
 
 function App() {
+  const dispatch = useDispatch();
+  useEffect(() => {
+    // Re-validate persisted session with the server in the background.
+    // If the token is expired the slice will clear localStorage and redirect.
+    dispatch(refreshAuth());
+  }, [dispatch]);
   return (
     <BrowserRouter>
       <Navbar />
@@ -63,6 +73,15 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={["Artist"]}>
               <ArtistDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/artist/profile"
+          element={
+            <ProtectedRoute allowedRoles={["Artist"]}>
+              <ArtistProfile />
             </ProtectedRoute>
           }
         />

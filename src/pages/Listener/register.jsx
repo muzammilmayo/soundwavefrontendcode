@@ -16,19 +16,20 @@ import {
 import HeadsetIcon from "@mui/icons-material/Headset";
 import authService from "../../services/authService";
 
-const lightTheme = createTheme({
+// ===== HARDCODED NEON DARK THEME =====
+const synthTheme = createTheme({
   palette: {
-    mode: "light",
+    mode: "dark",
     primary: {
-      main: "#F97316",
+      main: "#01F2EA", // Neon Cyan
     },
     background: {
-      default: "#FFF5F0",
-      paper: "#FFFFFF",
+      default: "#100B29", // Deep Purple Theme BG
+      paper: "#1A153A", // Purple Card BG
     },
     text: {
-      primary: "#1E293B",
-      secondary: "#94A3B8",
+      primary: "#FFFFFF",
+      secondary: "#A2A0D5", // Soft Lavender
     },
   },
   typography: {
@@ -58,7 +59,7 @@ export default function ListenerRegister() {
     });
   };
 
-  const ListenerRegister = async (e) => {
+  const handleListenerRegister = async (e) => {
     e.preventDefault();
 
     try {
@@ -72,8 +73,27 @@ export default function ListenerRegister() {
     }
   };
 
+  // Reusable styling parameters for form fields
+  const textFieldStyles = {
+    "& .MuiOutlinedInput-root": {
+      borderRadius: 3,
+      bgcolor: "rgba(255, 255, 255, 0.02)",
+      "& fieldset": { borderColor: "rgba(162, 160, 213, 0.2)" },
+      "&:hover fieldset": { borderColor: "#01F2EA" },
+      "&.Mui-focused fieldset": { borderColor: "#01F2EA" },
+    },
+    "& .MuiInputLabel-root": {
+      color: "text.secondary",
+      "&.Mui-focused": { color: "#01F2EA" },
+    },
+    "& .MuiInputBase-input": {
+      color: "#FFFFFF",
+      py: 1.6,
+    },
+  };
+
   return (
-    <ThemeProvider theme={lightTheme}>
+    <ThemeProvider theme={synthTheme}>
       <CssBaseline />
       <Box
         sx={{
@@ -81,50 +101,56 @@ export default function ListenerRegister() {
           alignItems: "center",
           justifyContent: "center",
           minHeight: "100vh",
-          bgcolor: "#FFF5F0",
+          bgcolor: "background.default",
           p: 3,
+          backgroundImage:
+            "linear-gradient(#201948 1px, transparent 1px), linear-gradient(90deg, #201948 1px, transparent 1px)",
+          backgroundSize: "20px 20px",
         }}
       >
         <Card
           sx={{
             width: "100%",
-            maxWidth: 420,
+            maxWidth: 440,
             borderRadius: 4,
-            border: "1px solid #FFF0E6",
-            bgcolor: "#FFFFFF",
-            boxShadow: "0 8px 32px rgba(0,0,0,0.06)",
+            border: "1px solid rgba(162, 160, 213, 0.2)",
+            bgcolor: "background.paper",
+            boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
             p: 2,
           }}
         >
           <CardContent>
+            {/* Glowing Headset Badge */}
             <Box
               sx={{
                 width: 56,
                 height: 56,
                 borderRadius: 3,
-                background: "linear-gradient(135deg, #FDBA74, #FB7185)",
+                background: "rgba(255, 255, 255, 0.04)",
+                border: "1px solid rgba(1, 242, 234, 0.4)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 mx: "auto",
                 mb: 2,
-                boxShadow: "0 4px 15px rgba(251,113,133,0.3)",
+                boxShadow: "0 0 15px rgba(1, 242, 234, 0.2)",
               }}
             >
-              <HeadsetIcon sx={{ color: "#FFFFFF", fontSize: 28 }} />
+              <HeadsetIcon sx={{ color: "#01F2EA", fontSize: 28, filter: "drop-shadow(0 0 6px #01F2EA)" }} />
             </Box>
+
             <Typography
               variant="h4"
               align="center"
-              sx={{ fontWeight: "bold", color: "#1E293B", mb: 1, letterSpacing: -0.5 }}
+              sx={{ fontWeight: "bold", color: "#FFFFFF", mb: 0.5, letterSpacing: -0.5 }}
             >
               SoundWave
             </Typography>
-            <Typography variant="h6" align="center" sx={{ color: "#94A3B8", mb: 4 }}>
+            <Typography variant="body1" align="center" sx={{ color: "text.secondary", mb: 4 }}>
               Listener Signup
             </Typography>
 
-            <Box component="form" onSubmit={ListenerRegister} sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
+            <Box component="form" onSubmit={handleListenerRegister} sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
               <TextField
                 label="Username"
                 type="text"
@@ -134,7 +160,7 @@ export default function ListenerRegister() {
                 fullWidth
                 required
                 variant="outlined"
-                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
+                sx={textFieldStyles}
               />
 
               <TextField
@@ -146,7 +172,7 @@ export default function ListenerRegister() {
                 fullWidth
                 required
                 variant="outlined"
-                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
+                sx={textFieldStyles}
               />
 
               <TextField
@@ -158,23 +184,47 @@ export default function ListenerRegister() {
                 fullWidth
                 required
                 variant="outlined"
-                sx={{ "& .MuiOutlinedInput-root": { borderRadius: 3 } }}
+                sx={textFieldStyles}
               />
 
               <Button
                 type="submit"
                 variant="contained"
                 fullWidth
-                sx={{ borderRadius: 3, py: 1.5, textTransform: "none", fontWeight: "bold", mt: 1, bgcolor: "#F97316", boxShadow: "0 4px 15px rgba(249,115,22,0.3)", "&:hover": { bgcolor: "#EA580C" } }}
+                sx={{
+                  borderRadius: 3,
+                  py: 1.5,
+                  textTransform: "none",
+                  fontWeight: "bold",
+                  mt: 1,
+                  bgcolor: "#01F2EA",
+                  color: "#100B29",
+                  boxShadow: "0 4px 14px rgba(1, 242, 234, 0.3)",
+                  transition: "all 0.2s ease-out",
+                  "&:hover": {
+                    bgcolor: "#00DDD5",
+                    boxShadow: "0 6px 20px rgba(1, 242, 234, 0.5)",
+                    transform: "translateY(-1px)",
+                  },
+                }}
               >
                 Create Account
               </Button>
             </Box>
 
             <Box sx={{ mt: 4, textAlign: "center" }}>
-              <Typography variant="body2" sx={{ color: "#94A3B8" }}>
+              <Typography variant="body2" sx={{ color: "text.secondary" }}>
                 Already have an account?{" "}
-                <Link component={RouterLink} to="/login" sx={{ fontWeight: "bold", textDecoration: "none", color: "#F97316", "&:hover": { textDecoration: "underline" } }}>
+                <Link
+                  component={RouterLink}
+                  to="/login"
+                  sx={{
+                    fontWeight: "bold",
+                    textDecoration: "none",
+                    color: "#CE04F2", // Neon Magenta Accent
+                    "&:hover": { textDecoration: "underline" },
+                  }}
+                >
                   Login
                 </Link>
               </Typography>
@@ -192,7 +242,15 @@ export default function ListenerRegister() {
         <Alert
           onClose={() => setToast({ ...toast, open: false })}
           severity={toast.severity}
-          sx={{ width: "100%", borderRadius: 3, boxShadow: "0 4px 20px rgba(0,0,0,0.1)" }}
+          sx={{
+            width: "100%",
+            borderRadius: 3,
+            boxShadow: "0 8px 24px rgba(0,0,0,0.3)",
+            bgcolor: toast.severity === "success" ? "#10B981" : "#EF4444",
+            color: "#100B29",
+            fontWeight: "bold",
+            "& .MuiAlert-icon": { color: "#100B29" },
+          }}
         >
           {toast.message}
         </Alert>
