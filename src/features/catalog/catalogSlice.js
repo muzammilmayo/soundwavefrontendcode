@@ -344,6 +344,7 @@ const catalogSlice = createSlice({
           state.savedAlbumsMap[userId] = stateData.savedAlbums || [];
           state.followedArtistsMap[userId] = stateData.followedArtists || [];
           state.downloadedSongsMap[userId] = stateData.downloadedSongs || [];
+          state.notificationsMap[userId] = stateData.notifications || [];
         }
       });
   },

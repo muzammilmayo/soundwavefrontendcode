@@ -7,7 +7,7 @@ import api from './api';
 const persistMiddleware = store => next => action => {
   const result = next(action);
 
-  // Actions that modify user-specific catalog state (playlists, likes, saves, follows)
+  // Actions that modify user-specific catalog state (playlists, likes, saves, follows, notifications)
   const persistActions = [
     'catalog/toggleLikeSong',
     'catalog/toggleSaveAlbum',
@@ -15,6 +15,9 @@ const persistMiddleware = store => next => action => {
     'catalog/setPlaylists',
     'catalog/downloadSong',
     'catalog/removeDownloadedSong',
+    'catalog/clearNotifications',
+    'catalog/markNotificationsRead',
+    'catalog/addNotification'
   ];
 
   if (persistActions.includes(action.type)) {
@@ -27,7 +30,8 @@ const persistMiddleware = store => next => action => {
         likedSongs: catalog.likedSongsMap[userId] || [],
         savedAlbums: catalog.savedAlbumsMap[userId] || [],
         followedArtists: catalog.followedArtistsMap[userId] || [],
-        downloadedSongs: catalog.downloadedSongsMap[userId] || []
+        downloadedSongs: catalog.downloadedSongsMap[userId] || [],
+        notifications: catalog.notificationsMap[userId] || []
       };
 
       // Save updated state back to the database in background

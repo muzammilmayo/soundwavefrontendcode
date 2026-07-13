@@ -310,7 +310,6 @@ export default function Profile() {
             >
               <Tab icon={<PersonIcon />} label="My Profile" sx={{ textTransform: "none", fontWeight: "bold", color: "#A2A0D5", "&.Mui-selected": { color: "#01F2EA" } }} />
               <Tab icon={<LockIcon />} label="Security" sx={{ textTransform: "none", fontWeight: "bold", color: "#A2A0D5", "&.Mui-selected": { color: "#01F2EA" } }} />
-              <Tab icon={<DeleteForeverIcon />} label="Danger Zone" sx={{ textTransform: "none", fontWeight: "bold", color: "#A2A0D5", "&.Mui-selected": { color: "#EF4444" } }} />
             </Tabs>
 
             {/* Tab 0: Profile form */}
@@ -457,110 +456,13 @@ export default function Profile() {
               </Box>
             )}
 
-            {/* Tab 2: Danger Zone */}
-            {activeTab === 2 && (
-              <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                <Alert
-                  severity="error"
-                  sx={{
-                    borderRadius: 2,
-                    bgcolor: "rgba(239, 68, 68, 0.1)",
-                    color: "#EF4444",
-                    border: "1px solid rgba(239, 68, 68, 0.2)",
-                  }}
-                >
-                  Deleting your account is <strong>permanent and irreversible</strong>. All your data will be removed from the system.
-                </Alert>
-
-                <Box sx={{ bgcolor: "rgba(255, 255, 255, 0.02)", border: "1px solid rgba(239, 68, 68, 0.2)", borderRadius: 3, p: 3 }}>
-                  <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
-                    <WarningAmberIcon sx={{ color: "#EF4444" }} />
-                    <Typography sx={{ fontWeight: "bold", color: "#EF4444" }}>Delete My Account</Typography>
-                  </Box>
-                  <Typography variant="body2" sx={{ color: "text.secondary", mb: 2 }}>
-                    Once deleted, your account (<strong style={{ color: "#FFFFFF" }}>{profile.email}</strong>) cannot be recovered.
-                  </Typography>
-                  <Button
-                    variant="contained"
-                    color="error"
-                    fullWidth
-                    startIcon={<DeleteForeverIcon />}
-                    onClick={() => setDeleteConfirm({ open: true, confirmText: "" })}
-                    sx={{ borderRadius: 3, py: 1.2, textTransform: "none", fontWeight: "bold", boxShadow: "0 4px 14px rgba(239, 68, 68, 0.3)" }}
-                  >
-                    Delete My Account Permanently
-                  </Button>
-                </Box>
-              </Box>
-            )}
+         
           </CardContent>
         </Card>
       </Box>
 
       {/* Delete Account Confirmation Dialog */}
-      <Dialog
-        open={deleteConfirm.open}
-        onClose={() => setDeleteConfirm({ open: false, confirmText: "" })}
-        PaperProps={{
-          sx: { borderRadius: 4, bgcolor: "background.paper", border: "1px solid rgba(239, 68, 68, 0.3)", minWidth: 420 },
-        }}
-      >
-        <DialogTitle sx={{ p: 3, fontWeight: "bold", borderBottom: "1px solid rgba(162, 160, 213, 0.15)", display: "flex", alignItems: "center", gap: 1, color: "#FFFFFF" }}>
-          <WarningAmberIcon sx={{ color: "#EF4444" }} />
-          Confirm Account Deletion
-          <IconButton
-            onClick={() => setDeleteConfirm({ open: false, confirmText: "" })}
-            sx={{ position: "absolute", right: 16, top: 16, color: "#A2A0D5" }}
-          >
-            <CloseIcon />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent sx={{ p: 3 }}>
-          <Alert severity="error" sx={{ borderRadius: 2, mb: 3, bgcolor: "rgba(239, 68, 68, 0.1)", color: "#EF4444", border: "1px solid rgba(239, 68, 68, 0.2)" }}>
-            This will <strong>permanently delete</strong> your account and all associated data. This cannot be undone.
-          </Alert>
-          <Typography variant="body2" sx={{ color: "text.secondary", mb: 1 }}>
-            To confirm, type your username: <strong style={{ color: "#FFFFFF" }}>{profile.username}</strong>
-          </Typography>
-          <TextField
-            fullWidth
-            variant="outlined"
-            placeholder={profile.username}
-            value={deleteConfirm.confirmText}
-            onChange={(e) => setDeleteConfirm({ ...deleteConfirm, confirmText: e.target.value })}
-            sx={textFieldStyles}
-          />
-        </DialogContent>
-        <DialogActions sx={{ p: 3, gap: 1.5, borderTop: "1px solid rgba(162, 160, 213, 0.15)" }}>
-          <Button
-            variant="outlined"
-            fullWidth
-            onClick={() => setDeleteConfirm({ open: false, confirmText: "" })}
-            sx={{
-              borderRadius: 3,
-              py: 1,
-              textTransform: "none",
-              fontWeight: "bold",
-              borderColor: "rgba(162, 160, 213, 0.3)",
-              color: "#A2A0D5",
-              "&:hover": { borderColor: "#01F2EA", color: "#01F2EA", bgcolor: "rgba(1, 242, 234, 0.05)" },
-            }}
-          >
-            Cancel
-          </Button>
-          <Button
-            variant="contained"
-            color="error"
-            fullWidth
-            startIcon={<DeleteForeverIcon />}
-            disabled={deleteConfirm.confirmText !== profile.username}
-            onClick={handleDeleteAccount}
-            sx={{ borderRadius: 3, py: 1, textTransform: "none", fontWeight: "bold" }}
-          >
-            Delete My Account
-          </Button>
-        </DialogActions>
-      </Dialog>
+   
 
       <Snackbar
         open={toast.open}

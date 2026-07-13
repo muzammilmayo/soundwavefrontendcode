@@ -360,32 +360,32 @@ export default function ArtistDashboard() {
             <ListItem disablePadding>
               <ListItemButton sx={{ borderRadius: 3, py: 1.2, px: 2, bgcolor: "rgba(1, 242, 234, 0.08)", color: "#01F2EA" }}>
                 <ListItemIcon sx={{ minWidth: 36, color: "#01F2EA" }}><HomeIcon sx={{ fontSize: 20 }} /></ListItemIcon>
-                <ListItemText primary="Dashboard" primaryTypographyProps={{ fontWeight: "bold" }} />
+                <ListItemText primary="Dashboard" sx={{ "& .MuiListItemText-primary": { fontWeight: "bold" } }} />
               </ListItemButton>
             </ListItem>
             <ListItem disablePadding>
               <ListItemButton onClick={() => setUploadOpen(true)} sx={{ borderRadius: 3, py: 1.2, px: 2, color: "#FFFFFF", "&:hover": { bgcolor: "rgba(255,255,255,0.05)" } }}>
                 <ListItemIcon sx={{ minWidth: 36, color: "#A2A0D5" }}><CloudUploadIcon sx={{ fontSize: 20 }} /></ListItemIcon>
-                <ListItemText primary="Upload Song" primaryTypographyProps={{ fontWeight: 500 }} />
+                <ListItemText primary="Upload Song" sx={{ "& .MuiListItemText-primary": { fontWeight: 500 } }} />
               </ListItemButton>
             </ListItem>
             <ListItem disablePadding>
               <ListItemButton onClick={() => setAlbumOpen(true)} sx={{ borderRadius: 3, py: 1.2, px: 2, color: "#FFFFFF", "&:hover": { bgcolor: "rgba(255,255,255,0.05)" } }}>
                 <ListItemIcon sx={{ minWidth: 36, color: "#A2A0D5" }}><AlbumIcon sx={{ fontSize: 20 }} /></ListItemIcon>
-                <ListItemText primary="Create Album" primaryTypographyProps={{ fontWeight: 500 }} />
+                <ListItemText primary="Create Album" sx={{ "& .MuiListItemText-primary": { fontWeight: 500 } }} />
               </ListItemButton>
             </ListItem>
             <Divider sx={{ my: 2, borderColor: "rgba(162,160,213,0.15)" }} />
             <ListItem disablePadding>
               <ListItemButton onClick={() => navigate("/artist/profile")} sx={{ borderRadius: 3, py: 1.2, px: 2, color: "#FFFFFF", "&:hover": { bgcolor: "rgba(255,255,255,0.05)" } }}>
                 <ListItemIcon sx={{ minWidth: 36, color: "#A2A0D5" }}><PersonIcon sx={{ fontSize: 20 }} /></ListItemIcon>
-                <ListItemText primary="Profile" primaryTypographyProps={{ fontWeight: 500 }} />
+                <ListItemText primary="Profile" sx={{ "& .MuiListItemText-primary": { fontWeight: 500 } }} />
               </ListItemButton>
             </ListItem>
             <ListItem disablePadding>
               <ListItemButton onClick={handleLogout} sx={{ borderRadius: 3, py: 1.2, px: 2, color: "#EF4444", "&:hover": { bgcolor: "rgba(239,68,68,0.05)" } }}>
                 <ListItemIcon sx={{ minWidth: 36, color: "#EF4444" }}><ExitToAppIcon sx={{ fontSize: 20 }} /></ListItemIcon>
-                <ListItemText primary="Logout" primaryTypographyProps={{ fontWeight: 500 }} />
+                <ListItemText primary="Logout" sx={{ "& .MuiListItemText-primary": { fontWeight: 500 } }} />
               </ListItemButton>
             </ListItem>
           </List>
