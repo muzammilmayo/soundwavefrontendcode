@@ -39,7 +39,7 @@ function App() {
   const dispatch = useDispatch();
   useEffect(() => {
     // Re-validate persisted session with the server in the background.
-    // If the token is expired the slice will clear localStorage and redirect.
+    // If the token is expired the slice will clear Redux auth state and redirect.
     dispatch(refreshAuth());
   }, [dispatch]);
   return (

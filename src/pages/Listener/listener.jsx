@@ -8,7 +8,8 @@ import {
   ListItemButton, ListItemIcon, ListItemText, Divider, IconButton,
   Tabs, Tab, Chip, CircularProgress, Alert, Button, Dialog,
   DialogTitle, DialogContent, Slider, TextField, DialogActions,
-  Snackbar, Avatar, Rating, Tooltip, Fade, Paper, Menu, MenuItem
+  Snackbar, Avatar, Rating, Tooltip, Fade, Paper, Menu, MenuItem,
+  Badge, Switch
 } from "@mui/material";
 import {
   Home as HomeIcon, Search as SearchIcon, Favorite as FavoriteIcon,
@@ -16,13 +17,16 @@ import {
   PlayCircleFilled as PlayCircleFilledIcon, ExitToApp as ExitToAppIcon,
   Album as AlbumIcon, Close as CloseIcon, Clear as ClearIcon,
   ArrowBack as ArrowBackIcon,
+  CheckCircle as CheckCircleIcon,
   PlayArrow as PlayIcon, Pause as PauseIcon,
   SkipNext as SkipNextIcon, SkipPrevious as SkipPreviousIcon,
   VolumeUp as VolumeUpIcon, Add as AddIcon, PlaylistAdd as PlaylistAddIcon, Comment as CommentIcon,
   FavoriteBorder as FavoriteBorderIcon, Bookmark as BookmarkIcon, BookmarkBorder as BookmarkBorderIcon,
   GetApp as DownloadIcon, LibraryMusic as LibraryMusicIcon,
   MoreVert as MoreVertIcon, Edit as EditIcon, Delete as DeleteIcon,
-  Star as StarIcon, StarBorder as StarBorderIcon, Send as SendIcon
+  Star as StarIcon, StarBorder as StarBorderIcon, Send as SendIcon,
+  Notifications as NotificationsIcon, Settings as SettingsIcon,
+  Facebook as FacebookIcon, Instagram as InstagramIcon, YouTube as YouTubeIcon, Language as WebIcon
 } from "@mui/icons-material";
 import authService from "../../services/authService";
 import {
@@ -30,6 +34,22 @@ import {
   fetchPublicAlbums,
   fetchPublicCategories,
   fetchPublicArtists,
+  loadListenerState,
+  setPlaylists,
+  toggleLikeSong as reduxToggleLikeSong,
+  toggleSaveAlbum as reduxToggleSaveAlbum,
+  toggleFollowArtist as reduxToggleFollowArtist,
+  downloadSong as reduxDownloadSong,
+  removeDownloadedSong as reduxRemoveDownloadedSong,
+  registerUserLookup,
+  addFeedback,
+  updateFeedback,
+  deleteFeedback,
+  likeFeedback,
+  updateNotificationSettings,
+  addNotification,
+  markNotificationsRead,
+  clearNotifications
 } from "../../features/catalog/catalogSlice";
 
 // ===== HARDCODED NEON DARK THEME =====
@@ -49,7 +69,33 @@ export default function ListenerDashboard() {
   const dispatch = useDispatch();
 
   // Redux Catalog State
-  const { songs, albums, categories, artists, loading, error } = useSelector((state) => state.catalog);
+  const {
+    songs,
+    albums,
+    categories,
+    artists,
+    playlistsMap,
+    likedSongsMap,
+    savedAlbumsMap,
+    followedArtistsMap,
+    downloadedSongsMap,
+    usersLookup,
+    feedbacks,
+    notificationSettingsMap = {},
+    notificationsMap = {},
+    loading,
+    error
+  } = useSelector((state) => state.catalog);
+
+  const user = authService.getUser() || {};
+  const userId = user.id || "guest";
+
+  const notificationSettings = notificationSettingsMap[userId] || { enabled: true, newSong: true, newAlbum: true };
+  const notifications = notificationsMap[userId] || [];
+  const activeNotifications = notifications.filter(n => !n.cleared);
+
+  const [bellAnchorEl, setBellAnchorEl] = useState(null);
+  const bellOpen = Boolean(bellAnchorEl);
 
   // Component State
   const [search, setSearch] = useState("");
@@ -58,12 +104,7 @@ export default function ListenerDashboard() {
   const [currentSong, setCurrentSong] = useState(null); 
 
   // Playlist State
-  const [playlists, setPlaylists] = useState(() => {
-    const user = authService.getUser();
-    const userId = user?.id || "guest";
-    const saved = localStorage.getItem("soundwave_playlists_" + userId);
-    return saved ? JSON.parse(saved) : [];
-  });
+  const playlists = playlistsMap[userId] || [];
   const [selectedPlaylist, setSelectedPlaylist] = useState(null); 
 
   // Dialog & Form states
@@ -76,10 +117,7 @@ export default function ListenerDashboard() {
   const [toast, setToast] = useState({ open: false, message: "", severity: "success" });
 
   const savePlaylists = (newPlaylists) => {
-    setPlaylists(newPlaylists);
-    const user = authService.getUser();
-    const userId = user?.id || "guest";
-    localStorage.setItem("soundwave_playlists_" + userId, JSON.stringify(newPlaylists));
+    dispatch(setPlaylists({ userId, playlists: newPlaylists }));
   };
 
   const handleCreatePlaylist = (e) => {
@@ -115,69 +153,30 @@ export default function ListenerDashboard() {
   };
 
   // Music Library States
-  const [likedSongs, setLikedSongs] = useState(() => {
-    const saved = localStorage.getItem(`soundwave_liked_songs_${authService.getUser()?.id}`);
-    return saved ? JSON.parse(saved) : [];
-  });
-  
-  const [savedAlbums, setSavedAlbums] = useState(() => {
-    const saved = localStorage.getItem(`soundwave_saved_albums_${authService.getUser()?.id}`);
-    return saved ? JSON.parse(saved) : [];
-  });
-  
-  const [followedArtists, setFollowedArtists] = useState(() => {
-    const saved = localStorage.getItem(`soundwave_followed_artists_${authService.getUser()?.id}`);
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  const [downloadedSongs, setDownloadedSongs] = useState(() => {
-    const saved = localStorage.getItem(`soundwave_downloaded_songs_${authService.getUser()?.id}`);
-    return saved ? JSON.parse(saved) : [];
-  });
+  const likedSongs = likedSongsMap[userId] || [];
+  const savedAlbums = savedAlbumsMap[userId] || [];
+  const followedArtists = followedArtistsMap[userId] || [];
+  const downloadedSongs = downloadedSongsMap[userId] || [];
 
   const [libraryTab, setLibraryTab] = useState(0);
 
   const toggleLikeSong = (song) => {
-    const userId = authService.getUser()?.id;
-    let updated;
-    if (likedSongs.some(s => s.song_id === song.song_id)) {
-      updated = likedSongs.filter(s => s.song_id !== song.song_id);
-    } else {
-      updated = [...likedSongs, song];
-    }
-    setLikedSongs(updated);
-    localStorage.setItem(`soundwave_liked_songs_${userId}`, JSON.stringify(updated));
+    dispatch(reduxToggleLikeSong({ userId, song }));
   };
 
   const toggleSaveAlbum = (album) => {
-    const userId = authService.getUser()?.id;
-    let updated;
-    if (savedAlbums.some(a => a.album_id === album.album_id)) {
-      updated = savedAlbums.filter(a => a.album_id !== album.album_id);
-    } else {
-      updated = [...savedAlbums, album];
-    }
-    setSavedAlbums(updated);
-    localStorage.setItem(`soundwave_saved_albums_${userId}`, JSON.stringify(updated));
+    dispatch(reduxToggleSaveAlbum({ userId, album }));
   };
 
   const toggleFollowArtist = (artist) => {
-    const userId = authService.getUser()?.id;
-    let updated;
-    if (followedArtists.some(a => a.artist_profile_id === artist.artist_profile_id)) {
-      updated = followedArtists.filter(a => a.artist_profile_id !== artist.artist_profile_id);
-    } else {
-      updated = [...followedArtists, artist];
-    }
-    setFollowedArtists(updated);
-    localStorage.setItem(`soundwave_followed_artists_${userId}`, JSON.stringify(updated));
+    dispatch(reduxToggleFollowArtist({ userId, artist }));
   };
 
   const downloadSong = (song) => {
-    const userId = authService.getUser()?.id;
     if (downloadedSongs.some(s => s.song_id === song.song_id)) {
       return;
     }
+    dispatch(reduxDownloadSong({ userId, song }));
     try {
       const link = document.createElement("a");
       link.href = `http://localhost:5000/uploads/${song.audio_file}`;
@@ -188,16 +187,10 @@ export default function ListenerDashboard() {
     } catch (e) {
       console.error(e);
     }
-    const updated = [...downloadedSongs, song];
-    setDownloadedSongs(updated);
-    localStorage.setItem(`soundwave_downloaded_songs_${userId}`, JSON.stringify(updated));
   };
 
   const removeDownloadedSong = (songId) => {
-    const userId = authService.getUser()?.id;
-    const updated = downloadedSongs.filter(s => s.song_id !== songId);
-    setDownloadedSongs(updated);
-    localStorage.setItem(`soundwave_downloaded_songs_${userId}`, JSON.stringify(updated));
+    dispatch(reduxRemoveDownloadedSong({ userId, songId }));
   };
 
   // ===== ENHANCED REVIEWS & COMMENTS SYSTEM =====
@@ -216,8 +209,7 @@ export default function ListenerDashboard() {
   const currentUser = authService.getUser();
 
   const getAllFeedbacks = () => {
-    const all = localStorage.getItem("soundwave_song_feedbacks");
-    return all ? JSON.parse(all) : [];
+    return feedbacks || [];
   };
 
   const calculateStats = (feedbacks) => {
@@ -234,12 +226,12 @@ export default function ListenerDashboard() {
 
   useEffect(() => {
     if (feedbackSong && feedbackOpen) {
-      const all = getAllFeedbacks();
+      const all = feedbacks || [];
       const filtered = all.filter(f => f.song_id === feedbackSong.song_id);
       setSongFeedbacks(filtered);
       setFeedbackStats(calculateStats(filtered));
     }
-  }, [feedbackSong, feedbackOpen]);
+  }, [feedbackSong, feedbackOpen, feedbacks]);
 
   const getSortedAndFilteredFeedbacks = () => {
     let filtered = [...songFeedbacks];
@@ -268,21 +260,12 @@ export default function ListenerDashboard() {
     const username = user?.username || "Anonymous Listener";
     const userId = user?.id || "guest";
 
-    const all = getAllFeedbacks();
-
     if (editingFeedback) {
       // Update existing review
-      const updated = all.map(f => {
-        if (f.id === editingFeedback.id) {
-          return { ...f, rating: feedbackRating, comment: feedbackComment.trim(), edited: true, editedAt: new Date().toISOString() };
-        }
-        return f;
-      });
-      localStorage.setItem("soundwave_song_feedbacks", JSON.stringify(updated));
-      setSongFeedbacks(updated.filter(f => f.song_id === feedbackSong.song_id));
-      setFeedbackStats(calculateStats(updated.filter(f => f.song_id === feedbackSong.song_id)));
-      setEditingFeedback(null);
+      const updated = { ...editingFeedback, rating: feedbackRating, comment: feedbackComment.trim(), edited: true, editedAt: new Date().toISOString() };
+      dispatch(updateFeedback(updated));
       setToast({ open: true, message: "Review updated successfully!", severity: "success" });
+      setEditingFeedback(null);
     } else {
       // Create new review
       const newFeedback = {
@@ -298,10 +281,7 @@ export default function ListenerDashboard() {
         likes: 0,
         likedBy: []
       };
-      const updated = [newFeedback, ...all];
-      localStorage.setItem("soundwave_song_feedbacks", JSON.stringify(updated));
-      setSongFeedbacks([newFeedback, ...songFeedbacks]);
-      setFeedbackStats(calculateStats([newFeedback, ...songFeedbacks]));
+      dispatch(addFeedback(newFeedback));
       setToast({ open: true, message: "Review posted successfully!", severity: "success" });
     }
 
@@ -310,12 +290,7 @@ export default function ListenerDashboard() {
   };
 
   const handleDeleteFeedback = (feedbackId) => {
-    const all = getAllFeedbacks();
-    const updated = all.filter(f => f.id !== feedbackId);
-    localStorage.setItem("soundwave_song_feedbacks", JSON.stringify(updated));
-    const remaining = updated.filter(f => f.song_id === feedbackSong.song_id);
-    setSongFeedbacks(remaining);
-    setFeedbackStats(calculateStats(remaining));
+    dispatch(deleteFeedback(feedbackId));
     setToast({ open: true, message: "Review deleted", severity: "info" });
     handleCloseFeedbackMenu();
   };
@@ -335,20 +310,7 @@ export default function ListenerDashboard() {
 
   const handleLikeFeedback = (feedbackId) => {
     const userId = currentUser?.id || "guest";
-    const all = getAllFeedbacks();
-    const updated = all.map(f => {
-      if (f.id === feedbackId) {
-        const alreadyLiked = f.likedBy?.includes(userId);
-        if (alreadyLiked) {
-          return { ...f, likes: (f.likes || 0) - 1, likedBy: f.likedBy.filter(id => id !== userId) };
-        } else {
-          return { ...f, likes: (f.likes || 0) + 1, likedBy: [...(f.likedBy || []), userId] };
-        }
-      }
-      return f;
-    });
-    localStorage.setItem("soundwave_song_feedbacks", JSON.stringify(updated));
-    setSongFeedbacks(updated.filter(f => f.song_id === feedbackSong.song_id));
+    dispatch(likeFeedback({ feedbackId, userId }));
   };
 
   const handleOpenFeedbackMenu = (event, feedback) => {
@@ -452,37 +414,108 @@ export default function ListenerDashboard() {
   };
 
   useEffect(() => {
-    dispatch(fetchPublicSongs());
-    dispatch(fetchPublicAlbums());
     dispatch(fetchPublicCategories());
-    dispatch(fetchPublicArtists());
 
     // Register user details for cross-role lookup
     const user = authService.getUser();
     if (user && user.id) {
-      const usersLookup = JSON.parse(localStorage.getItem("soundwave_users_lookup") || "{}");
-      usersLookup[user.id] = { username: user.username, email: user.email };
-      localStorage.setItem("soundwave_users_lookup", JSON.stringify(usersLookup));
+      dispatch(registerUserLookup({ userId: user.id, username: user.username, email: user.email }));
     }
   }, [dispatch]);
 
-  const filteredSongs = songs.filter((song) => {
-    const matchesSearch =
-      song.title.toLowerCase().includes(search.toLowerCase()) ||
-      (song.ArtistProfile?.stage_name || "").toLowerCase().includes(search.toLowerCase());
-    const matchesCategory = selectedCategory ? song.category_id === selectedCategory : true;
-    return matchesSearch && matchesCategory;
-  });
+  useEffect(() => {
+    if (userId && userId !== "guest") {
+      dispatch(loadListenerState(userId));
+    }
+  }, [userId, dispatch]);
 
-  const filteredAlbums = albums.filter((album) =>
-    album.title.toLowerCase().includes(search.toLowerCase()) ||
-    (album.ArtistProfile?.stage_name || "").toLowerCase().includes(search.toLowerCase())
-  );
+  // Debounced search & category trigger for server-side database filtering
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      dispatch(fetchPublicSongs({ search, category: selectedCategory }));
+      dispatch(fetchPublicAlbums({ search }));
+      dispatch(fetchPublicArtists({ search }));
+    }, 300);
 
-  const filteredArtists = artists.filter((artist) =>
-    (artist.stage_name || "").toLowerCase().includes(search.toLowerCase()) ||
-    (artist.bio || "").toLowerCase().includes(search.toLowerCase())
-  );
+    return () => clearTimeout(delayDebounceFn);
+  }, [search, selectedCategory, dispatch]);
+
+  // Check for new releases from followed artists to trigger push notifications
+  useEffect(() => {
+    if (!notificationSettings.enabled) return;
+
+    const followedIds = followedArtists.map((a) => a.artist_profile_id);
+
+    // 1. Check Songs
+    if (notificationSettings.newSong) {
+      songs.forEach((song) => {
+        if (followedIds.includes(song.artist_profile_id)) {
+          const artistName = song.ArtistProfile?.stage_name || "Followed Artist";
+          const alreadyNotified = notifications.some(
+            (n) => n.type === "song" && n.targetId === song.song_id
+          );
+          if (!alreadyNotified) {
+            dispatch(
+              addNotification({
+                userId,
+                notification: {
+                  id: "notif_song_" + song.song_id,
+                  type: "song",
+                  targetId: song.song_id,
+                  title: "New Song Released!",
+                  message: `${artistName} released a new song: "${song.title}"`,
+                  timestamp: new Date().toISOString(),
+                  read: false,
+                },
+              })
+            );
+            setToast({
+              open: true,
+              message: `🎵 New Release: ${artistName} released "${song.title}"!`,
+              severity: "info",
+            });
+          }
+        }
+      });
+    }
+
+    // 2. Check Albums
+    if (notificationSettings.newAlbum) {
+      albums.forEach((album) => {
+        if (followedIds.includes(album.artist_profile_id)) {
+          const artistName = album.ArtistProfile?.stage_name || "Followed Artist";
+          const alreadyNotified = notifications.some(
+            (n) => n.type === "album" && n.targetId === album.album_id
+          );
+          if (!alreadyNotified) {
+            dispatch(
+              addNotification({
+                userId,
+                notification: {
+                  id: "notif_album_" + album.album_id,
+                  type: "album",
+                  targetId: album.album_id,
+                  title: "New Album Released!",
+                  message: `${artistName} released a new album: "${album.title}"`,
+                  timestamp: new Date().toISOString(),
+                  read: false,
+                },
+              })
+            );
+            setToast({
+              open: true,
+              message: `💿 New Release: ${artistName} released album "${album.title}"!`,
+              severity: "info",
+            });
+          }
+        }
+      });
+    }
+  }, [songs, albums, followedArtists, notificationSettings, notifications, userId, dispatch]);
+
+  const filteredSongs = songs;
+  const filteredAlbums = albums;
+  const filteredArtists = artists;
 
   const getAlbumSongs = (albumId) => songs.filter((song) => song.album_id === albumId);
   const getArtistSongs = (profileId) => songs.filter((song) => song.artist_profile_id === profileId);
@@ -588,6 +621,21 @@ export default function ListenerDashboard() {
                 <ListItemText primary="Profile" />
               </ListItemButton>
             </ListItem>
+
+            <ListItem disablePadding>
+              <ListItemButton
+                onClick={() => { setSelectedPlaylist(null); setActiveTab(5); }}
+                sx={{
+                  borderRadius: 2,
+                  bgcolor: (!selectedPlaylist && activeTab === 5) ? "rgba(1, 242, 234, 0.08)" : "transparent",
+                  color: (!selectedPlaylist && activeTab === 5) ? "#01F2EA" : "#FFFFFF",
+                  "&:hover": { bgcolor: "rgba(255,255,255,0.05)" }
+                }}
+              >
+                <ListItemIcon sx={{ color: (!selectedPlaylist && activeTab === 5) ? "#01F2EA" : "#A2A0D5" }}><SettingsIcon /></ListItemIcon>
+                <ListItemText primary="Notification Settings" primaryTypographyProps={{ fontWeight: "bold" }} />
+              </ListItemButton>
+            </ListItem>
             
             <Divider sx={{ my: 1, borderColor: "rgba(162,160,213,0.15)" }} />
 
@@ -610,57 +658,181 @@ export default function ListenerDashboard() {
               <Typography variant="body2" sx={{ color: "text.secondary", mt: 0.5 }}>Discover and listen to published artist music.</Typography>
             </Box>
 
-            {/* Neon Search Box */}
-            <Box sx={{ display: "flex", alignItems: "center", bgcolor: "background.paper", borderRadius: 3, px: 2, py: 1, border: "1px solid rgba(162,160,213,0.2)", width: 320, "&:focus-within": { borderColor: "#01F2EA", boxShadow: "0 0 12px rgba(1,242,234,0.2)" } }}>
-              <SearchIcon sx={{ color: "text.secondary", mr: 1 }} />
-              <input
-                type="text"
-                placeholder="Search songs, albums, artists..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                style={{ background: "transparent", border: "none", outline: "none", color: "#FFFFFF", width: "100%", fontSize: 14 }}
-              />
-              {search && (
-                <IconButton size="small" onClick={() => setSearch("")} sx={{ color: "text.secondary", p: 0.2 }}>
-                  <ClearIcon fontSize="small" />
-                </IconButton>
-              )}
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              {/* Notifications Bell Icon Button */}
+              <IconButton
+                onClick={(e) => {
+                  setBellAnchorEl(e.currentTarget);
+                  dispatch(markNotificationsRead({ userId }));
+                }}
+                sx={{
+                  color: bellOpen ? "#CE04F2" : "#FFFFFF",
+                  bgcolor: bellOpen ? "rgba(206,4,242,0.1)" : "rgba(255, 255, 255, 0.05)",
+                  border: "1px solid",
+                  borderColor: bellOpen ? "rgba(206,4,242,0.3)" : "rgba(162,160,213,0.15)",
+                  borderRadius: 3,
+                  p: 1.5,
+                  transition: "all 0.2s ease",
+                  "&:hover": {
+                    borderColor: "#01F2EA",
+                    bgcolor: "rgba(1, 242, 234, 0.05)",
+                    boxShadow: "0 0 12px rgba(1, 242, 234, 0.2)",
+                  }
+                }}
+              >
+                <Badge
+                  badgeContent={activeNotifications.filter(n => !n.read).length}
+                  color="secondary"
+                  sx={{
+                    "& .MuiBadge-badge": {
+                      fontSize: "0.7rem",
+                      fontWeight: "bold",
+                      height: 18,
+                      minWidth: 18,
+                      bgcolor: "#CE04F2"
+                    }
+                  }}
+                >
+                  <NotificationsIcon />
+                </Badge>
+              </IconButton>
+
+              {/* Bell Notification Dropdown Menu */}
+              <Menu
+                anchorEl={bellAnchorEl}
+                open={bellOpen}
+                onClose={() => setBellAnchorEl(null)}
+                slotProps={{
+                  paper: {
+                    sx: {
+                      bgcolor: "#1A153A",
+                      border: "1px solid rgba(162,160,213,0.2)",
+                      borderRadius: 3,
+                      boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
+                      width: 320,
+                      mt: 1.5,
+                      "& .MuiMenuItem-root": {
+                        borderBottom: "1px solid rgba(162,160,213,0.08)",
+                        whiteSpace: "normal",
+                        py: 1.5,
+                        px: 2,
+                        "&:last-child": { borderBottom: "none" }
+                      }
+                    }
+                  }
+                }}
+              >
+                <Box sx={{ px: 2, py: 1.2, display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(162,160,213,0.15)" }}>
+                  <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#FFFFFF" }}>Notifications</Typography>
+                  {activeNotifications.length > 0 && (
+                    <Button
+                      size="small"
+                      onClick={() => dispatch(clearNotifications({ userId }))}
+                      sx={{ textTransform: "none", color: "#01F2EA", fontWeight: "bold", fontSize: "0.75rem", p: 0 }}
+                    >
+                      Clear All
+                    </Button>
+                  )}
+                </Box>
+                {activeNotifications.length === 0 ? (
+                  <MenuItem disabled sx={{ textAlign: "center", justifyContent: "center", color: "text.secondary", py: 4 }}>
+                    <Typography variant="body2">No notifications yet.</Typography>
+                  </MenuItem>
+                ) : (
+                  activeNotifications.map((n) => (
+                    <MenuItem
+                      key={n.id}
+                      onClick={() => {
+                        setBellAnchorEl(null);
+                        if (n.type === "song") {
+                          const songObj = songs.find(s => s.song_id === n.targetId);
+                          if (songObj) {
+                            setCurrentSong(songObj);
+                            setIsPlaying(true);
+                          }
+                        } else if (n.type === "album") {
+                          const albumObj = albums.find(a => a.album_id === n.targetId);
+                          if (albumObj) {
+                            handleAlbumClick(albumObj);
+                          }
+                        }
+                      }}
+                      sx={{
+                        "&:hover": { bgcolor: "rgba(255,255,255,0.02)" }
+                      }}
+                    >
+                      <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+                        <Typography variant="caption" sx={{ color: n.type === "song" ? "#01F2EA" : "#CE04F2", fontWeight: "bold", textTransform: "uppercase", fontSize: "0.65rem" }}>
+                          {n.title}
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: "#FFFFFF", fontWeight: n.read ? "normal" : "bold", lineHeight: 1.4 }}>
+                          {n.message}
+                        </Typography>
+                        <Typography variant="caption" sx={{ color: "text.secondary", mt: 0.5 }}>
+                          {new Date(n.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </Typography>
+                      </Box>
+                    </MenuItem>
+                  ))
+                )}
+              </Menu>
+
+              {/* Neon Search Box */}
+              <Box sx={{ display: "flex", alignItems: "center", bgcolor: "background.paper", borderRadius: 3, px: 2, py: 1, border: "1px solid rgba(162,160,213,0.2)", width: 320, "&:focus-within": { borderColor: "#01F2EA", boxShadow: "0 0 12px rgba(1,242,234,0.2)" } }}>
+                <SearchIcon sx={{ color: "text.secondary", mr: 1 }} />
+                <input
+                  type="text"
+                  placeholder="Search songs, albums, artists..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  style={{ background: "transparent", border: "none", outline: "none", color: "#FFFFFF", width: "100%", fontSize: 14 }}
+                />
+                {search && (
+                  <IconButton size="small" onClick={() => setSearch("")} sx={{ color: "text.secondary", p: 0.2 }}>
+                    <ClearIcon fontSize="small" />
+                  </IconButton>
+                )}
+              </Box>
             </Box>
           </Box>
 
-          {/* Genres Chips */}
-          <Typography variant="h6" sx={{ fontWeight: "bold", mb: 1.5, color: "#FFFFFF" }}>Categories / Genres</Typography>
-          <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.5, mb: 4 }}>
-            <Chip
-              label="All Genres"
-              clickable
-              onClick={() => setSelectedCategory(null)}
-              sx={{ fontWeight: "bold", borderRadius: 2, bgcolor: selectedCategory === null ? "#01F2EA" : "rgba(255,255,255,0.05)", color: selectedCategory === null ? "#100B29" : "#FFFFFF", "&:hover": { bgcolor: selectedCategory === null ? "#00DDD5" : "rgba(255,255,255,0.1)" } }}
-            />
-            {categories.map((cat) => (
-              <Chip
-                key={cat.category_id}
-                label={cat.name}
-                clickable
-                onClick={() => setSelectedCategory(cat.category_id)}
-                sx={{ fontWeight: "bold", borderRadius: 2, bgcolor: selectedCategory === cat.category_id ? "#01F2EA" : "rgba(255,255,255,0.05)", color: selectedCategory === cat.category_id ? "#100B29" : "#FFFFFF", "&:hover": { bgcolor: selectedCategory === cat.category_id ? "#00DDD5" : "rgba(255,255,255,0.1)" } }}
-              />
-            ))}
-          </Box>
+          {!selectedPlaylist && activeTab !== 4 && activeTab !== 5 && (
+            <>
+              {/* Genres Chips */}
+              <Typography variant="h6" sx={{ fontWeight: "bold", mb: 1.5, color: "#FFFFFF" }}>Categories / Genres</Typography>
+              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1.5, mb: 4 }}>
+                <Chip
+                  label="All Genres"
+                  clickable
+                  onClick={() => setSelectedCategory(null)}
+                  sx={{ fontWeight: "bold", borderRadius: 2, bgcolor: selectedCategory === null ? "#01F2EA" : "rgba(255,255,255,0.05)", color: selectedCategory === null ? "#100B29" : "#FFFFFF", "&:hover": { bgcolor: selectedCategory === null ? "#00DDD5" : "rgba(255,255,255,0.1)" } }}
+                />
+                {categories.map((cat) => (
+                  <Chip
+                    key={cat.category_id}
+                    label={cat.name}
+                    clickable
+                    onClick={() => setSelectedCategory(cat.category_id)}
+                    sx={{ fontWeight: "bold", borderRadius: 2, bgcolor: selectedCategory === cat.category_id ? "#01F2EA" : "rgba(255,255,255,0.05)", color: selectedCategory === cat.category_id ? "#100B29" : "#FFFFFF", "&:hover": { bgcolor: selectedCategory === cat.category_id ? "#00DDD5" : "rgba(255,255,255,0.1)" } }}
+                  />
+                ))}
+              </Box>
 
-          {/* Navigation Tab Panel */}
-          <Tabs
-            value={(activeTab === -1 || activeTab === 4) ? false : activeTab}
-            onChange={(e, val) => { setSelectedPlaylist(null); setActiveTab(val); }}
-            textColor="primary"
-            indicatorColor="primary"
-            sx={{ mb: 4, borderBottom: "1px solid rgba(162,160,213,0.15)", "& .MuiTabs-indicator": { bgcolor: "#01F2EA" } }}
-          >
-            <Tab label="Songs" icon={<MusicNoteIcon />} iconPosition="start" sx={{ textTransform: "none", fontWeight: "bold", color: "#A2A0D5", "&.Mui-selected": { color: "#01F2EA" } }} />
-            <Tab label="Albums" icon={<AlbumIcon />} iconPosition="start" sx={{ textTransform: "none", fontWeight: "bold", color: "#A2A0D5", "&.Mui-selected": { color: "#01F2EA" } }} />
-            <Tab label="Artists" icon={<PersonIcon />} iconPosition="start" sx={{ textTransform: "none", fontWeight: "bold", color: "#A2A0D5", "&.Mui-selected": { color: "#01F2EA" } }} />
-            <Tab label="Playlists" icon={<QueueMusicIcon />} iconPosition="start" sx={{ textTransform: "none", fontWeight: "bold", color: "#A2A0D5", "&.Mui-selected": { color: "#01F2EA" } }} />
-          </Tabs>
+              {/* Navigation Tab Panel */}
+              <Tabs
+                value={(activeTab === -1 || activeTab === 4 || activeTab === 5) ? false : activeTab}
+                onChange={(e, val) => { setSelectedPlaylist(null); setActiveTab(val); }}
+                textColor="primary"
+                indicatorColor="primary"
+                sx={{ mb: 4, borderBottom: "1px solid rgba(162,160,213,0.15)", "& .MuiTabs-indicator": { bgcolor: "#01F2EA" } }}
+              >
+                <Tab label="Songs" icon={<MusicNoteIcon />} iconPosition="start" sx={{ textTransform: "none", fontWeight: "bold", color: "#A2A0D5", "&.Mui-selected": { color: "#01F2EA" } }} />
+                <Tab label="Albums" icon={<AlbumIcon />} iconPosition="start" sx={{ textTransform: "none", fontWeight: "bold", color: "#A2A0D5", "&.Mui-selected": { color: "#01F2EA" } }} />
+                <Tab label="Artists" icon={<PersonIcon />} iconPosition="start" sx={{ textTransform: "none", fontWeight: "bold", color: "#A2A0D5", "&.Mui-selected": { color: "#01F2EA" } }} />
+                <Tab label="Playlists" icon={<QueueMusicIcon />} iconPosition="start" sx={{ textTransform: "none", fontWeight: "bold", color: "#A2A0D5", "&.Mui-selected": { color: "#01F2EA" } }} />
+              </Tabs>
+            </>
+          )}
 
           {error && <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>{error}</Alert>}
 
@@ -700,7 +872,26 @@ export default function ListenerDashboard() {
                           </Box>
                           <Box sx={{ flexGrow: 1 }}>
                             <Typography sx={{ fontWeight: "600", fontSize: "0.9rem", color: "#FFFFFF" }}>{song.title}</Typography>
-                            <Typography variant="body2" sx={{ color: "text.secondary", fontSize: "0.8rem" }}>{song.ArtistProfile?.stage_name || "Unknown Artist"}</Typography>
+                            <Typography
+                              variant="body2"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const artistObj = artists.find(a => a.artist_profile_id === song.artist_profile_id);
+                                if (artistObj) {
+                                  setSelectedPlaylist(null); // Close playlist dialog so we can see the artist details
+                                  handleArtistClick(artistObj);
+                                }
+                              }}
+                              sx={{
+                                color: "text.secondary",
+                                fontSize: "0.8rem",
+                                cursor: "pointer",
+                                display: "inline-block",
+                                "&:hover": { color: "#01F2EA", textDecoration: "underline" }
+                              }}
+                            >
+                              {song.ArtistProfile?.stage_name || "Unknown Artist"}
+                            </Typography>
                           </Box>
                           <IconButton size="small" onClick={(e) => { e.stopPropagation(); const updated = playlists.map(p => p.id === selectedPlaylist.id ? { ...p, songs: p.songs.filter(s => s.song_id !== song.song_id) } : p); savePlaylists(updated); setSelectedPlaylist(updated.find(p => p.id === selectedPlaylist.id)); }} sx={{ color: "text.secondary", mr: 2, "&:hover": { color: "#EF4444" } }}>
                             <ClearIcon sx={{ fontSize: 20 }} />
@@ -729,16 +920,40 @@ export default function ListenerDashboard() {
                           </Box>
                           <Box sx={{ flexGrow: 1 }}>
                             <Typography sx={{ fontWeight: "600", fontSize: "0.95rem", color: "#FFFFFF" }}>{song.title}</Typography>
-                            <Typography variant="body2" sx={{ color: "text.secondary", fontSize: "0.85rem" }}>{song.ArtistProfile?.stage_name || "Unknown Artist"}</Typography>
+                            <Typography
+                              variant="body2"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const artistObj = artists.find(a => a.artist_profile_id === song.artist_profile_id);
+                                if (artistObj) handleArtistClick(artistObj);
+                              }}
+                              sx={{
+                                color: "text.secondary",
+                                fontSize: "0.85rem",
+                                cursor: "pointer",
+                                display: "inline-block",
+                                "&:hover": { color: "#01F2EA", textDecoration: "underline" }
+                              }}
+                            >
+                              {song.ArtistProfile?.stage_name || "Unknown Artist"}
+                            </Typography>
                           </Box>
                           {song.Category?.name && <Chip label={song.Category.name} size="small" sx={{ mr: 3, bgcolor: "rgba(255,255,255,0.05)", color: "text.secondary" }} />}
-                          <IconButton size="small" onClick={(e) => { e.stopPropagation(); toggleLikeSong(song); }} sx={{ color: likedSongs.some(s => s.song_id === song.song_id) ? "#CE04F2" : "text.secondary", mr: 1 }}>
-                            {likedSongs.some(s => s.song_id === song.song_id) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
-                          </IconButton>
-                          <IconButton size="small" onClick={(e) => { e.stopPropagation(); downloadSong(song); }} sx={{ color: downloadedSongs.some(s => s.song_id === song.song_id) ? "#01F2EA" : "text.secondary", mr: 1 }}>
-                            <DownloadIcon />
-                          </IconButton>
-                          <IconButton size="small" onClick={(e) => { e.stopPropagation(); setSongToAddToPlaylist(song); setAddToPlaylistOpen(true); }} sx={{ color: "text.secondary", mr: 1 }}><PlaylistAddIcon /></IconButton>
+                          <Tooltip title={likedSongs.some(s => s.song_id === song.song_id) ? "Unlike Song" : "Like Song"}>
+                            <IconButton size="small" onClick={(e) => { e.stopPropagation(); toggleLikeSong(song); }} sx={{ color: likedSongs.some(s => s.song_id === song.song_id) ? "#CE04F2" : "text.secondary", mr: 1 }}>
+                              {likedSongs.some(s => s.song_id === song.song_id) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title={downloadedSongs.some(s => s.song_id === song.song_id) ? "Song Downloaded" : "Download Song"}>
+                            <IconButton size="small" onClick={(e) => { e.stopPropagation(); downloadSong(song); }} sx={{ color: downloadedSongs.some(s => s.song_id === song.song_id) ? "#01F2EA" : "text.secondary", mr: 1 }}>
+                              <DownloadIcon />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Add to Playlist">
+                            <IconButton size="small" onClick={(e) => { e.stopPropagation(); setSongToAddToPlaylist(song); setAddToPlaylistOpen(true); }} sx={{ color: "text.secondary", mr: 1 }}>
+                              <PlaylistAddIcon />
+                            </IconButton>
+                          </Tooltip>
                           <IconButton size="small" sx={{ color: "#01F2EA" }}><PlayCircleFilledIcon sx={{ fontSize: 32 }} /></IconButton>
                         </Box>
                       ))}
@@ -763,7 +978,23 @@ export default function ListenerDashboard() {
                             </Box>
                             <CardContent sx={{ p: 0.8, "&:last-child": { pb: 0.8 } }}>
                               <Typography variant="body2" sx={{ fontWeight: "bold", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "#FFFFFF", fontSize: "0.9rem" }}>{album.title}</Typography>
-                              <Typography variant="caption" sx={{ color: "text.secondary", display: "block", fontSize: "0.75rem" }}>{album.ArtistProfile?.stage_name || "Unknown"}</Typography>
+                              <Typography
+                                variant="caption"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const artistObj = artists.find(a => a.artist_profile_id === album.artist_profile_id);
+                                  if (artistObj) handleArtistClick(artistObj);
+                                }}
+                                sx={{
+                                  color: "text.secondary",
+                                  display: "inline-block",
+                                  fontSize: "0.75rem",
+                                  cursor: "pointer",
+                                  "&:hover": { color: "#01F2EA", textDecoration: "underline" }
+                                }}
+                              >
+                                {album.ArtistProfile?.stage_name || "Unknown"}
+                              </Typography>
                             </CardContent>
                           </Card>
                         </Grid>
@@ -877,7 +1108,23 @@ export default function ListenerDashboard() {
                                 </Box>
                                 <CardContent sx={{ p: 0.8, "&:last-child": { pb: 0.8 } }}>
                                   <Typography variant="body2" sx={{ fontWeight: "bold", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: "#FFFFFF", fontSize: "0.78rem" }}>{album.title}</Typography>
-                                  <Typography variant="caption" sx={{ color: "text.secondary", display: "block", fontSize: "0.75rem" }}>{album.ArtistProfile?.stage_name || "Unknown"}</Typography>
+                                  <Typography
+                                    variant="caption"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      const artistObj = artists.find(a => a.artist_profile_id === album.artist_profile_id);
+                                      if (artistObj) handleArtistClick(artistObj);
+                                    }}
+                                    sx={{
+                                      color: "text.secondary",
+                                      display: "inline-block",
+                                      fontSize: "0.75rem",
+                                      cursor: "pointer",
+                                      "&:hover": { color: "#01F2EA", textDecoration: "underline" }
+                                    }}
+                                  >
+                                    {album.ArtistProfile?.stage_name || "Unknown"}
+                                  </Typography>
                                 </CardContent>
                               </Card>
                             </Grid>
@@ -912,6 +1159,74 @@ export default function ListenerDashboard() {
                   )}
                 </Box>
               )}
+
+              {activeTab === 5 && (
+                <Box sx={{ maxWidth: 640 }}>
+                  <Typography variant="h5" sx={{ fontWeight: "bold", mb: 3, color: "#FFFFFF" }}>Notification Settings</Typography>
+                  <Card sx={{ p: 4, borderRadius: 4, border: "1px solid rgba(162,160,213,0.15)", bgcolor: "background.paper", boxShadow: "0 8px 32px rgba(0,0,0,0.3)" }}>
+                    <CardContent sx={{ p: 0, display: "flex", flexDirection: "column", gap: 3.5 }}>
+                      
+                      {/* Master Switch */}
+                      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <Box sx={{ flexGrow: 1, pr: 2 }}>
+                          <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#FFFFFF" }}>Enable Push Notifications</Typography>
+                          <Typography variant="body2" sx={{ color: "text.secondary", mt: 0.5 }}>Toggle all soundwave platform push notification alerts.</Typography>
+                        </Box>
+                        <Switch
+                          checked={notificationSettings.enabled}
+                          onChange={(e) => dispatch(updateNotificationSettings({ userId, settings: { enabled: e.target.checked } }))}
+                          color="primary"
+                          sx={{
+                            "& .MuiSwitch-switchBase.Mui-checked": { color: "#01F2EA" },
+                            "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": { bgcolor: "#01F2EA" }
+                          }}
+                        />
+                      </Box>
+
+                      <Divider sx={{ borderColor: "rgba(162,160,213,0.1)" }} />
+
+                      {/* New Song Switch */}
+                      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", opacity: notificationSettings.enabled ? 1 : 0.5 }}>
+                        <Box sx={{ flexGrow: 1, pr: 2 }}>
+                          <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#FFFFFF" }}>New Music Releases</Typography>
+                          <Typography variant="body2" sx={{ color: "text.secondary", mt: 0.5 }}>Notify me when followed artists release a new song.</Typography>
+                        </Box>
+                        <Switch
+                          disabled={!notificationSettings.enabled}
+                          checked={notificationSettings.enabled && notificationSettings.newSong}
+                          onChange={(e) => dispatch(updateNotificationSettings({ userId, settings: { newSong: e.target.checked } }))}
+                          color="primary"
+                          sx={{
+                            "& .MuiSwitch-switchBase.Mui-checked": { color: "#01F2EA" },
+                            "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": { bgcolor: "#01F2EA" }
+                          }}
+                        />
+                      </Box>
+
+                      <Divider sx={{ borderColor: "rgba(162,160,213,0.1)" }} />
+
+                      {/* New Album Switch */}
+                      <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", opacity: notificationSettings.enabled ? 1 : 0.5 }}>
+                        <Box sx={{ flexGrow: 1, pr: 2 }}>
+                          <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#FFFFFF" }}>New Album Releases</Typography>
+                          <Typography variant="body2" sx={{ color: "text.secondary", mt: 0.5 }}>Notify me when followed artists release a new album.</Typography>
+                        </Box>
+                        <Switch
+                          disabled={!notificationSettings.enabled}
+                          checked={notificationSettings.enabled && notificationSettings.newAlbum}
+                          onChange={(e) => dispatch(updateNotificationSettings({ userId, settings: { newAlbum: e.target.checked } }))}
+                          color="primary"
+                          sx={{
+                            "& .MuiSwitch-switchBase.Mui-checked": { color: "#01F2EA" },
+                            "& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track": { bgcolor: "#01F2EA" }
+                          }}
+                        />
+                      </Box>
+
+                    </CardContent>
+                  </Card>
+                </Box>
+              )}
             </>
           )}
         </Box>
@@ -922,6 +1237,27 @@ export default function ListenerDashboard() {
         <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
           <IconButton onClick={() => setAlbumDialogOpen(false)} sx={{ color: "text.secondary" }}><ArrowBackIcon /></IconButton>
           <Typography variant="h6" sx={{ fontWeight: "bold", color: "#FFFFFF" }}>{selectedAlbum?.title}</Typography>
+          {selectedAlbum?.ArtistProfile?.stage_name && (
+            <Typography
+              variant="subtitle2"
+              onClick={(e) => {
+                e.stopPropagation();
+                const artistObj = artists.find(a => a.artist_profile_id === selectedAlbum.artist_profile_id);
+                if (artistObj) {
+                  setAlbumDialogOpen(false); // Close album dialog
+                  handleArtistClick(artistObj); // Open artist dialog
+                }
+              }}
+              sx={{
+                color: "#01F2EA",
+                cursor: "pointer",
+                ml: 2,
+                "&:hover": { textDecoration: "underline" }
+              }}
+            >
+              By {selectedAlbum.ArtistProfile.stage_name}
+            </Typography>
+          )}
         </DialogTitle>
         <DialogContent sx={{ px: 3, py: 2 }}>
           <Box sx={{ display: "flex", gap: 3, mb: 4 }}>
@@ -952,17 +1288,144 @@ export default function ListenerDashboard() {
         <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
           <IconButton onClick={() => setArtistDialogOpen(false)} sx={{ color: "text.secondary" }}><ArrowBackIcon /></IconButton>
           <Typography variant="h6" sx={{ fontWeight: "bold", color: "#FFFFFF" }}>{selectedArtist?.stage_name}</Typography>
+          {selectedArtist?.is_verified && (
+            <Tooltip title="Verified Artist" placement="right">
+              <CheckCircleIcon sx={{ color: "#01F2EA", fontSize: 18 }} />
+            </Tooltip>
+          )}
         </DialogTitle>
         <DialogContent sx={{ px: 3, py: 2 }}>
           <Box sx={{ display: "flex", gap: 3, alignItems: "center", mb: 4 }}>
-            <Box sx={{ width: 100, height: 100, borderRadius: "50%", overflow: "hidden" }}><Box component="img" src={selectedArtist?.profile_image} sx={{ width: "100%", height: "100%", objectFit: "cover" }} /></Box>
-            <Box>
+            <Box sx={{ width: 100, height: 100, borderRadius: "50%", overflow: "hidden", border: "2px solid rgba(162,160,213,0.2)" }}>
+              {selectedArtist?.profile_image ? (
+                <Box component="img" src={selectedArtist.profile_image} sx={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              ) : (
+                <PersonIcon sx={{ color: "#01F2EA", fontSize: 44, m: 3 }} />
+              )}
+            </Box>
+            <Box sx={{ flexGrow: 1 }}>
+              <Typography variant="h5" sx={{ fontWeight: "bold", color: "#FFFFFF", mb: 0.5 }}>{selectedArtist?.stage_name}</Typography>
               <Typography variant="body2" sx={{ color: "text.secondary", mb: 2 }}>{selectedArtist?.bio || "No biography details."}</Typography>
               <Button variant="contained" onClick={() => toggleFollowArtist(selectedArtist)} sx={{ bgcolor: "#CE04F2", color: "#FFF", "&:hover": { bgcolor: "#B003D4" } }}>
                 {followedArtists.some(a => a.artist_profile_id === selectedArtist?.artist_profile_id) ? "Following" : "Follow Artist"}
               </Button>
             </Box>
           </Box>
+
+          {/* Social Media Accounts */}
+          {selectedArtist && (selectedArtist.facebook || selectedArtist.instagram || selectedArtist.youtube || selectedArtist.spotify) && (
+            <Box sx={{ mb: 4 }}>
+              <Typography variant="subtitle2" sx={{ fontWeight: "bold", color: "text.secondary", mb: 1.5 }}>Connect with Artist</Typography>
+              <Box sx={{ display: "flex", gap: 1.5, flexWrap: "wrap" }}>
+                {selectedArtist.facebook && (
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    href={selectedArtist.facebook.startsWith("http") ? selectedArtist.facebook : `https://facebook.com/${selectedArtist.facebook}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    startIcon={<FacebookIcon />}
+                    sx={{ borderColor: "rgba(162,160,213,0.2)", color: "#FFFFFF", textTransform: "none", borderRadius: 2, "&:hover": { borderColor: "#01F2EA", bgcolor: "rgba(1,242,234,0.05)" } }}
+                  >
+                    Facebook
+                  </Button>
+                )}
+                {selectedArtist.instagram && (
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    href={selectedArtist.instagram.startsWith("http") ? selectedArtist.instagram : `https://instagram.com/${selectedArtist.instagram}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    startIcon={<InstagramIcon />}
+                    sx={{ borderColor: "rgba(162,160,213,0.2)", color: "#FFFFFF", textTransform: "none", borderRadius: 2, "&:hover": { borderColor: "#01F2EA", bgcolor: "rgba(1,242,234,0.05)" } }}
+                  >
+                    Instagram
+                  </Button>
+                )}
+                {selectedArtist.youtube && (
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    href={selectedArtist.youtube.startsWith("http") ? selectedArtist.youtube : `https://youtube.com/${selectedArtist.youtube}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    startIcon={<YouTubeIcon />}
+                    sx={{ borderColor: "rgba(162,160,213,0.2)", color: "#FFFFFF", textTransform: "none", borderRadius: 2, "&:hover": { borderColor: "#01F2EA", bgcolor: "rgba(1,242,234,0.05)" } }}
+                  >
+                    YouTube
+                  </Button>
+                )}
+                {selectedArtist.spotify && (
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    href={selectedArtist.spotify.startsWith("http") ? selectedArtist.spotify : `https://open.spotify.com/artist/${selectedArtist.spotify}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    startIcon={<WebIcon />}
+                    sx={{ borderColor: "rgba(162,160,213,0.2)", color: "#FFFFFF", textTransform: "none", borderRadius: 2, "&:hover": { borderColor: "#01F2EA", bgcolor: "rgba(1,242,234,0.05)" } }}
+                  >
+                    Spotify
+                  </Button>
+                )}
+              </Box>
+            </Box>
+          )}
+
+          {selectedArtist && (
+            <Box>
+              {/* Songs Section */}
+              <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#FFFFFF", mb: 2, borderBottom: "1px solid rgba(162,160,213,0.15)", pb: 1 }}>Songs</Typography>
+              {getArtistSongs(selectedArtist.artist_profile_id).length === 0 ? (
+                <Typography variant="body2" sx={{ color: "text.secondary", mb: 4 }}>No songs available by this artist.</Typography>
+              ) : (
+                <Box sx={{ bgcolor: "rgba(255,255,255,0.02)", borderRadius: 3, overflow: "hidden", mb: 4 }}>
+                  {getArtistSongs(selectedArtist.artist_profile_id).map((song, idx) => (
+                    <Box 
+                      key={song.song_id} 
+                      onClick={() => { setCurrentSong(song); }} 
+                      sx={{ 
+                        display: "flex", 
+                        alignItems: "center", 
+                        px: 3, 
+                        py: 1.5, 
+                        borderBottom: idx < getArtistSongs(selectedArtist.artist_profile_id).length - 1 ? "1px solid rgba(162,160,213,0.08)" : "none",
+                        "&:hover": { bgcolor: "rgba(255,255,255,0.04)" }, 
+                        cursor: "pointer" 
+                      }}
+                    >
+                      <Typography sx={{ color: "text.secondary", mr: 2, fontSize: "0.85rem", width: 20 }}>{idx + 1}</Typography>
+                      <Typography sx={{ color: "#FFFFFF", fontWeight: "600", flexGrow: 1, fontSize: "0.9rem" }}>{song.title}</Typography>
+                      {song.Category?.name && (
+                        <Chip 
+                          label={song.Category.name} 
+                          size="small" 
+                          sx={{ mr: 2, bgcolor: "rgba(255,255,255,0.05)", color: "text.secondary", height: 20, fontSize: "10px" }} 
+                        />
+                      )}
+                      <Tooltip title={likedSongs.some(s => s.song_id === song.song_id) ? "Unlike Song" : "Like Song"}>
+                        <IconButton size="small" onClick={(e) => { e.stopPropagation(); toggleLikeSong(song); }} sx={{ color: likedSongs.some(s => s.song_id === song.song_id) ? "#CE04F2" : "text.secondary", mr: 1 }}>
+                          {likedSongs.some(s => s.song_id === song.song_id) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title={downloadedSongs.some(s => s.song_id === song.song_id) ? "Song Downloaded" : "Download Song"}>
+                        <IconButton size="small" onClick={(e) => { e.stopPropagation(); downloadSong(song); }} sx={{ color: downloadedSongs.some(s => s.song_id === song.song_id) ? "#01F2EA" : "text.secondary", mr: 1 }}>
+                          <DownloadIcon />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Add to Playlist">
+                        <IconButton size="small" onClick={(e) => { e.stopPropagation(); setSongToAddToPlaylist(song); setAddToPlaylistOpen(true); }} sx={{ color: "text.secondary", mr: 1 }}>
+                          <PlaylistAddIcon />
+                        </IconButton>
+                      </Tooltip>
+                      <PlayCircleFilledIcon sx={{ color: "#01F2EA", fontSize: 24 }} />
+                    </Box>
+                  ))}
+                </Box>
+              )}
+            </Box>
+          )}
         </DialogContent>
       </Dialog>
 

@@ -7,14 +7,14 @@ import {
   Box, Typography, Button, Card, CardContent, Grid, List, ListItem,
   ListItemButton, ListItemIcon, ListItemText, Divider, IconButton, Chip,
   Dialog, DialogTitle, DialogContent, DialogActions, TextField, MenuItem,
-  CircularProgress, Snackbar, Alert, Tabs, Tab,
+  CircularProgress, Snackbar, Alert, Tabs, Tab, Tooltip,
 } from "@mui/material";
 import Slider from "@mui/material/Slider";
 import {
   Home as HomeIcon, CloudUpload as CloudUploadIcon, MusicNote as MusicNoteIcon,
   Album as AlbumIcon, Person as PersonIcon, ExitToApp as ExitToAppIcon, 
   Close as CloseIcon, Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, 
-  Comment as CommentIcon, Star as StarRateIcon,
+  Comment as CommentIcon, Star as StarRateIcon, CheckCircle as CheckCircleIcon,
   SkipPrevious as SkipPreviousIcon, PlayArrow as PlayArrowIcon, Pause as PauseIcon,
   SkipNext as SkipNextIcon, Shuffle as ShuffleIcon, Repeat as RepeatIcon, VolumeUp as VolumeUpIcon,
 } from "@mui/icons-material";
@@ -49,7 +49,7 @@ export default function ArtistDashboard() {
   
   // Redux State
   const { profile, songs, albums, loading: artistLoading, error: artistError } = useSelector((state) => state.artist);
-  const { categories } = useSelector((state) => state.catalog);
+  const { categories, feedbacks } = useSelector((state) => state.catalog);
 
   // Component State
   const [toast, setToast] = useState({ open: false, message: "", severity: "success" });
@@ -400,9 +400,16 @@ export default function ArtistDashboard() {
               <Typography variant="h4" sx={{ fontWeight: "bold", color: "#FFFFFF" }}>
                 Artist Dashboard 🎤
               </Typography>
-              <Typography variant="body2" sx={{ color: "text.secondary", mt: 0.5 }}>
-                {profile?.stage_name ? `Welcome back, ${profile.stage_name}!` : "Welcome back! Customize your profile settings to get verified."}
-              </Typography>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1, mt: 0.5 }}>
+                <Typography variant="body2" sx={{ color: "text.secondary" }}>
+                  {profile?.stage_name ? `Welcome back, ${profile.stage_name}!` : "Welcome back! Customize your profile settings to get verified."}
+                </Typography>
+                {profile?.is_verified && (
+                  <Tooltip title="Verified Artist">
+                    <CheckCircleIcon sx={{ color: "#01F2EA", fontSize: 16 }} />
+                  </Tooltip>
+                )}
+              </Box>
             </Box>
             <Box sx={{ display: "flex", gap: 2 }}>
               <Button
@@ -569,8 +576,7 @@ export default function ArtistDashboard() {
             <Box>
               <Typography variant="h5" sx={{ fontWeight: "bold", mb: 3, color: "#FFFFFF" }}>Fan Reviews & Ratings</Typography>
               {(() => {
-                const allFeedbacks = localStorage.getItem("soundwave_song_feedbacks");
-                const parsed = allFeedbacks ? JSON.parse(allFeedbacks) : [];
+                const parsed = feedbacks || [];
                 const artistSongIds = songs.map(s => s.song_id);
                 const filtered = parsed.filter(f => artistSongIds.includes(f.song_id));
 

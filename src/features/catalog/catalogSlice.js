@@ -1,12 +1,37 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import catalogService from "../../services/catalogService";
+import api from "../../api";
+
+export const loadListenerState = createAsyncThunk(
+  "catalog/loadState",
+  async (userId, { rejectWithValue }) => {
+    try {
+      const res = await api.get("/listener/state");
+      return { userId, state: res.data.state };
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Failed to load state");
+    }
+  }
+);
+
+export const saveListenerState = createAsyncThunk(
+  "catalog/saveState",
+  async (stateData, { rejectWithValue }) => {
+    try {
+      const res = await api.post("/listener/state", stateData);
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Failed to save state");
+    }
+  }
+);
 
 // Async Thunks for Catalog Browsing
 export const fetchPublicArtists = createAsyncThunk(
   "catalog/fetchArtists",
-  async (_, { rejectWithValue }) => {
+  async (params, { rejectWithValue }) => {
     try {
-      const data = await catalogService.browseArtists();
+      const data = await catalogService.browseArtists(params);
       return data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || "Failed to fetch artists");
@@ -16,9 +41,9 @@ export const fetchPublicArtists = createAsyncThunk(
 
 export const fetchPublicAlbums = createAsyncThunk(
   "catalog/fetchAlbums",
-  async (_, { rejectWithValue }) => {
+  async (params, { rejectWithValue }) => {
     try {
-      const data = await catalogService.browseAlbums();
+      const data = await catalogService.browseAlbums(params);
       return data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || "Failed to fetch albums");
@@ -28,9 +53,9 @@ export const fetchPublicAlbums = createAsyncThunk(
 
 export const fetchPublicSongs = createAsyncThunk(
   "catalog/fetchSongs",
-  async (_, { rejectWithValue }) => {
+  async (params, { rejectWithValue }) => {
     try {
-      const data = await catalogService.browseSongs();
+      const data = await catalogService.browseSongs(params);
       return data;
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || "Failed to fetch songs");
@@ -116,6 +141,17 @@ const initialState = {
   albums: [],
   songs: [],
   categories: [],
+  // --- Redux-Only Library State ---
+  playlistsMap: {},        // { [userId]: [] }
+  likedSongsMap: {},       // { [userId]: [] }
+  savedAlbumsMap: {},      // { [userId]: [] }
+  followedArtistsMap: {},  // { [userId]: [] }
+  downloadedSongsMap: {},  // { [userId]: [] }
+  usersLookup: {},         // { [userId]: { username, email } }
+  feedbacks: [],           // [ feedback ]
+  // --- Push Notifications Redux State ---
+  notificationSettingsMap: {}, // { [userId]: { enabled: true, newSong: true, newAlbum: true } }
+  notificationsMap: {},         // { [userId]: [] }
   loading: false,
   error: null,
 };
@@ -123,7 +159,120 @@ const initialState = {
 const catalogSlice = createSlice({
   name: "catalog",
   initialState,
-  reducers: {},
+  reducers: {
+    setPlaylists(state, action) {
+      const { userId, playlists } = action.payload;
+      state.playlistsMap[userId] = playlists;
+    },
+    toggleLikeSong(state, action) {
+      const { userId, song } = action.payload;
+      if (!state.likedSongsMap[userId]) {
+        state.likedSongsMap[userId] = [];
+      }
+      const list = state.likedSongsMap[userId];
+      if (list.some(s => s.song_id === song.song_id)) {
+        state.likedSongsMap[userId] = list.filter(s => s.song_id !== song.song_id);
+      } else {
+        state.likedSongsMap[userId] = [...list, song];
+      }
+    },
+    toggleSaveAlbum(state, action) {
+      const { userId, album } = action.payload;
+      if (!state.savedAlbumsMap[userId]) {
+        state.savedAlbumsMap[userId] = [];
+      }
+      const list = state.savedAlbumsMap[userId];
+      if (list.some(a => a.album_id === album.album_id)) {
+        state.savedAlbumsMap[userId] = list.filter(a => a.album_id !== album.album_id);
+      } else {
+        state.savedAlbumsMap[userId] = [...list, album];
+      }
+    },
+    toggleFollowArtist(state, action) {
+      const { userId, artist } = action.payload;
+      if (!state.followedArtistsMap[userId]) {
+        state.followedArtistsMap[userId] = [];
+      }
+      const list = state.followedArtistsMap[userId];
+      if (list.some(a => a.artist_profile_id === artist.artist_profile_id)) {
+        state.followedArtistsMap[userId] = list.filter(a => a.artist_profile_id !== artist.artist_profile_id);
+      } else {
+        state.followedArtistsMap[userId] = [...list, artist];
+      }
+    },
+    downloadSong(state, action) {
+      const { userId, song } = action.payload;
+      if (!state.downloadedSongsMap[userId]) {
+        state.downloadedSongsMap[userId] = [];
+      }
+      const list = state.downloadedSongsMap[userId];
+      if (!list.some(s => s.song_id === song.song_id)) {
+        state.downloadedSongsMap[userId] = [...list, song];
+      }
+    },
+    removeDownloadedSong(state, action) {
+      const { userId, songId } = action.payload;
+      if (state.downloadedSongsMap[userId]) {
+        state.downloadedSongsMap[userId] = state.downloadedSongsMap[userId].filter(s => s.song_id !== songId);
+      }
+    },
+    registerUserLookup(state, action) {
+      const { userId, username, email } = action.payload;
+      state.usersLookup[userId] = { username, email };
+    },
+    addFeedback(state, action) {
+      state.feedbacks.unshift(action.payload);
+    },
+    updateFeedback(state, action) {
+      state.feedbacks = state.feedbacks.map(f => f.id === action.payload.id ? action.payload : f);
+    },
+    deleteFeedback(state, action) {
+      state.feedbacks = state.feedbacks.filter(f => f.id !== action.payload);
+    },
+    likeFeedback(state, action) {
+      const { feedbackId, userId } = action.payload;
+      state.feedbacks = state.feedbacks.map(f => {
+        if (f.id === feedbackId) {
+          const alreadyLiked = f.likedBy?.includes(userId);
+          if (alreadyLiked) {
+            return { ...f, likes: (f.likes || 0) - 1, likedBy: (f.likedBy || []).filter(id => id !== userId) };
+          } else {
+            return { ...f, likes: (f.likes || 0) + 1, likedBy: [...(f.likedBy || []), userId] };
+          }
+        }
+        return f;
+      });
+    },
+    updateNotificationSettings(state, action) {
+      const { userId, settings } = action.payload;
+      state.notificationSettingsMap[userId] = {
+        ...(state.notificationSettingsMap[userId] || { enabled: true, newSong: true, newAlbum: true }),
+        ...settings
+      };
+    },
+    addNotification(state, action) {
+      const { userId, notification } = action.payload;
+      if (!state.notificationsMap[userId]) {
+        state.notificationsMap[userId] = [];
+      }
+      const list = state.notificationsMap[userId];
+      if (!list.some(n => n.targetId === notification.targetId && n.type === notification.type)) {
+        state.notificationsMap[userId] = [notification, ...list];
+      }
+    },
+    markNotificationsRead(state, action) {
+      const { userId } = action.payload;
+      if (state.notificationsMap[userId]) {
+        state.notificationsMap[userId] = state.notificationsMap[userId].map(n => ({ ...n, read: true }));
+      }
+    },
+    clearNotifications(state, action) {
+      const { userId } = action.payload;
+      if (state.notificationsMap[userId]) {
+        state.notificationsMap[userId] = state.notificationsMap[userId].map(n => ({ ...n, cleared: true }));
+      }
+    }
+  },
   extraReducers: (builder) => {
     builder
       // Artists
@@ -185,8 +334,37 @@ const catalogSlice = createSlice({
       // Admin Delete Category
       .addCase(deletePublicCategory.fulfilled, (state, action) => {
         state.categories = state.categories.filter((c) => c.category_id !== action.payload);
+      })
+      // Load Listener State
+      .addCase(loadListenerState.fulfilled, (state, action) => {
+        const { userId, state: stateData } = action.payload;
+        if (stateData) {
+          state.playlistsMap[userId] = stateData.playlists || [];
+          state.likedSongsMap[userId] = stateData.likedSongs || [];
+          state.savedAlbumsMap[userId] = stateData.savedAlbums || [];
+          state.followedArtistsMap[userId] = stateData.followedArtists || [];
+          state.downloadedSongsMap[userId] = stateData.downloadedSongs || [];
+        }
       });
   },
 });
+
+export const {
+  setPlaylists,
+  toggleLikeSong,
+  toggleSaveAlbum,
+  toggleFollowArtist,
+  downloadSong,
+  removeDownloadedSong,
+  registerUserLookup,
+  addFeedback,
+  updateFeedback,
+  deleteFeedback,
+  likeFeedback,
+  updateNotificationSettings,
+  addNotification,
+  markNotificationsRead,
+  clearNotifications
+} = catalogSlice.actions;
 
 export default catalogSlice.reducer;

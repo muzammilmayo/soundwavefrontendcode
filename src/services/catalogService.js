@@ -4,20 +4,20 @@ const catalogService = {
   // ---------------- Public browsing endpoints ----------------
   
   // List all registered artists
-  browseArtists: async () => {
-    const res = await api.get("/catalog/artists");
+  browseArtists: async (params) => {
+    const res = await api.get("/catalog/artists", { params });
     return res.data;
   },
 
   // List all published albums
-  browseAlbums: async () => {
-    const res = await api.get("/catalog/albums");
+  browseAlbums: async (params) => {
+    const res = await api.get("/catalog/albums", { params });
     return res.data;
   },
 
   // List all published songs
-  browseSongs: async () => {
-    const res = await api.get("/catalog/songs");
+  browseSongs: async (params) => {
+    const res = await api.get("/catalog/songs", { params });
     return res.data;
   },
 

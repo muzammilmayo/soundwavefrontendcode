@@ -49,6 +49,7 @@ import {
   ExitToApp as ExitToAppIcon,
   Info as InfoIcon,
   Close as CloseIcon,
+  Category as CategoryIcon,
 } from "@mui/icons-material";
 import api from "../../api";
 import authService from "../../services/authService";
@@ -90,6 +91,13 @@ export default function AdminDashboard() {
   const [statusFilter, setStatusFilter] = useState("");
   const [selectedUser, setSelectedUser] = useState(null);
   const [toast, setToast] = useState({ open: false, message: "", severity: "success" });
+  
+  // Category CRUD dialog states
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState(null);
+  const [categoryName, setCategoryName] = useState("");
+  const [categoryDescription, setCategoryDescription] = useState("");
+  const [categoryError, setCategoryError] = useState("");
   const showToast = (message, severity = "success") => {
     setToast({ open: true, message, severity });
   };
@@ -154,6 +162,82 @@ export default function AdminDashboard() {
     } catch (err) {
       showToast(err.response?.data?.message || "Failed to delete artist profile", "error");
     }
+  };
+
+  const toggleArtistVerification = async (userId) => {
+    try {
+      const res = await api.put(`/admin/artists/${userId}/verify`);
+      showToast(res.data.message, "success");
+      setCatalogArtists((prev) =>
+        prev.map((a) => (a.user_id === userId ? { ...a, is_verified: res.data.is_verified } : a))
+      );
+    } catch (err) {
+      showToast(err.response?.data?.message || "Failed to update artist verification status", "error");
+    }
+  };
+
+  const handleSaveCategory = async (e) => {
+    e.preventDefault();
+    if (!categoryName.trim()) return;
+    try {
+      if (editingCategory) {
+        const res = await api.put(`/catalog/categories/${editingCategory.category_id}`, {
+          name: categoryName.trim(),
+          description: categoryDescription.trim()
+        });
+        showToast("Category updated successfully", "success");
+        setCatalogCategories((prev) =>
+          prev.map((c) => (c.category_id === editingCategory.category_id ? res.data.category || { ...c, name: categoryName, description: categoryDescription } : c))
+        );
+      } else {
+        const res = await api.post("/catalog/categories", {
+          name: categoryName.trim(),
+          description: categoryDescription.trim()
+        });
+        showToast("Category created successfully", "success");
+        if (res.data?.category) {
+          setCatalogCategories((prev) => [...prev, res.data.category]);
+        } else {
+          fetchCatalogData();
+        }
+      }
+      handleCloseCategoryDialog();
+    } catch (err) {
+      setCategoryError(err.response?.data?.message || "Failed to save category");
+    }
+  };
+
+  const handleDeleteCategory = async (catId) => {
+    if (!window.confirm("Are you sure you want to permanently delete this category? All songs in this category will lose their association.")) return;
+    try {
+      await api.delete(`/catalog/categories/${catId}`);
+      showToast("Category deleted successfully", "success");
+      setCatalogCategories((prev) => prev.filter((c) => c.category_id !== catId));
+    } catch (err) {
+      showToast(err.response?.data?.message || "Failed to delete category", "error");
+    }
+  };
+
+  const handleOpenCategoryDialog = (category = null) => {
+    if (category) {
+      setEditingCategory(category);
+      setCategoryName(category.name || "");
+      setCategoryDescription(category.description || "");
+    } else {
+      setEditingCategory(null);
+      setCategoryName("");
+      setCategoryDescription("");
+    }
+    setCategoryError("");
+    setCategoryDialogOpen(true);
+  };
+
+  const handleCloseCategoryDialog = () => {
+    setCategoryDialogOpen(false);
+    setEditingCategory(null);
+    setCategoryName("");
+    setCategoryDescription("");
+    setCategoryError("");
   };
 
   const toggleUserStatus = async (userId, currentStatus) => {
@@ -295,6 +379,27 @@ export default function AdminDashboard() {
                   <MicIcon sx={{ fontSize: 20 }} />
                 </ListItemIcon>
                 <ListItemText primary="Manage Artists" primaryTypographyProps={{ fontWeight: "bold" }} />
+              </ListItemButton>
+            </ListItem>
+
+            <ListItem disablePadding>
+              <ListItemButton
+                onClick={() => setCurrentTab("categories")}
+                selected={currentTab === "categories"}
+                sx={{
+                  borderRadius: 3,
+                  py: 1.2,
+                  px: 2,
+                  bgcolor: currentTab === "categories" ? "rgba(1, 242, 234, 0.08)" : "transparent",
+                  color: currentTab === "categories" ? "#01F2EA" : "#FFFFFF",
+                  "&.Mui-selected": { bgcolor: "rgba(1, 242, 234, 0.08)", color: "#01F2EA" },
+                  "&:hover": { bgcolor: "rgba(255,255,255,0.05)" },
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 36, color: currentTab === "categories" ? "#01F2EA" : "#A2A0D5" }}>
+                  <CategoryIcon sx={{ fontSize: 20 }} />
+                </ListItemIcon>
+                <ListItemText primary="Manage Categories" primaryTypographyProps={{ fontWeight: "bold" }} />
               </ListItemButton>
             </ListItem>
 
@@ -604,6 +709,7 @@ export default function AdminDashboard() {
                         <TableCell sx={{ fontWeight: "bold", color: "text.secondary" }}>Artist Info</TableCell>
                         <TableCell sx={{ fontWeight: "bold", color: "text.secondary" }}>Username</TableCell>
                         <TableCell sx={{ fontWeight: "bold", color: "text.secondary" }}>Biography</TableCell>
+                        <TableCell sx={{ fontWeight: "bold", color: "text.secondary" }}>Verification</TableCell>
                         <TableCell sx={{ fontWeight: "bold", color: "text.secondary", textAlign: "center" }}>Actions</TableCell>
                       </TableRow>
                     </TableHead>
@@ -620,10 +726,82 @@ export default function AdminDashboard() {
                           </TableCell>
                           <TableCell sx={{ color: "text.secondary" }}>{artist.User?.username || "N/A"}</TableCell>
                           <TableCell sx={{ color: "text.secondary", maxWidth: 300, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{artist.bio || "No biography provided."}</TableCell>
+                          <TableCell>
+                            <Chip
+                              label={artist.is_verified ? "Verified" : "Unverified"}
+                              size="small"
+                              variant="outlined"
+                              color={artist.is_verified ? "primary" : "default"}
+                              sx={{ fontWeight: "bold", borderRadius: 2 }}
+                            />
+                          </TableCell>
                           <TableCell sx={{ textAlign: "center" }}>
-                            <Button variant="outlined" color="error" size="small" onClick={() => handleDeleteArtistProfile(artist.user_id)} sx={{ textTransform: "none", borderRadius: 2 }}>
-                              Delete Profile
-                            </Button>
+                            <Box sx={{ display: "flex", justifyContent: "center", gap: 1 }}>
+                              <Button
+                                variant="outlined"
+                                color={artist.is_verified ? "warning" : "primary"}
+                                size="small"
+                                onClick={() => toggleArtistVerification(artist.user_id)}
+                                sx={{ textTransform: "none", borderRadius: 2 }}
+                              >
+                                {artist.is_verified ? "Revoke" : "Verify"}
+                              </Button>
+                              <Button variant="outlined" color="error" size="small" onClick={() => handleDeleteArtistProfile(artist.user_id)} sx={{ textTransform: "none", borderRadius: 2 }}>
+                                Delete Profile
+                              </Button>
+                            </Box>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </TableContainer>
+            </Box>
+          )}
+
+          {/* Manage Categories Panel */}
+          {currentTab === "categories" && (
+            <Box>
+              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 3 }}>
+                <Typography variant="h5" sx={{ fontWeight: "bold", color: "#FFFFFF" }}>
+                  Categories & Genres
+                </Typography>
+                <Button
+                  variant="contained"
+                  onClick={() => handleOpenCategoryDialog()}
+                  sx={{ borderRadius: 3, textTransform: "none", fontWeight: "bold", bgcolor: "#01F2EA", color: "#100B29", "&:hover": { bgcolor: "#00DDD5" } }}
+                >
+                  Add New Category
+                </Button>
+              </Box>
+
+              <TableContainer component={Paper} sx={{ borderRadius: 4, border: "1px solid rgba(162, 160, 213, 0.15)", bgcolor: "background.paper" }}>
+                {catalogCategories.length === 0 ? (
+                  <Typography sx={{ p: 6, color: "text.secondary", textAlign: "center" }}>No categories found in catalog.</Typography>
+                ) : (
+                  <Table>
+                    <TableHead>
+                      <TableRow sx={{ bgcolor: "rgba(255,255,255,0.02)" }}>
+                        <TableCell sx={{ fontWeight: "bold", color: "text.secondary" }}>Name</TableCell>
+                        <TableCell sx={{ fontWeight: "bold", color: "text.secondary" }}>Description</TableCell>
+                        <TableCell sx={{ fontWeight: "bold", color: "text.secondary", textAlign: "center" }}>Actions</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {catalogCategories.map((cat) => (
+                        <TableRow key={cat.category_id} hover sx={{ "&:hover": { bgcolor: "rgba(255,255,255,0.03) !important" } }}>
+                          <TableCell sx={{ fontWeight: "600", color: "#01F2EA" }}>{cat.name}</TableCell>
+                          <TableCell sx={{ color: "text.secondary" }}>{cat.description || "No description provided."}</TableCell>
+                          <TableCell sx={{ textAlign: "center" }}>
+                            <Box sx={{ display: "flex", justifyContent: "center", gap: 1 }}>
+                              <Button variant="outlined" size="small" onClick={() => handleOpenCategoryDialog(cat)} sx={{ textTransform: "none", borderRadius: 2, borderColor: "rgba(162,160,213,0.3)", color: "#A2A0D5", "&:hover": { borderColor: "#01F2EA", color: "#01F2EA" } }}>
+                                Edit
+                              </Button>
+                              <Button variant="outlined" color="error" size="small" onClick={() => handleDeleteCategory(cat.category_id)} sx={{ textTransform: "none", borderRadius: 2 }}>
+                                Delete
+                              </Button>
+                            </Box>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -712,6 +890,62 @@ export default function AdminDashboard() {
             </DialogActions>
           </>
         )}
+      </Dialog>
+
+      {/* Category CRUD Dialog */}
+      <Dialog open={categoryDialogOpen} onClose={handleCloseCategoryDialog} PaperProps={{ sx: { borderRadius: 4, bgcolor: "background.paper", border: "1px solid rgba(162, 160, 213, 0.2)", minWidth: 400 } }}>
+        <Box component="form" onSubmit={handleSaveCategory}>
+          <DialogTitle sx={{ m: 0, p: 3, fontWeight: "bold", borderBottom: "1px solid rgba(162, 160, 213, 0.15)", color: "#FFFFFF" }}>
+            {editingCategory ? "Edit Category Details" : "Create New Category"}
+            <IconButton onClick={handleCloseCategoryDialog} sx={{ position: "absolute", right: 16, top: 16, color: "text.secondary" }}><CloseIcon /></IconButton>
+          </DialogTitle>
+          <DialogContent sx={{ p: 3, display: "flex", flexDirection: "column", gap: 3, mt: 1 }}>
+            {categoryError && <Alert severity="error" sx={{ borderRadius: 2 }}>{categoryError}</Alert>}
+            <TextField
+              required
+              fullWidth
+              label="Category Name"
+              value={categoryName}
+              onChange={(e) => setCategoryName(e.target.value)}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: 3,
+                  bgcolor: "rgba(255, 255, 255, 0.02)",
+                  "& fieldset": { borderColor: "rgba(162, 160, 213, 0.2)" },
+                  "&:hover fieldset": { borderColor: "#01F2EA" },
+                  "&.Mui-focused fieldset": { borderColor: "#01F2EA" },
+                },
+                "& .MuiInputLabel-root": { color: "text.secondary" },
+                "& .MuiInputLabel-root.Mui-focused": { color: "#01F2EA" },
+              }}
+            />
+            <TextField
+              fullWidth
+              multiline
+              rows={3}
+              label="Description"
+              value={categoryDescription}
+              onChange={(e) => setCategoryDescription(e.target.value)}
+              sx={{
+                "& .MuiOutlinedInput-root": {
+                  borderRadius: 3,
+                  bgcolor: "rgba(255, 255, 255, 0.02)",
+                  "& fieldset": { borderColor: "rgba(162, 160, 213, 0.2)" },
+                  "&:hover fieldset": { borderColor: "#01F2EA" },
+                  "&.Mui-focused fieldset": { borderColor: "#01F2EA" },
+                },
+                "& .MuiInputLabel-root": { color: "text.secondary" },
+                "& .MuiInputLabel-root.Mui-focused": { color: "#01F2EA" },
+              }}
+            />
+          </DialogContent>
+          <DialogActions sx={{ p: 3, borderTop: "1px solid rgba(162, 160, 213, 0.15)" }}>
+            <Button onClick={handleCloseCategoryDialog} sx={{ textTransform: "none", fontWeight: "bold", color: "text.secondary" }}>Cancel</Button>
+            <Button type="submit" variant="contained" sx={{ borderRadius: 3, px: 3, textTransform: "none", fontWeight: "bold", bgcolor: "#01F2EA", color: "#100B29", "&:hover": { bgcolor: "#00DDD5" } }}>
+              {editingCategory ? "Save Changes" : "Create Category"}
+            </Button>
+          </DialogActions>
+        </Box>
       </Dialog>
 
       <Snackbar open={toast.open} autoHideDuration={4000} onClose={() => setToast({ ...toast, open: false })} anchorOrigin={{ vertical: "bottom", horizontal: "right" }}>

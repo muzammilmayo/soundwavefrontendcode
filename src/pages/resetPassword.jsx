@@ -60,17 +60,10 @@ export default function ResetPassword() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [darkMode, setDarkMode] = useState(() => {
-    const saved = localStorage.getItem("resetPasswordDarkMode");
-    return saved ? JSON.parse(saved) : false;
-  });
+  const [darkMode, setDarkMode] = useState(true);
 
   const toggleDarkMode = () => {
-    setDarkMode((prev) => {
-      const newMode = !prev;
-      localStorage.setItem("resetPasswordDarkMode", JSON.stringify(newMode));
-      return newMode;
-    });
+    setDarkMode((prev) => !prev);
   };
 
   const theme = darkMode ? darkTheme : lightTheme;

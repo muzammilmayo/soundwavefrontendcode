@@ -43,17 +43,6 @@ export const refreshAuth = createAsyncThunk(
     }
   }
 );
-
-// Clean up legacy localStorage keys on startup to ensure no user/token data resides there
-try {
-  localStorage.removeItem('auth_user');
-  localStorage.removeItem('user');
-  localStorage.removeItem('auth_token');
-  localStorage.removeItem('token');
-} catch (e) {
-  console.warn("Could not clear legacy localStorage items:", e);
-}
-
 const authSlice = createSlice({
   name: 'auth',
   initialState: {
