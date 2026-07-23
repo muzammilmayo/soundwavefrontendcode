@@ -17,7 +17,24 @@ export default function Navbar() {
   const navigate = useNavigate();
   
   // Checking auth status safely from Redux state
-  const isAuthenticated = useSelector(state => !!state.auth?.user);
+  const user = useSelector(state => state.auth?.user);
+  const isAuthenticated = !!user;
+
+  let dashboardPath = "/";
+  if (isAuthenticated && user.role) {
+    const role = user.role;
+    if (role === "Listener") {
+      dashboardPath = "/listener/dashboard";
+    } else if (role === "Artist") {
+      dashboardPath = "/artist/dashboard";
+    } else if (role === "Admin") {
+      dashboardPath = "/Admin/dashboard";
+    } else if (role === "Super Admin") {
+      dashboardPath = "/SuperAdmin/dashboard";
+    } else if (role === "Moderator") {
+      dashboardPath = "/Moderator/dashboard";
+    }
+  }
 
   const logout = () => {
     authService.logout();
@@ -39,7 +56,7 @@ export default function Navbar() {
         {/* --- Logo & Brand --- */}
         <Box
           component={Link}
-          to="/"
+          to={dashboardPath}
           sx={{
             display: "flex",
             alignItems: "center",
@@ -84,30 +101,7 @@ export default function Navbar() {
 
         {/* --- Dynamic Auth Action Buttons --- */}
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-          {isAuthenticated ? (
-            <Button
-              variant="outlined"
-              onClick={logout}
-              startIcon={<LogoutIcon />}
-              sx={{
-                borderRadius: 3,
-                textTransform: "none",
-                fontWeight: "bold",
-                borderColor: "rgba(254, 202, 202, 0.3)",
-                color: "#EF4444", // Crisp warning red
-                px: 3,
-                py: 0.8,
-                transition: "all 0.2s ease-in-out",
-                "&:hover": {
-                  borderColor: "#EF4444",
-                  bgcolor: "rgba(239, 68, 68, 0.1)",
-                  boxShadow: "0 0 12px rgba(239, 68, 68, 0.2)",
-                },
-              }}
-            >
-              Logout
-            </Button>
-          ) : (
+          {!isAuthenticated && (
             <>
               {/* Login Button (Neon Borderless/Subtle look) */}
               <Button

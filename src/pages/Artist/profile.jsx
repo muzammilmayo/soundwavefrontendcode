@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import {
@@ -22,6 +23,7 @@ import {
   DialogActions,
   IconButton,
   Avatar,
+  Chip,
 } from "@mui/material";
 import {
   ArrowBack as ArrowBackIcon,
@@ -54,6 +56,7 @@ const synthTheme = createTheme({
 export default function ArtistProfilePage() {
   const navigate = useNavigate();
   const user = authService.getUser() || {};
+  const { followedArtistsMap = {}, usersLookup = {} } = useSelector((state) => state.catalog);
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ text: "", type: "success" });
@@ -69,6 +72,7 @@ export default function ArtistProfilePage() {
     instagram: "",
     youtube: "",
     spotify: "",
+    is_verified: false,
   });
 
   const [profileFile, setProfileFile] = useState(null);
@@ -104,6 +108,7 @@ export default function ArtistProfilePage() {
           instagram: data.instagram ?? "",
           youtube: data.youtube ?? "",
           spotify: data.spotify ?? "",
+          is_verified: data.is_verified ?? false,
         });
         setProfilePreview(data.profile_image ?? "");
         setCoverPreview(data.cover_image ?? "");
@@ -182,6 +187,7 @@ export default function ArtistProfilePage() {
           instagram: data.instagram ?? "",
           youtube: data.youtube ?? "",
           spotify: data.spotify ?? "",
+          is_verified: data.is_verified ?? false,
         });
         setProfilePreview(data.profile_image ?? "");
         setCoverPreview(data.cover_image ?? "");
@@ -241,34 +247,25 @@ export default function ArtistProfilePage() {
   const getFollowers = () => {
     if (!artistProfile.artist_profile_id) return [];
     const followers = [];
-    const usersLookup = JSON.parse(localStorage.getItem("soundwave_users_lookup") || "{}");
     
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key.startsWith("soundwave_followed_artists_")) {
-        const listenerId = key.replace("soundwave_followed_artists_", "");
-        if (listenerId === "undefined") continue;
-        try {
-          const followedList = JSON.parse(localStorage.getItem(key)) || [];
-          const isFollowing = followedList.some(
-            (a) => Number(a.artist_profile_id) === Number(artistProfile.artist_profile_id)
-          );
-          if (isFollowing) {
-            const listenerInfo = usersLookup[listenerId] || {
-              username: `Listener #${listenerId}`,
-              email: "N/A"
-            };
-            followers.push({
-              id: listenerId,
-              username: listenerInfo.username,
-              email: listenerInfo.email,
-            });
-          }
-        } catch (e) {
-          console.error("Error parsing followed artists for key " + key, e);
-        }
+    Object.keys(followedArtistsMap).forEach((listenerId) => {
+      if (listenerId === "undefined") return;
+      const followedList = followedArtistsMap[listenerId] || [];
+      const isFollowing = followedList.some(
+        (a) => Number(a.artist_profile_id) === Number(artistProfile.artist_profile_id)
+      );
+      if (isFollowing) {
+        const listenerInfo = usersLookup[listenerId] || {
+          username: `Listener #${listenerId}`,
+          email: "N/A"
+        };
+        followers.push({
+          id: listenerId,
+          username: listenerInfo.username,
+          email: listenerInfo.email,
+        });
       }
-    }
+    });
     return followers;
   };
 
@@ -324,9 +321,23 @@ export default function ArtistProfilePage() {
             >
               Back to Dashboard
             </Button>
-            <Typography variant="h4" sx={{ fontWeight: "bold", color: "#FFFFFF" }}>
-              Artist Profile Setup 🎤
-            </Typography>
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+              <Typography variant="h4" sx={{ fontWeight: "bold", color: "#FFFFFF" }}>
+                Artist Profile Setup 🎤
+              </Typography>
+              {artistProfile.is_verified && (
+                <Chip
+                  label="Verified"
+                  size="small"
+                  sx={{
+                    bgcolor: "rgba(1, 242, 234, 0.12)",
+                    color: "#01F2EA",
+                    fontWeight: "bold",
+                    border: "1px solid rgba(1, 242, 234, 0.3)"
+                  }}
+                />
+              )}
+            </Box>
           </Box>
 
           {/* Form Card Configuration */}
