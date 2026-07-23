@@ -108,6 +108,9 @@ export default function SongSlider({ songs, currentSong, setCurrentSong, artists
               >
                 {song.ArtistProfile?.stage_name || "Unknown Artist"}
               </Typography>
+              <Typography variant="caption" sx={{ color: "text.secondary", fontSize: "0.75rem", display: "block", mt: 0.5 }}>
+                {song.play_count || 0} views
+              </Typography>
             </Box>
           );
         })}

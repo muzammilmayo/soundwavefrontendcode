@@ -24,9 +24,10 @@ import ListenerDashboard from "./pages/Listener/listener";
 import ArtistRegister from "./pages/Artist/register";
 import ArtistDashboard from "./pages/Artist/Artist";
 import ArtistProfile from "./pages/Artist/profile";
+import DraftSongs from "./pages/Artist/DraftSongs";
 
 // Admin
-import AdminDashboard from "./pages/Admin/Admin";
+import AdminDashboard from "./pages/Admin/AdminDashboard";
 
 // Super Admin
 import SuperAdminDashboard from "./pages/SuperAdmin/SuperAdmin";
@@ -59,24 +60,16 @@ function App() {
         <Route path="/home" element={<Home />} />
 
         {/* Dashboards protected by ProtectedRoute */}
-        <Route
-          path="/listener/dashboard"
-          element={
-            <ProtectedRoute allowedRoles={["Listener"]}>
-              <ListenerDashboard />
-            </ProtectedRoute>
-          }
-        />
+        <Route path="/listener/dashboard" element={<ProtectedRoute allowedRoles={["Listener"]}><ListenerDashboard /></ProtectedRoute>} />
 
-        <Route
-          path="/artist/dashboard"
-          element={
-            <ProtectedRoute allowedRoles={["Artist"]}>
-              <ArtistDashboard />
-            </ProtectedRoute>
-          }
-        />
-
+          <Route
+            path="/artist/dashboard"
+            element={<ProtectedRoute allowedRoles={["Artist"]}><ArtistDashboard /></ProtectedRoute>}
+          />
+          <Route
+            path="/artist/drafts"
+            element={<ProtectedRoute allowedRoles={["Artist"]}><DraftSongs /></ProtectedRoute>}
+          />
         <Route
           path="/artist/profile"
           element={

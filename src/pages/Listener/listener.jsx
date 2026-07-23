@@ -35,6 +35,8 @@ import {
   fetchPublicCategories,
   fetchPublicArtists,
   loadListenerState,
+  fetchRecentlyPlayed,
+  recordSongPlay,
   setPlaylists,
   toggleLikeSong as reduxToggleLikeSong,
   toggleSaveAlbum as reduxToggleSaveAlbum,
@@ -97,13 +99,14 @@ export default function ListenerDashboard() {
     downloadedSongsMap,
     usersLookup,
     feedbacks,
+    recentlyPlayed,
     notificationSettingsMap = {},
     notificationsMap = {},
     loading,
     error
   } = useSelector((state) => state.catalog);
 
-  const user = authService.getUser() || {};
+  const user = useSelector((state) => state.auth.user) || {};
   const userId = user.id || "guest";
 
   const notificationSettings = notificationSettingsMap[userId] || { enabled: true, newSong: true, newAlbum: true };
@@ -221,7 +224,7 @@ export default function ListenerDashboard() {
   const [selectedFeedbackMenu, setSelectedFeedbackMenu] = useState(null);
   const [feedbackStats, setFeedbackStats] = useState({ total: 0, average: 0, distribution: [0,0,0,0,0] });
 
-  const currentUser = authService.getUser();
+  const currentUser = user;
 
   const getAllFeedbacks = () => {
     return feedbacks || [];
@@ -271,7 +274,6 @@ export default function ListenerDashboard() {
   const handleSubmitFeedback = (e) => {
     e.preventDefault();
     if (!feedbackComment.trim()) return;
-    const user = authService.getUser();
     const username = user?.username || "Anonymous Listener";
     const userId = user?.id || "guest";
 
@@ -364,13 +366,18 @@ export default function ListenerDashboard() {
     if (currentSong && audioRef.current) {
       audioRef.current.load();
       audioRef.current.play()
-        .then(() => setIsPlaying(true))
+        .then(() => {
+          setIsPlaying(true);
+          dispatch(recordSongPlay(currentSong.song_id)).then(() => {
+            dispatch(fetchRecentlyPlayed());
+          });
+        })
         .catch(err => console.error(err));
     } else {
       setIsPlaying(false);
       setCurrentTime(0);
     }
-  }, [currentSong]);
+  }, [currentSong, dispatch]);
 
   const togglePlay = () => {
     if (!audioRef.current) return;
@@ -432,7 +439,6 @@ export default function ListenerDashboard() {
     dispatch(fetchPublicCategories());
 
     // Register user details for cross-role lookup
-    const user = authService.getUser();
     if (user && user.id) {
       dispatch(registerUserLookup({ userId: user.id, username: user.username, email: user.email }));
     }
@@ -441,6 +447,7 @@ export default function ListenerDashboard() {
   useEffect(() => {
     if (userId && userId !== "guest") {
       dispatch(loadListenerState(userId));
+      dispatch(fetchRecentlyPlayed());
     }
   }, [userId, dispatch]);
 
@@ -493,7 +500,6 @@ export default function ListenerDashboard() {
         }
       });
     }
-
     // 2. Check Albums
     if (notificationSettings.newAlbum) {
       albums.forEach((album) => {
@@ -780,6 +786,7 @@ export default function ListenerDashboard() {
                   savedAlbums={savedAlbums}
                   followedArtists={followedArtists}
                   downloadedSongs={downloadedSongs}
+                  recentlyPlayed={recentlyPlayed}
                   toggleLikeSong={toggleLikeSong}
                   toggleSaveAlbum={toggleSaveAlbum}
                   toggleFollowArtist={toggleFollowArtist}

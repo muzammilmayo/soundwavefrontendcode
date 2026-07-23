@@ -2,7 +2,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import authReducer from './features/auth/authSlice';
 import artistReducer from './features/artist/artistSlice';
 import catalogReducer from './features/catalog/catalogSlice';
-import api from './api';
+import api, { injectStore } from './api';
 
 const persistMiddleware = store => next => action => {
   const result = next(action);
@@ -52,5 +52,7 @@ const store = configureStore({
   },
   middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(persistMiddleware),
 });
+
+injectStore(store);
 
 export default store;

@@ -5,12 +5,28 @@ import AlbumIcon from "@mui/icons-material/Album";
 import PersonIcon from "@mui/icons-material/Person";
 import DownloadIcon from "@mui/icons-material/Download";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
+import HistoryIcon from "@mui/icons-material/History";
+
+function formatTimeAgo(dateString) {
+  const now = new Date();
+  const past = new Date(dateString);
+  const diffMs = now - past;
+  const diffMins = Math.floor(diffMs / 60000);
+  if (diffMins < 1) return "Just now";
+  if (diffMins < 60) return `${diffMins}m ago`;
+  const diffHours = Math.floor(diffMins / 60);
+  if (diffHours < 24) return `${diffHours}h ago`;
+  const diffDays = Math.floor(diffHours / 24);
+  if (diffDays === 1) return "Yesterday";
+  return `${diffDays} days ago`;
+}
 
 export default function ListenerLibrary({
   likedSongs,
   savedAlbums,
   followedArtists,
   downloadedSongs,
+  recentlyPlayed,
   toggleLikeSong,
   toggleSaveAlbum,
   toggleFollowArtist,
@@ -36,6 +52,7 @@ export default function ListenerLibrary({
         <Tab label="Saved Albums" icon={<AlbumIcon />} iconPosition="start" sx={{ textTransform: "none", fontWeight: "bold" }} />
         <Tab label="Followed Artists" icon={<PersonIcon />} iconPosition="start" sx={{ textTransform: "none", fontWeight: "bold" }} />
         <Tab label="Downloads" icon={<DownloadIcon />} iconPosition="start" sx={{ textTransform: "none", fontWeight: "bold" }} />
+        <Tab label="Recently Played" icon={<HistoryIcon />} iconPosition="start" sx={{ textTransform: "none", fontWeight: "bold" }} />
       </Tabs>
 
       {libraryTab === 0 && (
@@ -126,6 +143,52 @@ export default function ListenerLibrary({
                 <Button size="small" color="error" onClick={() => removeDownloadedSong(song.song_id)}>Remove</Button>
               </Box>
             ))
+          )}
+        </Box>
+      )}
+
+      {libraryTab === 4 && (
+        <Box>
+          {!recentlyPlayed || recentlyPlayed.length === 0 ? (
+            <Card sx={{ p: 5, textAlign: "center", borderRadius: 3, border: "1px solid rgba(162,160,213,0.15)", bgcolor: "background.paper" }}>
+              <Typography sx={{ color: "text.secondary" }}>No listening history recorded yet.</Typography>
+            </Card>
+          ) : (
+            <Box sx={{ bgcolor: "background.paper", borderRadius: 4, border: "1px solid rgba(162,160,213,0.15)", overflow: "hidden" }}>
+              {recentlyPlayed.map((item, idx) => {
+                const song = item.Song;
+                if (!song) return null;
+                return (
+                  <Box 
+                    key={item.history_id} 
+                    onClick={() => setCurrentSong(song)} 
+                    sx={{ 
+                      display: "flex", 
+                      alignItems: "center", 
+                      px: 3, 
+                      py: 2, 
+                      borderBottom: idx < recentlyPlayed.length - 1 ? "1px solid rgba(162,160,213,0.1)" : "none", 
+                      "&:hover": { bgcolor: "rgba(255,255,255,0.04)" }, 
+                      cursor: "pointer" 
+                    }}
+                  >
+                    <Typography sx={{ color: "text.secondary", width: 30 }}>{idx + 1}</Typography>
+                    <Box sx={{ width: 40, height: 40, mr: 2, display: "flex", alignItems: "center", justifyContent: "center", bgcolor: "rgba(255,255,255,0.03)", borderRadius: 2, overflow: "hidden" }}>
+                      {song.cover_image ? <Box component="img" src={song.cover_image} sx={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <MusicNoteIcon sx={{ color: "#01F2EA" }} />}
+                    </Box>
+                    <Box sx={{ flexGrow: 1 }}>
+                      <Typography sx={{ fontWeight: "600", color: "#FFFFFF" }}>{song.title}</Typography>
+                      <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                        {song.ArtistProfile?.stage_name || "Unknown Artist"}
+                      </Typography>
+                    </Box>
+                    <Typography variant="caption" sx={{ color: "text.secondary", ml: 2 }}>
+                      {formatTimeAgo(item.played_at)}
+                    </Typography>
+                  </Box>
+                );
+              })}
+            </Box>
           )}
         </Box>
       )}

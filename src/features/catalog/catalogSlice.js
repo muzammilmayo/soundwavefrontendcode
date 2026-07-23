@@ -26,6 +26,90 @@ export const saveListenerState = createAsyncThunk(
   }
 );
 
+export const fetchFeedbacks = createAsyncThunk(
+  "catalog/fetchFeedbacks",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await api.get("/catalog/feedbacks");
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Failed to fetch feedbacks");
+    }
+  }
+);
+
+export const submitFeedback = createAsyncThunk(
+  "catalog/submitFeedback",
+  async (feedbackData, { rejectWithValue }) => {
+    try {
+      const res = await api.post("/catalog/feedbacks", feedbackData);
+      return res.data.feedback;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Failed to submit feedback");
+    }
+  }
+);
+
+export const editFeedbackThunk = createAsyncThunk(
+  "catalog/editFeedback",
+  async ({ id, rating, comment }, { rejectWithValue }) => {
+    try {
+      const res = await api.put(`/catalog/feedbacks/${id}`, { rating, comment });
+      return res.data.feedback;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Failed to update feedback");
+    }
+  }
+);
+
+export const removeFeedbackThunk = createAsyncThunk(
+  "catalog/removeFeedback",
+  async (id, { rejectWithValue }) => {
+    try {
+      await api.delete(`/catalog/feedbacks/${id}`);
+      return id;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Failed to delete feedback");
+    }
+  }
+);
+
+export const toggleLikeFeedbackThunk = createAsyncThunk(
+  "catalog/toggleLikeFeedback",
+  async ({ feedbackId, userId }, { rejectWithValue }) => {
+    try {
+      const res = await api.post(`/catalog/feedbacks/${feedbackId}/like`);
+      return { feedbackId, userId, likes: res.data.likes, likedBy: res.data.likedBy };
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Failed to toggle feedback like");
+    }
+  }
+);
+
+export const fetchRecentlyPlayed = createAsyncThunk(
+  "catalog/fetchRecentlyPlayed",
+  async (_, { rejectWithValue }) => {
+    try {
+      const res = await api.get("/listener/history");
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Failed to fetch recently played");
+    }
+  }
+);
+
+export const recordSongPlay = createAsyncThunk(
+  "catalog/recordSongPlay",
+  async (songId, { rejectWithValue }) => {
+    try {
+      const res = await api.post("/listener/history", { songId });
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Failed to record play history");
+    }
+  }
+);
+
 // Async Thunks for Catalog Browsing
 export const fetchPublicArtists = createAsyncThunk(
   "catalog/fetchArtists",
@@ -149,6 +233,7 @@ const initialState = {
   downloadedSongsMap: {},  // { [userId]: [] }
   usersLookup: {},         // { [userId]: { username, email } }
   feedbacks: [],           // [ feedback ]
+  recentlyPlayed: [],      // [ play history ]
   // --- Push Notifications Redux State ---
   notificationSettingsMap: {}, // { [userId]: { enabled: true, newSong: true, newAlbum: true } }
   notificationsMap: {},         // { [userId]: [] }
@@ -346,6 +431,31 @@ const catalogSlice = createSlice({
           state.downloadedSongsMap[userId] = stateData.downloadedSongs || [];
           state.notificationsMap[userId] = stateData.notifications || [];
         }
+      })
+      // Feedbacks Thunks
+      .addCase(fetchFeedbacks.fulfilled, (state, action) => {
+        state.feedbacks = action.payload.feedbacks || [];
+      })
+      .addCase(submitFeedback.fulfilled, (state, action) => {
+        state.feedbacks.unshift(action.payload);
+      })
+      .addCase(editFeedbackThunk.fulfilled, (state, action) => {
+        state.feedbacks = state.feedbacks.map(f => f.id === action.payload.id ? action.payload : f);
+      })
+      .addCase(removeFeedbackThunk.fulfilled, (state, action) => {
+        state.feedbacks = state.feedbacks.filter(f => f.id !== action.payload);
+      })
+      .addCase(toggleLikeFeedbackThunk.fulfilled, (state, action) => {
+        const { feedbackId, likes, likedBy } = action.payload;
+        state.feedbacks = state.feedbacks.map(f => {
+          if (f.id === feedbackId) {
+            return { ...f, likes, likedBy };
+          }
+          return f;
+        });
+      })
+      .addCase(fetchRecentlyPlayed.fulfilled, (state, action) => {
+        state.recentlyPlayed = action.payload.history || [];
       });
   },
 });

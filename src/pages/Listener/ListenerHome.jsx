@@ -79,6 +79,9 @@ export default function ListenerHome({
                 </Typography>
               </Box>
               {song.Category?.name && <Chip label={song.Category.name} size="small" sx={{ mr: 3, bgcolor: "rgba(255,255,255,0.05)", color: "text.secondary" }} />}
+              <Typography variant="body2" sx={{ color: "text.secondary", mr: 3, fontSize: "0.85rem", whiteSpace: "nowrap" }}>
+                {song.play_count || 0} views
+              </Typography>
               <Tooltip title={likedSongs.some(s => s.song_id === song.song_id) ? "Unlike Song" : "Like Song"}>
                 <IconButton size="small" onClick={(e) => { e.stopPropagation(); toggleLikeSong(song); }} sx={{ color: likedSongs.some(s => s.song_id === song.song_id) ? "#CE04F2" : "text.secondary", mr: 1 }}>
                   {likedSongs.some(s => s.song_id === song.song_id) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
