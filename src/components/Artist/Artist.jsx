@@ -10,15 +10,15 @@ import { fetchArtistProfile, fetchArtistSongs, fetchArtistAlbums } from "../../f
 import { fetchPublicCategories, fetchFeedbacks } from "../../features/catalog/catalogSlice";
 
 // Import Refactored Components
-import ArtistSidebar from "./components/ArtistSidebar";
-import ArtistHeader from "./components/ArtistHeader";
-import ArtistStats from "./components/ArtistStats";
-import ArtistContentTabs from "./components/ArtistContentTabs";
-import ArtistPlayerBar from "./components/ArtistPlayerBar";
-import UploadSongModal from "./components/UploadSongModal";
-import CreateAlbumModal from "./components/CreateAlbumModal";
-import EditAlbumModal from "./components/EditAlbumModal";
-import AlbumDetailModal from "./components/AlbumDetailModal";
+import ArtistSidebar from "../../components/Artist/ArtistSidebar";
+import ArtistHeader from "../../components/Artist/ArtistHeader";
+import ArtistStats from "../../components/Artist/ArtistStats";
+import ArtistContentTabs from "../../components/Artist/ArtistContentTabs";
+import ArtistPlayerBar from "../../components/Artist/ArtistPlayerBar";
+import UploadSongModal from "../../components/Artist/UploadSongModal";
+import CreateAlbumModal from "../../components/Artist/CreateAlbumModal";
+import EditAlbumModal from "../../components/Artist/EditAlbumModal";
+import AlbumDetailModal from "../../components/Artist/AlbumDetailModal";
 
 // ===== HARDCODED NEON DARK THEME =====
 const synthTheme = createTheme({
@@ -52,6 +52,10 @@ export default function ArtistDashboard() {
   const [editAlbumOpen, setEditAlbumOpen] = useState(false);
   const [editAlbumData, setEditAlbumData] = useState(null);
 
+  // Sprint 4 Analytics State
+  const [analytics, setAnalytics] = useState(null);
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
+
   const showToast = (message, severity = "success") => {
     setToast({ open: true, message, severity });
   };
@@ -59,6 +63,19 @@ export default function ArtistDashboard() {
   const handleLogout = () => {
     authService.logout();
     navigate("/login");
+  };
+
+  const fetchAnalytics = async () => {
+    setAnalyticsLoading(true);
+    try {
+      const res = await api.get("/artist/analytics");
+      setAnalytics(res.data.data);
+    } catch (err) {
+      console.error(err);
+      showToast("Failed to load analytics data", "error");
+    } finally {
+      setAnalyticsLoading(false);
+    }
   };
 
   // Load Data
@@ -69,6 +86,13 @@ export default function ArtistDashboard() {
     dispatch(fetchPublicCategories());
     dispatch(fetchFeedbacks());
   }, [dispatch]);
+
+  // Load analytics when Tab 3 is open
+  useEffect(() => {
+    if (contentTab === 3) {
+      fetchAnalytics();
+    }
+  }, [contentTab]);
 
   const handleDeleteSong = async (id) => {
     if (!window.confirm("Are you sure you want to delete this song from your catalog?")) return;
@@ -152,6 +176,10 @@ export default function ArtistDashboard() {
             handleDeleteAlbum={handleDeleteAlbum} 
             handleOpenEditAlbum={handleOpenEditAlbum} 
             setSelectedAlbum={setSelectedAlbum} 
+            analytics={analytics}
+            analyticsLoading={analyticsLoading}
+            fetchArtistSongs={() => dispatch(fetchArtistSongs())}
+            showToast={showToast}
           />
         </Box>
       </Box>

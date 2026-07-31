@@ -7,40 +7,38 @@ import Navbar from "./components/navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 // Common Pages
-import ForgotPassword from "./pages/ForgotPassword";
-import ResetPassword from "./pages/resetPassword";
-import Profile from "./pages/profile";
-import Home from "./pages/home";
+import ForgotPassword from "./components/ForgotPassword";
+import ResetPassword from "./components/resetPassword";
+import Profile from "./components/profile";
+import Home from "./components/home";
 
 // Single Login and Register Selector
-import Login from "./pages/login";
-import Register from "./pages/register";
+import Login from "./components/login";
+import Register from "./components/register";
 
 // Listener (User) Register & Dashboard
-import ListenerRegister from "./pages/Listener/register";
-import ListenerDashboard from "./pages/Listener/listener";
+import ListenerRegister from "./components/Listener/register";
+import ListenerDashboard from "./components/Listener/listener";
 
 // Artist Register, Dashboard & Profile
-import ArtistRegister from "./pages/Artist/register";
-import ArtistDashboard from "./pages/Artist/Artist";
-import ArtistProfile from "./pages/Artist/profile";
-import DraftSongs from "./pages/Artist/DraftSongs";
+import ArtistRegister from "./components/Artist/register";
+import ArtistDashboard from "./components/Artist/Artist";
+import ArtistProfile from "./components/Artist/profile";
+import DraftSongs from "./components/Artist/DraftSongs";
 
 // Admin
-import AdminDashboard from "./pages/Admin/AdminDashboard";
+import AdminDashboard from "./components/Admin/AdminDashboard";
 
 // Super Admin
-import SuperAdminDashboard from "./pages/SuperAdmin/SuperAdmin";
-import ManageAdmins from "./pages/SuperAdmin/ManageAdmins";
+import SuperAdminDashboard from "./components/SuperAdmin/SuperAdmin";
+import ManageAdmins from "./components/SuperAdmin/ManageAdmins";
 
 // Moderator
-import ModeratorDashboard from "./pages/Moderator/Moderator";
+import ModeratorDashboard from "./components/Moderator/Moderator";
 
 function App() {
   const dispatch = useDispatch();
   useEffect(() => {
-    // Re-validate persisted session with the server in the background.
-    // If the token is expired the slice will clear Redux auth state and redirect.
     dispatch(refreshAuth());
   }, [dispatch]);
   return (

@@ -2,8 +2,8 @@ import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { Dialog, DialogTitle, DialogContent, DialogActions, Box, Typography, Button, TextField, CircularProgress, IconButton } from "@mui/material";
 import { Close as CloseIcon } from "@mui/icons-material";
-import { createPublicAlbum } from "../../../features/catalog/catalogSlice";
-import { fetchArtistAlbums } from "../../../features/artist/artistSlice";
+import { createPublicAlbum } from "../../features/catalog/catalogSlice";
+import { fetchArtistAlbums } from "../../features/artist/artistSlice";
 
 export default function CreateAlbumModal({ open, setOpen, showToast, textFieldStyles }) {
   const dispatch = useDispatch();

@@ -29,6 +29,7 @@ import {
   Facebook as FacebookIcon, Instagram as InstagramIcon, YouTube as YouTubeIcon, Language as WebIcon
 } from "@mui/icons-material";
 import authService from "../../services/authService";
+import api from "../../api";
 import {
   fetchPublicSongs,
   fetchPublicAlbums,
@@ -44,31 +45,31 @@ import {
   downloadSong as reduxDownloadSong,
   removeDownloadedSong as reduxRemoveDownloadedSong,
   registerUserLookup,
-  addFeedback,
-  updateFeedback,
-  deleteFeedback,
-  likeFeedback,
+  submitFeedback,
+  editFeedbackThunk,
+  removeFeedbackThunk,
+  toggleLikeFeedbackThunk,
   updateNotificationSettings,
   addNotification,
   markNotificationsRead,
   clearNotifications
 } from "../../features/catalog/catalogSlice";
-import SongSlider from "./SongSlider";
-import ListenerSidebar from "./ListenerSidebar";
-import ListenerHeader from "./ListenerHeader";
-import ListenerLibrary from "./ListenerLibrary";
-import ListenerHome from "./ListenerHome";
-import CategoryFilter from "./CategoryFilter";
-import NavigationTabs from "./NavigationTabs";
-import PlaylistDetailView from "./PlaylistDetailView";
-import ListenerNotificationSettings from "./ListenerNotificationSettings";
-import AlbumDialog from "./AlbumDialog";
-import ArtistDialog from "./ArtistDialog";
-import CreatePlaylistDialog from "./CreatePlaylistDialog";
-import AddToPlaylistDialog from "./AddToPlaylistDialog";
-import FeedbackMenu from "./FeedbackMenu";
-import MusicPlayer from "./MusicPlayer";
-import ReviewsDialog from "./ReviewsDialog";
+import SongSlider from "../../components/Listener/SongSlider";
+import ListenerSidebar from "../../components/Listener/ListenerSidebar";
+import ListenerHeader from "../../components/Listener/ListenerHeader";
+import ListenerLibrary from "../../components/Listener/ListenerLibrary";
+import ListenerHome from "../../components/Listener/ListenerHome";
+import CategoryFilter from "../../components/Listener/CategoryFilter";
+import NavigationTabs from "../../components/Listener/NavigationTabs";
+import PlaylistDetailView from "../../components/Listener/PlaylistDetailView";
+import ListenerNotificationSettings from "../../components/Listener/ListenerNotificationSettings";
+import AlbumDialog from "../../components/Listener/AlbumDialog";
+import ArtistDialog from "../../components/Listener/ArtistDialog";
+import CreatePlaylistDialog from "../../components/Listener/CreatePlaylistDialog";
+import AddToPlaylistDialog from "../../components/Listener/AddToPlaylistDialog";
+import FeedbackMenu from "../../components/Listener/FeedbackMenu";
+import MusicPlayer from "../../components/Listener/MusicPlayer";
+import ReviewsDialog from "../../components/Listener/ReviewsDialog";
 
 // ===== HARDCODED NEON DARK THEME =====
 const synthTheme = createTheme({
@@ -224,6 +225,31 @@ export default function ListenerDashboard() {
   const [selectedFeedbackMenu, setSelectedFeedbackMenu] = useState(null);
   const [feedbackStats, setFeedbackStats] = useState({ total: 0, average: 0, distribution: [0,0,0,0,0] });
 
+  // ===== SPRINT 4 CONTENT DISCOVERY & REPORTING =====
+  const [sort, setSort] = useState("");
+  const [durationFilter, setDurationFilter] = useState("");
+  const [reportOpen, setReportOpen] = useState(false);
+  const [reportSong, setReportSong] = useState(null);
+  const [reportReason, setReportReason] = useState("");
+
+  const handleReportSubmit = async (e) => {
+    e.preventDefault();
+    if (!reportReason.trim() || !reportSong) return;
+    try {
+      await api.post("/moderator/reports", {
+        target_type: "song",
+        target_id: String(reportSong.song_id),
+        reason: reportReason.trim()
+      });
+      setToast({ open: true, message: `Report for "${reportSong.title}" submitted successfully.`, severity: "success" });
+      setReportOpen(false);
+      setReportReason("");
+      setReportSong(null);
+    } catch (err) {
+      setToast({ open: true, message: err.response?.data?.message || "Failed to submit report", severity: "error" });
+    }
+  };
+
   const currentUser = user;
 
   const getAllFeedbacks = () => {
@@ -274,31 +300,19 @@ export default function ListenerDashboard() {
   const handleSubmitFeedback = (e) => {
     e.preventDefault();
     if (!feedbackComment.trim()) return;
-    const username = user?.username || "Anonymous Listener";
-    const userId = user?.id || "guest";
 
     if (editingFeedback) {
       // Update existing review
-      const updated = { ...editingFeedback, rating: feedbackRating, comment: feedbackComment.trim(), edited: true, editedAt: new Date().toISOString() };
-      dispatch(updateFeedback(updated));
+      dispatch(editFeedbackThunk({ id: editingFeedback.id, rating: feedbackRating, comment: feedbackComment.trim() }));
       setToast({ open: true, message: "Review updated successfully!", severity: "success" });
       setEditingFeedback(null);
     } else {
       // Create new review
-      const newFeedback = {
-        id: "feed_" + Date.now(),
+      dispatch(submitFeedback({
         song_id: feedbackSong.song_id,
-        song_title: feedbackSong.title,
-        user_id: userId,
-        username,
         rating: feedbackRating,
-        comment: feedbackComment.trim(),
-        timestamp: new Date().toISOString(),
-        edited: false,
-        likes: 0,
-        likedBy: []
-      };
-      dispatch(addFeedback(newFeedback));
+        comment: feedbackComment.trim()
+      }));
       setToast({ open: true, message: "Review posted successfully!", severity: "success" });
     }
 
@@ -307,7 +321,7 @@ export default function ListenerDashboard() {
   };
 
   const handleDeleteFeedback = (feedbackId) => {
-    dispatch(deleteFeedback(feedbackId));
+    dispatch(removeFeedbackThunk(feedbackId));
     setToast({ open: true, message: "Review deleted", severity: "info" });
     handleCloseFeedbackMenu();
   };
@@ -327,7 +341,7 @@ export default function ListenerDashboard() {
 
   const handleLikeFeedback = (feedbackId) => {
     const userId = currentUser?.id || "guest";
-    dispatch(likeFeedback({ feedbackId, userId }));
+    dispatch(toggleLikeFeedbackThunk({ feedbackId, userId }));
   };
 
   const handleOpenFeedbackMenu = (event, feedback) => {
@@ -454,13 +468,13 @@ export default function ListenerDashboard() {
   // Debounced search & category trigger for server-side database filtering
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
-      dispatch(fetchPublicSongs({ search, category: selectedCategory }));
+      dispatch(fetchPublicSongs({ search, category: selectedCategory, sort, duration: durationFilter }));
       dispatch(fetchPublicAlbums({ search }));
       dispatch(fetchPublicArtists({ search }));
     }, 300);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [search, selectedCategory, dispatch]);
+  }, [search, selectedCategory, sort, durationFilter, dispatch]);
 
   // Check for new releases from followed artists to trigger push notifications
   useEffect(() => {
@@ -679,6 +693,12 @@ export default function ListenerDashboard() {
                   downloadSong={downloadSong}
                   setSongToAddToPlaylist={setSongToAddToPlaylist}
                   setAddToPlaylistOpen={setAddToPlaylistOpen}
+                  setReportSong={setReportSong}
+                  setReportOpen={setReportOpen}
+                  sort={sort}
+                  setSort={setSort}
+                  duration={durationFilter}
+                  setDuration={setDurationFilter}
                 />
               )}
 
@@ -913,6 +933,35 @@ export default function ListenerDashboard() {
         handleEditFeedback={handleEditFeedback}
         handleDeleteFeedback={handleDeleteFeedback}
       />
+
+      {/* Report Song Dialog */}
+      <Dialog open={reportOpen} onClose={() => setReportOpen(false)} slotProps={{ paper: { sx: { borderRadius: 4, bgcolor: "background.paper", border: "1px solid rgba(162,160,213,0.2)" } } }}>
+        <DialogTitle sx={{ fontWeight: "bold", color: "#FFFFFF" }}>Report Song: {reportSong?.title}</DialogTitle>
+        <Box component="form" onSubmit={handleReportSubmit}>
+          <DialogContent>
+            <Typography variant="body2" sx={{ color: "text.secondary", mb: 2 }}>
+              Please provide a reason why you are flagging this song. A moderator will review it shortly.
+            </Typography>
+            <TextField
+              fullWidth
+              required
+              multiline
+              rows={3}
+              label="Reason for flagging"
+              value={reportReason}
+              onChange={(e) => setReportReason(e.target.value)}
+              sx={inputStyles}
+              placeholder="e.g. Copyright infringement, offensive content, audio issues..."
+            />
+          </DialogContent>
+          <DialogActions sx={{ p: 2.5, borderTop: "1px solid rgba(162,160,213,0.1)" }}>
+            <Button onClick={() => setReportOpen(false)} sx={{ color: "text.secondary", textTransform: "none", fontWeight: "bold" }}>Cancel</Button>
+            <Button type="submit" variant="contained" color="error" sx={{ borderRadius: 3, textTransform: "none", fontWeight: "bold", bgcolor: "#EF4444" }}>
+              Submit Report
+            </Button>
+          </DialogActions>
+        </Box>
+      </Dialog>
 
       {/* Dynamic Feedback Toast Messages Popup */}
       <Snackbar open={toast.open} autoHideDuration={4000} onClose={() => setToast({ ...toast, open: false })} anchorOrigin={{ vertical: "bottom", horizontal: "right" }}>

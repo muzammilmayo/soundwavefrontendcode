@@ -19,7 +19,7 @@ import {
   Favorite as FavoriteIcon,
   PlaylistPlay as PlaylistIcon,
   HighQuality as QualityIcon,
-  KeyboardArrowRight as ArrowIcon,
+  KeyboardArrowRight as ArrowIcon
 } from "@mui/icons-material";
 
 // --- Custom Theme ---

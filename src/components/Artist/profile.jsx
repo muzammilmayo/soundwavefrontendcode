@@ -58,6 +58,7 @@ export default function ArtistProfilePage() {
   const user = authService.getUser() || {};
   const { followedArtistsMap = {}, usersLookup = {} } = useSelector((state) => state.catalog);
   const [activeTab, setActiveTab] = useState(0);
+  const [followersList, setFollowersList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ text: "", type: "success" });
   const [toast, setToast] = useState({ open: false, message: "", severity: "success" });
@@ -123,8 +124,20 @@ export default function ArtistProfilePage() {
     }
   };
 
+  const fetchFollowers = async () => {
+    try {
+      const res = await api.get("/artist/followers");
+      if (res.data?.success && res.data.data) {
+        setFollowersList(res.data.data);
+      }
+    } catch (err) {
+      console.error("Failed to load followers list:", err);
+    }
+  };
+
   useEffect(() => {
     fetchArtistProfile();
+    fetchFollowers();
   }, [user.id]);
 
   const handleChange = (e) => {
@@ -662,7 +675,7 @@ export default function ArtistProfilePage() {
                     My Followers 👥
                   </Typography>
                   {(() => {
-                    const followers = getFollowers();
+                    const followers = followersList;
                     if (followers.length === 0) {
                       return (
                         <Card sx={{ p: 5, textAlign: "center", borderRadius: 4, border: "1px solid rgba(162, 160, 213, 0.15)", bgcolor: "background.paper" }}>

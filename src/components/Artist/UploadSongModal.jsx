@@ -5,7 +5,7 @@ import {
   Button, TextField, MenuItem, CircularProgress, IconButton 
 } from "@mui/material";
 import { Close as CloseIcon, Add as AddIcon, Delete as DeleteIcon } from "@mui/icons-material";
-import { uploadArtistSong, fetchArtistSongs } from "../../../features/artist/artistSlice";
+import { uploadArtistSong, fetchArtistSongs } from "../../features/artist/artistSlice";
 
 export default function UploadSongModal({ open, setOpen, categories, albums, showToast, textFieldStyles }) {
   const dispatch = useDispatch();

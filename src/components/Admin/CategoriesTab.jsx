@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Box, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Chip } from "@mui/material";
 import CategoryDialog from "./CategoryDialog";
-import api from "../../../../api";
+import api from "../../api";
 
 export default function CategoriesTab({
   catalogCategories,

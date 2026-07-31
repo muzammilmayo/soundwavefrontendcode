@@ -11,7 +11,7 @@ import {
   Category as CategoryIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import authService from '../../../../services/authService';
+import authService from '../../services/authService';
 
 export default function SidebarNav({ currentTab, setCurrentTab }) {
   const navigate = useNavigate();

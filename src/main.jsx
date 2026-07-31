@@ -5,7 +5,7 @@ import store from './store.js';
 import App from "./App.jsx";
 import "./index.css";
 import "./App.css";
-import './pages/home.css';
+import './components/home.css';
 
 // Clear legacy localStorage/sessionStorage data on startup to ensure no cache remains
 try {

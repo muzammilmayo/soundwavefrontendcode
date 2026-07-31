@@ -1,6 +1,11 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
+import DashboardTab from "../../components/SuperAdmin/DashboardTab";
+import UsersTab from "../../components/SuperAdmin/UsersTab";
+import SongsTab from "../../components/SuperAdmin/SongsTab";
+import ArtistsTab from "../../components/SuperAdmin/ArtistsTab";
+import ReportsTab from "../../components/SuperAdmin/ReportsTab";
 import CssBaseline from "@mui/material/CssBaseline";
 import {
   Box,
@@ -439,319 +444,57 @@ export default function SuperAdminDashboard() {
 
           {/* Tab Content Dashboard Engine */}
           {currentTab === "dashboard" && (
-            <Box>
-              {/* Metric Card rows grids - FIXED SAME SIZE */}
-              <Box sx={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 3 }}>
-                {[
-                  { title: "Total Users", value: totalUsersCount, color: "#FFFFFF" },
-                  { title: "System Admins", value: adminsCount, color: "#01F2EA" },
-                  { title: "Artists Registered", value: artistsCount, color: "#CE04F2" },
-                  { title: "Listener Registered", value: listenerCount, color: "#A2A0D5" },
-                  { title: "Active Statuses", value: activeUsersCount, color: "#00BCD4" },
-                  { title: "Inactive Statuses", value: inactiveUsersCount, color: "#F44336" },
-                ].map((stat) => (
-                  <Card key={stat.title} sx={{ 
-                    height: "100%", 
-                    display: "flex", 
-                    flexDirection: "column", 
-                    borderRadius: 4, 
-                    border: "1px solid rgba(162, 160, 213, 0.15)", 
-                    bgcolor: "background.paper", 
-                    boxShadow: "0 8px 32px rgba(0,0,0,0.3)", 
-                    minHeight: 160,
-                    transition: "all 0.25s", 
-                    "&:hover": { 
-                      transform: "translateY(-2px)", 
-                      borderColor: stat.color !== "#FFFFFF" ? stat.color : "rgba(162, 160, 213, 0.4)" 
-                    } 
-                  }}>
-                    <CardContent sx={{ p: 4, flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
-                      <Typography variant="caption" sx={{ color: "text.secondary", textTransform: "uppercase", fontWeight: "bold", letterSpacing: 1.5, fontSize: "0.7rem" }}>
-                        {stat.title}
-                      </Typography>
-                      <Typography variant="h3" sx={{ fontWeight: "bold", mt: 1.5, color: stat.color }}>
-                        {loading ? <CircularProgress size={24} /> : stat.value.toLocaleString()}
-                      </Typography>
-                    </CardContent>
-                  </Card>
-                ))}
-              </Box>
-
-              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 2, mt: 5 }}>
-                <Typography variant="h5" sx={{ fontWeight: "bold", color: "#FFFFFF" }}>
-                  Recent Registered Users
-                </Typography>
-                <Button onClick={() => setCurrentTab("users")} sx={{ textTransform: "none", fontWeight: "bold", color: "#01F2EA", "&:hover": { bgcolor: "transparent", textDecoration: "underline" } }}>
-                  View All Users →
-                </Button>
-              </Box>
-
-              <TableContainer component={Paper} sx={{ borderRadius: 4, border: "1px solid rgba(162, 160, 213, 0.15)", bgcolor: "background.paper", overflow: "hidden" }}>
-                {loading ? (
-                  <Box sx={{ p: 4, display: "flex", justifyContent: "center" }}><CircularProgress /></Box>
-                ) : users.length === 0 ? (
-                  <Typography sx={{ p: 4, color: "text.secondary", textAlign: "center" }}>No registered users found.</Typography>
-                ) : (
-                  <Table>
-                    <TableHead>
-                      <TableRow sx={{ bgcolor: "rgba(255,255,255,0.02)" }}>
-                        <TableCell sx={{ fontWeight: "bold", color: "text.secondary", fontSize: "0.75rem", textTransform: "uppercase" }}>Username</TableCell>
-                        <TableCell sx={{ fontWeight: "bold", color: "text.secondary", fontSize: "0.75rem", textTransform: "uppercase" }}>Email</TableCell>
-                        <TableCell sx={{ fontWeight: "bold", color: "text.secondary", fontSize: "0.75rem", textTransform: "uppercase" }}>Role</TableCell>
-                        <TableCell sx={{ fontWeight: "bold", color: "text.secondary", fontSize: "0.75rem", textTransform: "uppercase" }}>Status</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {users.slice(0, 5).map((user) => (
-                        <TableRow key={user.user_id} hover sx={{ "&:hover": { bgcolor: "rgba(255,255,255,0.03) !important" } }}>
-                          <TableCell sx={{ fontWeight: "600", color: "#FFFFFF" }}>{user.username}</TableCell>
-                          <TableCell sx={{ color: "text.secondary" }}>{user.email}</TableCell>
-                          <TableCell>
-                            <Box sx={{ display: "inline-block", px: 1.5, py: 0.5, borderRadius: 3, bgcolor: "rgba(255,255,255,0.05)", fontSize: "0.75rem", color: "#A2A0D5" }}>
-                              {user.role_name}
-                            </Box>
-                          </TableCell>
-                          <TableCell>
-                            <Chip label={user.status || "Active"} size="small" variant="outlined" color={user.status === "Inactive" ? "error" : "success"} />
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                )}
-              </TableContainer>
-            </Box>
+            <DashboardTab
+              totalUsersCount={totalUsersCount}
+              SaAdminsCount={1}
+              adminsCount={adminsCount}
+              artistsCount={artistsCount}
+              listenerCount={listenerCount}
+              activeUsersCount={activeUsersCount}
+              inactiveUsersCount={inactiveUsersCount}
+              loading={loading}
+              users={users}
+              setCurrentTab={setCurrentTab}
+            />
           )}
 
-          {/* Manage Users Content panel workspace tab */}
           {currentTab === "users" && (
-            <Box>
-              <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2, mb: 3 }}>
-                <Box sx={{ flexGrow: 1, display: "flex", alignItems: "center", bgcolor: "background.paper", borderRadius: 3, px: 2, border: "1px solid rgba(162, 160, 213, 0.2)" }}>
-                  <SearchIcon sx={{ color: "text.secondary", mr: 1.5 }} />
-                  <input
-                    type="text"
-                    placeholder="Search by username or email..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    style={{ background: "transparent", border: "none", outline: "none", color: "#FFFFFF", width: "100%", padding: "12px 0", fontSize: 14 }}
-                  />
-                </Box>
-
-                <FormControl sx={{ minWidth: 150 }}>
-                  <InputLabel id="role-select-label" sx={{ color: "text.secondary" }}>Role</InputLabel>
-                  <Select labelId="role-select-label" value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} label="Role" sx={{ borderRadius: 3, ...selectStyles }}>
-                    <MenuItem value="">All Roles</MenuItem>
-                    <MenuItem value="Super Admin">Super Admin</MenuItem>
-                    <MenuItem value="Admin">Admin</MenuItem>
-                    <MenuItem value="Moderator">Moderator</MenuItem>
-                    <MenuItem value="Artist">Artist</MenuItem>
-                    <MenuItem value="Listener">Listener</MenuItem>
-                  </Select>
-                </FormControl>
-
-                <FormControl sx={{ minWidth: 150 }}>
-                  <InputLabel id="status-select-label" sx={{ color: "text.secondary" }}>Status</InputLabel>
-                  <Select labelId="status-select-label" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} label="Status" sx={{ borderRadius: 3, ...selectStyles }}>
-                    <MenuItem value="">All Statuses</MenuItem>
-                    <MenuItem value="Active">Active</MenuItem>
-                    <MenuItem value="Inactive">Inactive</MenuItem>
-                  </Select>
-                </FormControl>
-              </Box>
-
-              <TableContainer component={Paper} sx={{ borderRadius: 4, border: "1px solid rgba(162, 160, 213, 0.15)", bgcolor: "background.paper" }}>
-                {loading ? (
-                  <Box sx={{ p: 6, display: "flex", justifyContent: "center" }}><CircularProgress /></Box>
-                ) : filteredUsers.length === 0 ? (
-                  <Typography sx={{ p: 6, color: "text.secondary", textAlign: "center" }}>No users match your criteria.</Typography>
-                ) : (
-                  <Table>
-                    <TableHead>
-                      <TableRow sx={{ bgcolor: "rgba(255,255,255,0.02)" }}>
-                        <TableCell sx={{ fontWeight: "bold", color: "text.secondary" }}>Username</TableCell>
-                        <TableCell sx={{ fontWeight: "bold", color: "text.secondary" }}>Email</TableCell>
-                        <TableCell sx={{ fontWeight: "bold", color: "text.secondary" }}>Role</TableCell>
-                        <TableCell sx={{ fontWeight: "bold", color: "text.secondary" }}>Status</TableCell>
-                        <TableCell sx={{ fontWeight: "bold", color: "text.secondary", textAlign: "center" }}>Actions</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {filteredUsers.map((user) => (
-                        <TableRow key={user.user_id} hover sx={{ "&:hover": { bgcolor: "rgba(255,255,255,0.03) !important" } }}>
-                          <TableCell sx={{ fontWeight: "600" }}>{user.username}</TableCell>
-                          <TableCell sx={{ color: "text.secondary" }}>{user.email}</TableCell>
-                          <TableCell>
-                            <Box sx={{ display: "inline-block", px: 1.5, py: 0.5, borderRadius: 3, bgcolor: "rgba(255,255,255,0.05)", fontSize: "0.75rem", color: "#A2A0D5" }}>
-                              {user.role_name}
-                            </Box>
-                          </TableCell>
-                          <TableCell>
-                            <Chip label={user.status || "Active"} size="small" variant="outlined" color={user.status === "Inactive" ? "error" : "success"} />
-                          </TableCell>
-                          <TableCell sx={{ textAlign: "center" }}>
-                            <Box sx={{ display: "flex", justifyContent: "center", gap: 1 }}>
-                              <Tooltip title="View Details">
-                                <Button variant="outlined" size="small" startIcon={<VisibilityIcon />} onClick={() => setSelectedUser(user)} sx={{ textTransform: "none", borderRadius: 2, borderColor: "rgba(162,160,213,0.3)", color: "#A2A0D5", "&:hover": { borderColor: "#01F2EA", color: "#01F2EA" } }}>
-                                  View
-                                </Button>
-                              </Tooltip>
-                              <Button variant="outlined" color={user.status === "Inactive" ? "primary" : "error"} size="small" onClick={() => toggleUserStatus(user.user_id, user.status || "Active")} sx={{ textTransform: "none", borderRadius: 2 }}>
-                                {user.status === "Inactive" ? "Activate" : "Deactivate"}
-                              </Button>
-                              <Button variant="outlined" color="error" size="small" startIcon={<DeleteForeverIcon />} onClick={() => setDeleteConfirm({ open: true, user })} sx={{ textTransform: "none", borderRadius: 2, borderColor: "rgba(220,38,38,0.3)" }}>
-                                Delete
-                              </Button>
-                            </Box>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                )}
-              </TableContainer>
-            </Box>
+            <UsersTab
+              search={search}
+              setSearch={setSearch}
+              roleFilter={roleFilter}
+              setRoleFilter={setRoleFilter}
+              statusFilter={statusFilter}
+              setStatusFilter={setStatusFilter}
+              selectStyles={selectStyles}
+              loading={loading}
+              filteredUsers={filteredUsers}
+              setSelectedUser={setSelectedUser}
+              toggleUserStatus={toggleUserStatus}
+              setDeleteConfirm={setDeleteConfirm}
+            />
           )}
 
-          {/* Manage Songs Workspace */}
           {currentTab === "songs" && (
-            <Box>
-              <Typography variant="h5" sx={{ fontWeight: "bold", mb: 3, color: "#FFFFFF" }}>
-                Catalog Songs Management
-              </Typography>
-              <TableContainer component={Paper} sx={{ borderRadius: 4, border: "1px solid rgba(162, 160, 213, 0.15)", bgcolor: "background.paper" }}>
-                {catalogSongs.length === 0 ? (
-                  <Typography sx={{ p: 6, color: "text.secondary", textAlign: "center" }}>No songs found in catalog.</Typography>
-                ) : (
-                  <Table>
-                    <TableHead>
-                      <TableRow sx={{ bgcolor: "rgba(255,255,255,0.02)" }}>
-                        <TableCell sx={{ fontWeight: "bold", color: "text.secondary" }}>Song Info</TableCell>
-                        <TableCell sx={{ fontWeight: "bold", color: "text.secondary" }}>Artist</TableCell>
-                        <TableCell sx={{ fontWeight: "bold", color: "text.secondary" }}>Album</TableCell>
-                        <TableCell sx={{ fontWeight: "bold", color: "text.secondary" }}>Category</TableCell>
-                        <TableCell sx={{ fontWeight: "bold", color: "text.secondary", textAlign: "center" }}>Actions</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {catalogSongs.map((song) => (
-                        <TableRow key={song.song_id} hover sx={{ "&:hover": { bgcolor: "rgba(255,255,255,0.03) !important" } }}>
-                          <TableCell>
-                            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                              <Box sx={{ width: 40, height: 40, borderRadius: 2, bgcolor: "rgba(255,255,255,0.03)", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid rgba(162,160,213,0.15)", overflow: "hidden" }}>
-                                {song.cover_image ? <Box component="img" src={song.cover_image} sx={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <MusicNoteIcon sx={{ color: "#01F2EA" }} />}
-                              </Box>
-                              <Typography sx={{ fontWeight: "600" }}>{song.title}</Typography>
-                            </Box>
-                          </TableCell>
-                          <TableCell sx={{ color: "text.secondary" }}>{song.ArtistProfile?.stage_name || "Unknown Artist"}</TableCell>
-                          <TableCell sx={{ color: "text.secondary" }}>{song.Album?.title || "Single"}</TableCell>
-                          <TableCell>
-                            {song.Category?.name && <Chip label={song.Category.name} size="small" sx={{ bgcolor: "rgba(255,255,255,0.05)" }} />}
-                          </TableCell>
-                          <TableCell sx={{ textAlign: "center" }}>
-                            <Button variant="outlined" color="error" size="small" onClick={() => handleDeleteSong(song.song_id)} sx={{ textTransform: "none", borderRadius: 2 }}>
-                              Delete Song
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                )}
-              </TableContainer>
-            </Box>
+            <SongsTab
+              catalogSongs={catalogSongs}
+              handleDeleteSong={handleDeleteSong}
+            />
           )}
 
-          {/* Manage Artists Panel */}
           {currentTab === "artists" && (
-            <Box>
-              <Typography variant="h5" sx={{ fontWeight: "bold", mb: 3, color: "#FFFFFF" }}>
-                Catalog Artists Management
-              </Typography>
-              <TableContainer component={Paper} sx={{ borderRadius: 4, border: "1px solid rgba(162, 160, 213, 0.15)", bgcolor: "background.paper" }}>
-                {catalogArtists.length === 0 ? (
-                  <Typography sx={{ p: 6, color: "text.secondary", textAlign: "center" }}>No artist profiles found.</Typography>
-                ) : (
-                  <Table>
-                    <TableHead>
-                      <TableRow sx={{ bgcolor: "rgba(255,255,255,0.02)" }}>
-                        <TableCell sx={{ fontWeight: "bold", color: "text.secondary" }}>Artist Info</TableCell>
-                        <TableCell sx={{ fontWeight: "bold", color: "text.secondary" }}>Username</TableCell>
-                        <TableCell sx={{ fontWeight: "bold", color: "text.secondary" }}>Biography</TableCell>
-                        <TableCell sx={{ fontWeight: "bold", color: "text.secondary", textAlign: "center" }}>Actions</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {catalogArtists.map((artist) => (
-                        <TableRow key={artist.artist_profile_id} hover sx={{ "&:hover": { bgcolor: "rgba(255,255,255,0.03) !important" } }}>
-                          <TableCell>
-                            <Box sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
-                              <Box sx={{ width: 40, height: 40, borderRadius: "50%", bgcolor: "rgba(255,255,255,0.03)", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid rgba(162,160,213,0.15)", overflow: "hidden" }}>
-                                {artist.profile_image ? <Box component="img" src={artist.profile_image} sx={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <PersonIcon sx={{ color: "#01F2EA" }} />}
-                              </Box>
-                              <Typography sx={{ fontWeight: "600" }}>{artist.stage_name}</Typography>
-                            </Box>
-                          </TableCell>
-                          <TableCell sx={{ color: "text.secondary" }}>{artist.User?.username || "N/A"}</TableCell>
-                          <TableCell sx={{ color: "text.secondary", maxWidth: 300, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{artist.bio || "No biography provided."}</TableCell>
-                          <TableCell sx={{ textAlign: "center" }}>
-                            <Button variant="outlined" color="error" size="small" onClick={() => handleDeleteArtistProfile(artist.user_id)} sx={{ textTransform: "none", borderRadius: 2 }}>
-                              Delete Profile
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                )}
-              </TableContainer>
-            </Box>
+            <ArtistsTab
+              catalogArtists={catalogArtists}
+              handleDeleteArtistProfile={handleDeleteArtistProfile}
+            />
           )}
 
-          {/* Reports Analytics View */}
           {currentTab === "reports" && (
-            <Box>
-              <Typography variant="h5" sx={{ fontWeight: "bold", mb: 3, color: "#FFFFFF" }}>
-                System Reports & Analysis
-              </Typography>
-              <Grid container spacing={3}>
-                {[
-                  { title: "Total System Tracks", value: catalogSongs.length, color: "#01F2EA" },
-                  { title: "Featured Artists", value: catalogArtists.length, color: "#CE04F2" },
-                  { title: "Music Categories", value: catalogCategories.length, color: "#A2A0D5" },
-                ].map((card) => (
-                  <Grid item xs={12} md={4} key={card.title}>
-                    <Card sx={{ borderRadius: 4, border: "1px solid rgba(162, 160, 213, 0.15)", bgcolor: "background.paper", textAlign: "center" }}>
-                      <CardContent sx={{ p: 4 }}>
-                        <Typography variant="h6" sx={{ color: "text.secondary", mb: 1 }}>{card.title}</Typography>
-                        <Typography variant="h2" sx={{ fontWeight: "bold", color: card.color }}>{card.value}</Typography>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                ))}
-              </Grid>
-
-              <Card sx={{ borderRadius: 4, border: "1px solid rgba(162, 160, 213, 0.15)", bgcolor: "background.paper", mt: 4 }}>
-                <CardContent sx={{ p: 4 }}>
-                  <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2 }}>Breakdown of Songs by Genre / Category</Typography>
-                  <Divider sx={{ mb: 3, borderColor: "rgba(162,160,213,0.15)" }} />
-                  {catalogCategories.map((cat) => {
-                    const count = catalogSongs.filter(s => s.Category?.name === cat.name).length;
-                    const percent = catalogSongs.length > 0 ? (count / catalogSongs.length) * 100 : 0;
-                    return (
-                      <Box key={cat.category_id} sx={{ mb: 2.5 }}>
-                        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}>
-                          <Typography variant="body2" sx={{ fontWeight: "bold" }}>{cat.name}</Typography>
-                          <Typography variant="body2" sx={{ color: "text.secondary" }}>{count} tracks ({percent.toFixed(1)}%)</Typography>
-                        </Box>
-                        <LinearProgress variant="determinate" value={percent} sx={{ height: 8, borderRadius: 4, bgcolor: "rgba(255,255,255,0.05)", "& .MuiLinearProgress-bar": { borderRadius: 4, bgcolor: "#01F2EA" } }} />
-                      </Box>
-                    );
-                  })}
-                </CardContent>
-              </Card>
-            </Box>
+            <ReportsTab
+              catalogSongs={catalogSongs}
+              catalogArtists={catalogArtists}
+              catalogCategories={catalogCategories}
+            />
           )}
         </Box>
       </Box>

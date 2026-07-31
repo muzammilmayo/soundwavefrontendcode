@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { Dialog, DialogTitle, DialogContent, DialogActions, Box, Button, TextField, IconButton } from "@mui/material";
 import { Close as CloseIcon } from "@mui/icons-material";
-import api from "../../../api";
-import { fetchArtistAlbums } from "../../../features/artist/artistSlice";
+import api from "../../api";
+import { fetchArtistAlbums } from "../../features/artist/artistSlice";
 
 export default function EditAlbumModal({ open, setOpen, album, showToast, textFieldStyles }) {
   const dispatch = useDispatch();

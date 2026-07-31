@@ -1,11 +1,12 @@
 import React from "react";
-import { Box, Typography, Card, IconButton, Chip, Tooltip } from "@mui/material";
+import { Box, Typography, Card, IconButton, Chip, Tooltip, TextField, MenuItem } from "@mui/material";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import DownloadIcon from "@mui/icons-material/Download";
 import PlaylistAddIcon from "@mui/icons-material/PlaylistAdd";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
 import PlayCircleFilledIcon from "@mui/icons-material/PlayCircleFilled";
+import FlagIcon from "@mui/icons-material/Flag";
 import SongSlider from "./SongSlider";
 
 export default function ListenerHome({
@@ -20,7 +21,13 @@ export default function ListenerHome({
   downloadedSongs,
   downloadSong,
   setSongToAddToPlaylist,
-  setAddToPlaylistOpen
+  setAddToPlaylistOpen,
+  setReportSong,
+  setReportOpen,
+  sort,
+  setSort,
+  duration,
+  setDuration
 }) {
   return (
     <Box>
@@ -33,10 +40,68 @@ export default function ListenerHome({
         handleArtistClick={handleArtistClick} 
       />
 
+      {/* --- Filtering & Sorting controls --- */}
+      <Box sx={{ display: "flex", gap: 2, mb: 4, flexWrap: "wrap", alignItems: "center", bgcolor: "rgba(255,255,255,0.02)", p: 2.5, borderRadius: 4, border: "1px solid rgba(162,160,213,0.15)" }}>
+        <Typography variant="body2" sx={{ color: "text.secondary", fontWeight: "bold", mr: 1, textTransform: "uppercase", letterSpacing: 1 }}>Filter & Sort:</Typography>
+        
+        {/* Sort Select */}
+        <TextField
+          select
+          size="small"
+          label="Sort By"
+          value={sort}
+          onChange={(e) => setSort(e.target.value)}
+          sx={{
+            minWidth: 160,
+            "& .MuiOutlinedInput-root": {
+              borderRadius: 3,
+              color: "#FFFFFF",
+              "& fieldset": { borderColor: "rgba(162, 160, 213, 0.2)" },
+              "&:hover fieldset": { borderColor: "#01F2EA" },
+              "&.Mui-focused fieldset": { borderColor: "#01F2EA" },
+            },
+            "& .MuiInputLabel-root": { color: "text.secondary", fontSize: "0.85rem" },
+            "& .MuiInputLabel-root.Mui-focused": { color: "#01F2EA" },
+          }}
+          slotProps={{ inputLabel: { shrink: true } }}
+        >
+          <MenuItem value="">Newest Releases</MenuItem>
+          <MenuItem value="popular">Popularity (Plays)</MenuItem>
+          <MenuItem value="alphabetical">Alphabetical (A-Z)</MenuItem>
+        </TextField>
+
+        {/* Duration Filter */}
+        <TextField
+          select
+          size="small"
+          label="Duration"
+          value={duration}
+          onChange={(e) => setDuration(e.target.value)}
+          sx={{
+            minWidth: 160,
+            "& .MuiOutlinedInput-root": {
+              borderRadius: 3,
+              color: "#FFFFFF",
+              "& fieldset": { borderColor: "rgba(162, 160, 213, 0.2)" },
+              "&:hover fieldset": { borderColor: "#01F2EA" },
+              "&.Mui-focused fieldset": { borderColor: "#01F2EA" },
+            },
+            "& .MuiInputLabel-root": { color: "text.secondary", fontSize: "0.85rem" },
+            "& .MuiInputLabel-root.Mui-focused": { color: "#01F2EA" },
+          }}
+          slotProps={{ inputLabel: { shrink: true } }}
+        >
+          <MenuItem value="">All Durations</MenuItem>
+          <MenuItem value="short">Short (&lt; 3 mins)</MenuItem>
+          <MenuItem value="medium">Medium (3 - 5 mins)</MenuItem>
+          <MenuItem value="long">Long (&gt; 5 mins)</MenuItem>
+        </TextField>
+      </Box>
+
       <Typography variant="h5" sx={{ fontWeight: "bold", mb: 2, color: "#FFFFFF" }}>Dynamic Library</Typography>
       {filteredSongs.length === 0 ? (
         <Card sx={{ p: 4, textAlign: "center", borderRadius: 3, border: "1px solid rgba(162,160,213,0.15)", bgcolor: "background.paper" }}>
-          <Typography sx={{ color: "text.secondary" }}>No songs found.</Typography>
+          <Typography sx={{ color: "text.secondary" }}>No songs found matching filters.</Typography>
         </Card>
       ) : (
         <Box sx={{ bgcolor: "background.paper", borderRadius: 4, border: "1px solid rgba(162,160,213,0.15)", overflow: "hidden" }}>
@@ -95,6 +160,11 @@ export default function ListenerHome({
               <Tooltip title="Add to Playlist">
                 <IconButton size="small" onClick={(e) => { e.stopPropagation(); setSongToAddToPlaylist(song); setAddToPlaylistOpen(true); }} sx={{ color: "text.secondary", mr: 1 }}>
                   <PlaylistAddIcon />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Report / Flag Track">
+                <IconButton size="small" onClick={(e) => { e.stopPropagation(); setReportSong(song); setReportOpen(true); }} sx={{ color: "text.secondary", mr: 1, "&:hover": { color: "#EF4444" } }}>
+                  <FlagIcon />
                 </IconButton>
               </Tooltip>
               <IconButton size="small" sx={{ color: "#01F2EA" }}><PlayCircleFilledIcon sx={{ fontSize: 32 }} /></IconButton>

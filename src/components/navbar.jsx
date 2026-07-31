@@ -1,4 +1,4 @@
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
   AppBar,
   Toolbar,
@@ -15,10 +15,13 @@ import authService from "../services/authService";
 
 export default function Navbar() {
   const navigate = useNavigate();
+  const location = useLocation();
   
   // Checking auth status safely from Redux state
   const user = useSelector(state => state.auth?.user);
   const isAuthenticated = !!user;
+
+  const isLoginPage = location.pathname === "/" || location.pathname === "/login";
 
   let dashboardPath = "/";
   if (isAuthenticated && user.role) {
@@ -56,7 +59,7 @@ export default function Navbar() {
         {/* --- Logo & Brand --- */}
         <Box
           component={Link}
-          to={dashboardPath}
+          to={isLoginPage ? location.pathname : dashboardPath}
           sx={{
             display: "flex",
             alignItems: "center",

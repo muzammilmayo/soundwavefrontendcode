@@ -5,17 +5,17 @@ import CssBaseline from "@mui/material/CssBaseline";
 import { Box, Typography, Alert, Snackbar } from "@mui/material";
 
 import synthTheme from "./theme";
-import SidebarNav from "./components/admin/SidebarNav";
+import SidebarNav from "../../components/Admin/SidebarNav";
 import api from "../../api";
 
 // Sub-tabs and components
-import DashboardTab from "./components/admin/DashboardTab";
-import UsersTab from "./components/admin/UsersTab";
-import UserDetailsDialog from "./components/admin/UserDetailsDialog";
-import SongsTab from "./components/admin/SongsTab";
-import ArtistsTab from "./components/admin/ArtistsTab";
-import CategoriesTab from "./components/admin/CategoriesTab";
-import ReportsTab from "./components/admin/ReportsTab";
+import DashboardTab from "../../components/Admin/DashboardTab";
+import UsersTab from "../../components/Admin/UsersTab";
+import UserDetailsDialog from "../../components/Admin/UserDetailsDialog";
+import SongsTab from "../../components/Admin/SongsTab";
+import ArtistsTab from "../../components/Admin/ArtistsTab";
+import CategoriesTab from "../../components/Admin/CategoriesTab";
+import ReportsTab from "../../components/Admin/ReportsTab";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
