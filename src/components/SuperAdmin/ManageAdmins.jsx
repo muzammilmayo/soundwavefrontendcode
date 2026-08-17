@@ -239,33 +239,29 @@ export default function ManageAdmins() {
       <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "background.default" }}>
 
         {/* Sidebar Left Navigation Panel */}
-        <Box sx={{ width: 260, bgcolor: "#140E34", p: 3, display: "flex", flexDirection: "column", borderRight: "1px solid rgba(162,160,213,0.15)" }}>
-        
-          
-          <Divider sx={{ mb: 2, borderColor: "rgba(162, 160, 213, 0.15)" }} />
-
-          <List sx={{ display: "flex", flexDirection: "column", gap: 1 }}>
+        <Box sx={{ width: 260, bgcolor: "#140E34", p: 3, display: "flex", flexDirection: "column", borderRight: "1px solid rgba(162,160,213,0.15)", position: "fixed", top: "64px", left: 0, bottom: 0, height: "calc(100vh - 64px)", zIndex: 1100 }}>
+          <List sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
             <ListItem disablePadding>
               <ListItemButton
                 onClick={() => navigate("/SuperAdmin/dashboard", { state: { tab: "dashboard" } })}
-                sx={{ borderRadius: 3, py: 1.2, px: 2, color: "#FFFFFF", "&:hover": { bgcolor: "rgba(255,255,255,0.05)" } }}
+                sx={{ borderRadius: 3, py: 0.6, px: 2, color: "#FFFFFF", "&:hover": { bgcolor: "rgba(255,255,255,0.05)" } }}
               >
-                <ListItemIcon sx={{ minWidth: 36, color: "#A2A0D5" }}>
-                  <HomeIcon sx={{ fontSize: 20 }} />
+                <ListItemIcon sx={{ minWidth: 32, color: "#A2A0D5" }}>
+                  <HomeIcon sx={{ fontSize: 18 }} />
                 </ListItemIcon>
-                <ListItemText primary="Dashboard" slotProps={{ primary: { fontWeight: 500 } }} />
+                <ListItemText primary={<Typography sx={{ fontSize: "0.85rem", fontWeight: 500 }}>Dashboard</Typography>} />
               </ListItemButton>
             </ListItem>
 
             <ListItem disablePadding>
               <ListItemButton
                 onClick={() => navigate("/SuperAdmin/dashboard", { state: { tab: "users" } })}
-                sx={{ borderRadius: 3, py: 1.2, px: 2, color: "#FFFFFF", "&:hover": { bgcolor: "rgba(255,255,255,0.05)" } }}
+                sx={{ borderRadius: 3, py: 0.6, px: 2, color: "#FFFFFF", "&:hover": { bgcolor: "rgba(255,255,255,0.05)" } }}
               >
-                <ListItemIcon sx={{ minWidth: 36, color: "#A2A0D5" }}>
-                  <PeopleIcon sx={{ fontSize: 20 }} />
+                <ListItemIcon sx={{ minWidth: 32, color: "#A2A0D5" }}>
+                  <PeopleIcon sx={{ fontSize: 18 }} />
                 </ListItemIcon>
-                <ListItemText primary="Manage Users" slotProps={{ primary: { fontWeight: 500 } }} />
+                <ListItemText primary={<Typography sx={{ fontSize: "0.85rem", fontWeight: 500 }}>Manage Users</Typography>} />
               </ListItemButton>
             </ListItem>
 
@@ -275,7 +271,7 @@ export default function ManageAdmins() {
                 selected
                 sx={{
                   borderRadius: 3,
-                  py: 1.2,
+                  py: 0.6,
                   px: 2,
                   bgcolor: "rgba(1, 242, 234, 0.08)",
                   color: "#01F2EA",
@@ -283,84 +279,81 @@ export default function ManageAdmins() {
                   "&:hover": { bgcolor: "rgba(255,255,255,0.05)" },
                 }}
               >
-                <ListItemIcon sx={{ minWidth: 36, color: "#01F2EA" }}>
-                  <ShieldIcon sx={{ fontSize: 20 }} />
+                <ListItemIcon sx={{ minWidth: 32, color: "#01F2EA" }}>
+                  <ShieldIcon sx={{ fontSize: 18 }} />
                 </ListItemIcon>
-                <ListItemText primary="Manage Admins" slotProps={{ primary: { fontWeight: "bold" } }} />
+                <ListItemText primary={<Typography sx={{ fontSize: "0.85rem", fontWeight: "bold" }}>Manage Admins</Typography>} />
               </ListItemButton>
             </ListItem>
 
-            <Divider sx={{ my: 2, borderColor: "rgba(162,160,213,0.15)" }} />
-            <Typography variant="caption" sx={{ px: 2, color: "text.secondary", fontWeight: "bold", textTransform: "uppercase", letterSpacing: 1 }}>
+            <Divider sx={{ my: 1, borderColor: "rgba(162,160,213,0.15)" }} />
+            <Typography variant="caption" sx={{ px: 2, mb: 0.5, color: "text.secondary", fontWeight: "bold", textTransform: "uppercase", letterSpacing: 1, fontSize: "0.7rem" }}>
               System Mocks
             </Typography>
 
-            {/* FIXED: Manage Songs - clickable now */}
             <ListItem disablePadding>
               <ListItemButton
                 onClick={() => navigate("/SuperAdmin/dashboard", { state: { tab: "songs" } })}
-                sx={{ borderRadius: 3, py: 1.2, px: 2, color: "#FFFFFF", "&:hover": { bgcolor: "rgba(255,255,255,0.05)" } }}
+                sx={{ borderRadius: 3, py: 0.6, px: 2, color: "#FFFFFF", "&:hover": { bgcolor: "rgba(255,255,255,0.05)" } }}
               >
-                <ListItemIcon sx={{ minWidth: 36, color: "#A2A0D5" }}>
-                  <MusicNoteIcon sx={{ fontSize: 20 }} />
+                <ListItemIcon sx={{ minWidth: 32, color: "#A2A0D5" }}>
+                  <MusicNoteIcon sx={{ fontSize: 18 }} />
                 </ListItemIcon>
-                <ListItemText primary="Manage Songs" slotProps={{ primary: { fontWeight: 500 } }} />
+                <ListItemText primary={<Typography sx={{ fontSize: "0.85rem", fontWeight: 500 }}>Manage Songs</Typography>} />
               </ListItemButton>
             </ListItem>
 
-            {/* FIXED: Manage Artists - clickable now */}
             <ListItem disablePadding>
               <ListItemButton
                 onClick={() => navigate("/SuperAdmin/dashboard", { state: { tab: "artists" } })}
-                sx={{ borderRadius: 3, py: 1.2, px: 2, color: "#FFFFFF", "&:hover": { bgcolor: "rgba(255,255,255,0.05)" } }}
+                sx={{ borderRadius: 3, py: 0.6, px: 2, color: "#FFFFFF", "&:hover": { bgcolor: "rgba(255,255,255,0.05)" } }}
               >
-                <ListItemIcon sx={{ minWidth: 36, color: "#A2A0D5" }}>
-                  <MicIcon sx={{ fontSize: 20 }} />
+                <ListItemIcon sx={{ minWidth: 32, color: "#A2A0D5" }}>
+                  <MicIcon sx={{ fontSize: 18 }} />
                 </ListItemIcon>
-                <ListItemText primary="Manage Artists" slotProps={{ primary: { fontWeight: 500 } }} />
+                <ListItemText primary={<Typography sx={{ fontSize: "0.85rem", fontWeight: 500 }}>Manage Artists</Typography>} />
               </ListItemButton>
             </ListItem>
 
-            {/* FIXED: Reports - clickable now */}
             <ListItem disablePadding>
               <ListItemButton
                 onClick={() => navigate("/SuperAdmin/dashboard", { state: { tab: "reports" } })}
-                sx={{ borderRadius: 3, py: 1.2, px: 2, color: "#FFFFFF", "&:hover": { bgcolor: "rgba(255,255,255,0.05)" } }}
+                sx={{ borderRadius: 3, py: 0.6, px: 2, color: "#FFFFFF", "&:hover": { bgcolor: "rgba(255,255,255,0.05)" } }}
               >
-                <ListItemIcon sx={{ minWidth: 36, color: "#A2A0D5" }}>
-                  <AssessmentIcon sx={{ fontSize: 20 }} />
+                <ListItemIcon sx={{ minWidth: 32, color: "#A2A0D5" }}>
+                  <AssessmentIcon sx={{ fontSize: 18 }} />
                 </ListItemIcon>
-                <ListItemText primary="Reports" slotProps={{ primary: { fontWeight: 500 } }} />
+                <ListItemText primary={<Typography sx={{ fontSize: "0.85rem", fontWeight: 500 }}>Reports</Typography>} />
               </ListItemButton>
             </ListItem>
 
-            <Divider sx={{ my: 2, borderColor: "rgba(162,160,213,0.15)" }} />
-            <Typography variant="caption" sx={{ px: 2, color: "text.secondary", fontWeight: "bold", textTransform: "uppercase", letterSpacing: 1 }}>
+            <Divider sx={{ my: 1, borderColor: "rgba(162,160,213,0.15)" }} />
+            <Typography variant="caption" sx={{ px: 2, mb: 0.5, color: "text.secondary", fontWeight: "bold", textTransform: "uppercase", letterSpacing: 1, fontSize: "0.7rem" }}>
               Account
             </Typography>
 
             <ListItem disablePadding>
-              <ListItemButton onClick={() => navigate("/profile")} sx={{ borderRadius: 3, py: 1.2, px: 2, color: "#FFFFFF", "&:hover": { bgcolor: "rgba(255,255,255,0.05)" } }}>
-                <ListItemIcon sx={{ minWidth: 36, color: "#A2A0D5" }}>
-                  <PersonIcon sx={{ fontSize: 20 }} />
+              <ListItemButton onClick={() => navigate("/profile")} sx={{ borderRadius: 3, py: 0.6, px: 2, color: "#FFFFFF", "&:hover": { bgcolor: "rgba(255,255,255,0.05)" } }}>
+                <ListItemIcon sx={{ minWidth: 32, color: "#A2A0D5" }}>
+                  <PersonIcon sx={{ fontSize: 18 }} />
                 </ListItemIcon>
-                <ListItemText primary="Profile" slotProps={{ primary: { fontWeight: 500 } }} />
+                <ListItemText primary={<Typography sx={{ fontSize: "0.85rem", fontWeight: 500 }}>Profile</Typography>} />
               </ListItemButton>
             </ListItem>
 
             <ListItem disablePadding>
-              <ListItemButton onClick={handleLogout} sx={{ borderRadius: 3, py: 1.2, px: 2, color: "#EF4444", "&:hover": { bgcolor: "rgba(239,68,68,0.05)" } }}>
-                <ListItemIcon sx={{ minWidth: 36, color: "#EF4444" }}>
-                  <ExitToAppIcon sx={{ fontSize: 20 }} />
+              <ListItemButton onClick={handleLogout} sx={{ borderRadius: 3, py: 0.6, px: 2, color: "#EF4444", "&:hover": { bgcolor: "rgba(239,68,68,0.05)" } }}>
+                <ListItemIcon sx={{ minWidth: 32, color: "#EF4444" }}>
+                  <ExitToAppIcon sx={{ fontSize: 18 }} />
                 </ListItemIcon>
-                <ListItemText primary="Logout" slotProps={{ primary: { fontWeight: 500 } }} />
+                <ListItemText primary={<Typography sx={{ fontSize: "0.85rem", fontWeight: 500, color: "#EF4444" }}>Logout</Typography>} />
               </ListItemButton>
             </ListItem>
           </List>
         </Box>
 
         {/* Main Content Workspace Content Space */}
-        <Box sx={{ flexGrow: 1, p: 5, overflowY: "auto", backgroundImage: "linear-gradient(#201948 1px, transparent 1px), linear-gradient(90deg, #201948 1px, transparent 1px)", backgroundSize: "30px 30px" }}>
+        <Box sx={{ flexGrow: 1, ml: "260px", p: 5, overflowY: "auto", backgroundImage: "linear-gradient(#201948 1px, transparent 1px), linear-gradient(90deg, #201948 1px, transparent 1px)", backgroundSize: "30px 30px" }}>
 
           <Box sx={{ mb: 4, pb: 3, borderBottom: "1px solid rgba(162,160,213,0.15)" }}>
             <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>

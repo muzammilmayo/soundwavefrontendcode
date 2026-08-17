@@ -236,9 +236,16 @@ const initialState = {
   recentlyPlayed: [],      // [ play history ]
   // --- Push Notifications Redux State ---
   notificationSettingsMap: {}, // { [userId]: { enabled: true, newSong: true, newAlbum: true } }
-  notificationsMap: {},         // { [userId]: [] }
+  notificationsMap: {}, // user_id -> notifications
   loading: false,
   error: null,
+  pagination: {
+    totalRecords: 0,
+    currentPage: 1,
+    totalPages: 1,
+    hasNext: false,
+    hasPrevious: false
+  }
 };
 
 const catalogSlice = createSlice({
@@ -390,7 +397,14 @@ const catalogSlice = createSlice({
       })
       .addCase(fetchPublicSongs.fulfilled, (state, action) => {
         state.loading = false;
-        state.songs = action.payload.songs || action.payload.data || [];
+        state.songs = action.payload.songs || [];
+        state.pagination = action.payload.pagination || {
+          totalRecords: (action.payload.songs || []).length,
+          currentPage: 1,
+          totalPages: 1,
+          hasNext: false,
+          hasPrevious: false
+        };
       })
       .addCase(fetchPublicSongs.rejected, (state, action) => {
         state.loading = false;

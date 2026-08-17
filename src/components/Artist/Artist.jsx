@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
@@ -34,10 +34,12 @@ const synthTheme = createTheme({
 
 export default function ArtistDashboard() {
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
   
   // Redux State
   const { profile, songs, albums, loading: artistLoading } = useSelector((state) => state.artist);
+  const { user } = useSelector((state) => state.auth);
   const { categories, feedbacks } = useSelector((state) => state.catalog);
 
   // Component State
@@ -47,14 +49,34 @@ export default function ArtistDashboard() {
   // Modal States
   const [uploadOpen, setUploadOpen] = useState(false);
   const [albumOpen, setAlbumOpen] = useState(false);
-  const [contentTab, setContentTab] = useState(0); 
+  const [contentTab, setContentTab] = useState(user?.role === "Moderator" ? 7 : 0); 
   const [selectedAlbum, setSelectedAlbum] = useState(null); // Used for Album Detail View
   const [editAlbumOpen, setEditAlbumOpen] = useState(false);
   const [editAlbumData, setEditAlbumData] = useState(null);
 
+  useEffect(() => {
+    if (location.state && location.state.tab !== undefined) {
+      setContentTab(location.state.tab);
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location, navigate]);
+
   // Sprint 4 Analytics State
   const [analytics, setAnalytics] = useState(null);
   const [analyticsLoading, setAnalyticsLoading] = useState(false);
+  const [deletedSongs, setDeletedSongs] = useState([]);
+  const [deletedAlbums, setDeletedAlbums] = useState([]);
+
+  const fetchDeletedItems = async () => {
+    try {
+      const songsRes = await api.get("/catalog/songs/deleted");
+      setDeletedSongs(songsRes.data.songs || []);
+      const albumsRes = await api.get("/catalog/albums/deleted");
+      setDeletedAlbums(albumsRes.data.albums || []);
+    } catch (err) {
+      console.error("Error loading deleted items:", err);
+    }
+  };
 
   const showToast = (message, severity = "success") => {
     setToast({ open: true, message, severity });
@@ -71,8 +93,9 @@ export default function ArtistDashboard() {
       const res = await api.get("/artist/analytics");
       setAnalytics(res.data.data);
     } catch (err) {
-      console.error(err);
-      showToast("Failed to load analytics data", "error");
+      console.error("fetchAnalytics error details:", err);
+      const errMsg = err.response?.data?.message || err.message;
+      showToast(`Failed to load analytics data: ${errMsg}`, "error");
     } finally {
       setAnalyticsLoading(false);
     }
@@ -80,17 +103,26 @@ export default function ArtistDashboard() {
 
   // Load Data
   useEffect(() => {
-    dispatch(fetchArtistProfile());
-    dispatch(fetchArtistSongs());
-    dispatch(fetchArtistAlbums());
+    if (user?.role === "Artist" || user?.is_artist_moderator) {
+      dispatch(fetchArtistProfile());
+      dispatch(fetchArtistSongs());
+      dispatch(fetchArtistAlbums());
+    }
     dispatch(fetchPublicCategories());
     dispatch(fetchFeedbacks());
-  }, [dispatch]);
+  }, [dispatch, user]);
 
   // Load analytics when Tab 3 is open
   useEffect(() => {
     if (contentTab === 3) {
       fetchAnalytics();
+    }
+  }, [contentTab]);
+
+  // Load deleted items when Tab 4 is open
+  useEffect(() => {
+    if (contentTab === 4) {
+      fetchDeletedItems();
     }
   }, [contentTab]);
 
@@ -148,10 +180,12 @@ export default function ArtistDashboard() {
           handleLogout={handleLogout} 
           setUploadOpen={setUploadOpen} 
           setAlbumOpen={setAlbumOpen} 
+          contentTab={contentTab}
+          setContentTab={setContentTab}
         />
 
         {/* --- Main Contents Space --- */}
-        <Box sx={{ flexGrow: 1, p: 5, pb: 10, overflowY: "auto", backgroundImage: "linear-gradient(#201948 1px, transparent 1px), linear-gradient(90deg, #201948 1px, transparent 1px)", backgroundSize: "30px 30px" }}>
+        <Box sx={{ flexGrow: 1, ml: "260px", p: 5, pb: 10, overflowY: "auto", backgroundImage: "linear-gradient(#201948 1px, transparent 1px), linear-gradient(90deg, #201948 1px, transparent 1px)", backgroundSize: "30px 30px" }}>
           
           {/* Header Dashboard section */}
           <ArtistHeader 
@@ -165,6 +199,7 @@ export default function ArtistDashboard() {
 
           {/* Dynamic Content Tabs */}
           <ArtistContentTabs 
+            user={user}
             contentTab={contentTab} 
             setContentTab={setContentTab} 
             artistLoading={artistLoading} 
@@ -179,7 +214,11 @@ export default function ArtistDashboard() {
             analytics={analytics}
             analyticsLoading={analyticsLoading}
             fetchArtistSongs={() => dispatch(fetchArtistSongs())}
+            fetchArtistAlbums={() => dispatch(fetchArtistAlbums())}
             showToast={showToast}
+            deletedSongs={deletedSongs}
+            deletedAlbums={deletedAlbums}
+            fetchDeletedItems={fetchDeletedItems}
           />
         </Box>
       </Box>

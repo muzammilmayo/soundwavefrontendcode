@@ -13,7 +13,8 @@ export default function AlbumDialog({
   toggleSaveAlbum,
   savedAlbums,
   getAlbumSongs,
-  setCurrentSong
+  setCurrentSong,
+  triggerReport
 }) {
   return (
     <Dialog 
@@ -25,7 +26,7 @@ export default function AlbumDialog({
     >
       <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
         <IconButton onClick={() => setAlbumDialogOpen(false)} sx={{ color: "text.secondary" }}><ArrowBackIcon /></IconButton>
-        <Typography variant="h6" sx={{ fontWeight: "bold", color: "#FFFFFF" }}>{selectedAlbum?.title}</Typography>
+        <Typography component="span" variant="h6" sx={{ fontWeight: "bold", color: "#FFFFFF" }}>{selectedAlbum?.title}</Typography>
         {selectedAlbum?.ArtistProfile?.stage_name && (
           <Typography
             variant="subtitle2"
@@ -55,9 +56,14 @@ export default function AlbumDialog({
           </Box>
           <Box>
             <Typography variant="body2" sx={{ color: "text.secondary", mb: 2 }}>{selectedAlbum?.description || "No description available."}</Typography>
-            <Button variant="outlined" startIcon={<BookmarkIcon />} onClick={() => toggleSaveAlbum(selectedAlbum)} sx={{ borderColor: "#01F2EA", color: "#01F2EA" }}>
-              {savedAlbums.some(a => a.album_id === selectedAlbum?.album_id) ? "Saved" : "Save Album"}
-            </Button>
+            <Box sx={{ display: "flex", gap: 1.5 }}>
+              <Button variant="outlined" startIcon={<BookmarkIcon />} onClick={() => toggleSaveAlbum(selectedAlbum)} sx={{ borderColor: "#01F2EA", color: "#01F2EA", textTransform: "none", fontWeight: "bold" }}>
+                {savedAlbums.some(a => a.album_id === selectedAlbum?.album_id) ? "Saved" : "Save Album"}
+              </Button>
+              <Button variant="outlined" onClick={() => { setAlbumDialogOpen(false); triggerReport("album", selectedAlbum.album_id, selectedAlbum.title); }} sx={{ borderColor: "#EF4444", color: "#EF4444", textTransform: "none", fontWeight: "bold", "&:hover": { bgcolor: "rgba(239,68,68,0.05)", borderColor: "#EF4444" } }}>
+                Report Album
+              </Button>
+            </Box>
           </Box>
         </Box>
         <Box sx={{ bgcolor: "rgba(255,255,255,0.02)", borderRadius: 3, overflow: "hidden" }}>

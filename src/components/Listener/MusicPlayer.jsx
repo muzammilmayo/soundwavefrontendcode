@@ -33,7 +33,7 @@ export default function MusicPlayer({
   formatTime
 }) {
   return (
-    <Box sx={{ position: "fixed", bottom: 0, left: 0, right: 0, height: 95, bgcolor: "#140E34", borderTop: "2px solid rgba(1, 242, 234, 0.3)", display: "flex", alignItems: "center", px: 4, justifyContent: "space-between", zIndex: 1100, boxShadow: "0 -4px 20px rgba(1,242,234,0.15)" }}>
+    <Box sx={{ position: "fixed", bottom: 0, left: "260px", right: 0, height: 95, bgcolor: "#140E34", borderTop: "2px solid rgba(1, 242, 234, 0.3)", display: "flex", alignItems: "center", px: 4, justifyContent: "space-between", zIndex: 1100, boxShadow: "0 -4px 20px rgba(1,242,234,0.15)" }}>
       <audio 
         ref={audioRef} 
         src={`http://localhost:5000/uploads/${currentSong.audio_file}`} 

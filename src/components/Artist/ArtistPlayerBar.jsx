@@ -111,7 +111,7 @@ export default function ArtistPlayerBar({ songs, currentSong, setCurrentSong }) 
 
   return (
     <>
-      <Box sx={{ position: "fixed", bottom: 0, left: 0, right: 0, bgcolor: "rgba(20,14,52,0.9)", backdropFilter: "blur(8px)", px: 2, py: 1, display: "flex", alignItems: "center", gap: 2, zIndex: 1000 }}>
+      <Box sx={{ position: "fixed", bottom: 0, left: "260px", right: 0, bgcolor: "rgba(20,14,52,0.9)", backdropFilter: "blur(8px)", px: 2, py: 1, display: "flex", alignItems: "center", gap: 2, zIndex: 1000 }}>
         {/* Track Info */}
         {currentSong ? (
           <Box sx={{ display: "flex", alignItems: "center", minWidth: 200 }}>

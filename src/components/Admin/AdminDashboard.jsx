@@ -16,6 +16,7 @@ import SongsTab from "../../components/Admin/SongsTab";
 import ArtistsTab from "../../components/Admin/ArtistsTab";
 import CategoriesTab from "../../components/Admin/CategoriesTab";
 import ReportsTab from "../../components/Admin/ReportsTab";
+import TicketsTab from "../../components/Admin/TicketsTab";
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
@@ -155,12 +156,12 @@ export default function AdminDashboard() {
       <Box sx={{ display: "flex", minHeight: "100vh", bgcolor: "background.default" }}>
         
         {/* Sidebar Left Navigation */}
-        <Box sx={{ width: 260, bgcolor: "#140E34", p: 3, display: "flex", flexDirection: "column", borderRight: "1px solid rgba(162,160,213,0.15)" }}>
+        <Box sx={{ width: 260, bgcolor: "#140E34", p: 3, display: "flex", flexDirection: "column", borderRight: "1px solid rgba(162,160,213,0.15)", position: "fixed", top: "64px", left: 0, bottom: 0, height: "calc(100vh - 64px)", zIndex: 1100 }}>
           <SidebarNav currentTab={currentTab} setCurrentTab={setCurrentTab} />
         </Box>
 
         {/* Main Content Workspace Content Space */}
-        <Box sx={{ flexGrow: 1, p: 5, overflowY: "auto", backgroundImage: "linear-gradient(#201948 1px, transparent 1px), linear-gradient(90deg, #201948 1px, transparent 1px)", backgroundSize: "30px 30px" }}>
+        <Box sx={{ flexGrow: 1, ml: "260px", p: 5, overflowY: "auto", backgroundImage: "linear-gradient(#201948 1px, transparent 1px), linear-gradient(90deg, #201948 1px, transparent 1px)", backgroundSize: "30px 30px" }}>
           
           <Box sx={{ mb: 4, pb: 3, borderBottom: "1px solid rgba(162,160,213,0.15)" }}>
             <Typography variant="h4" sx={{ fontWeight: "bold", color: "#FFFFFF" }}>
@@ -237,6 +238,10 @@ export default function AdminDashboard() {
               catalogArtists={catalogArtists}
               catalogCategories={catalogCategories}
             />
+          )}
+
+          {currentTab === "tickets" && (
+            <TicketsTab showToast={showToast} />
           )}
         </Box>
       </Box>

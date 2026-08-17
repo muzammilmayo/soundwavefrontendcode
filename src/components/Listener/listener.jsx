@@ -70,6 +70,7 @@ import AddToPlaylistDialog from "../../components/Listener/AddToPlaylistDialog";
 import FeedbackMenu from "../../components/Listener/FeedbackMenu";
 import MusicPlayer from "../../components/Listener/MusicPlayer";
 import ReviewsDialog from "../../components/Listener/ReviewsDialog";
+import MyReportsPanel from "../../components/Listener/MyReportsPanel";
 
 // ===== HARDCODED NEON DARK THEME =====
 const synthTheme = createTheme({
@@ -104,7 +105,8 @@ export default function ListenerDashboard() {
     notificationSettingsMap = {},
     notificationsMap = {},
     loading,
-    error
+    error,
+    pagination
   } = useSelector((state) => state.catalog);
 
   const user = useSelector((state) => state.auth.user) || {};
@@ -121,10 +123,36 @@ export default function ListenerDashboard() {
   const [activeTab, setActiveTab] = useState(0); 
   const [selectedCategory, setSelectedCategory] = useState(null); 
   const [currentSong, setCurrentSong] = useState(null); 
+  const [page, setPage] = useState(1); 
+  const [selectedArtistFilter, setSelectedArtistFilter] = useState("");
+  const [selectedAlbumFilter, setSelectedAlbumFilter] = useState("");
+  const [releaseYearFilter, setReleaseYearFilter] = useState("");
+  const [filterOpen, setFilterOpen] = useState(false); 
 
   // Playlist State
   const playlists = playlistsMap[userId] || [];
   const [selectedPlaylist, setSelectedPlaylist] = useState(null); 
+  const [deletedPlaylists, setDeletedPlaylists] = useState([]);
+
+  useEffect(() => {
+    if (activeTab === 6) {
+      api.get("/listener/playlists/deleted")
+        .then(res => setDeletedPlaylists(res.data.playlists || []))
+        .catch(err => console.error("Error loading deleted playlists:", err));
+    }
+  }, [activeTab]);
+
+  const handleRestorePlaylist = async (playlistId) => {
+    try {
+      await api.post(`/listener/playlists/${playlistId}/restore`);
+      setToast({ open: true, message: "Playlist restored successfully!", severity: "success" });
+      dispatch(loadListenerState(userId));
+      api.get("/listener/playlists/deleted")
+        .then(res => setDeletedPlaylists(res.data.playlists || []));
+    } catch (err) {
+      setToast({ open: true, message: err.response?.data?.message || "Failed to restore playlist", severity: "error" });
+    }
+  }; 
 
   // Dialog & Form states
   const [createPlaylistOpen, setCreatePlaylistOpen] = useState(false);
@@ -229,22 +257,35 @@ export default function ListenerDashboard() {
   const [sort, setSort] = useState("");
   const [durationFilter, setDurationFilter] = useState("");
   const [reportOpen, setReportOpen] = useState(false);
-  const [reportSong, setReportSong] = useState(null);
+  const [reportType, setReportType] = useState("song"); // song, album, artist, comment, user, bug
+  const [reportTargetId, setReportTargetId] = useState("");
+  const [reportTargetTitle, setReportTargetTitle] = useState("");
   const [reportReason, setReportReason] = useState("");
+  const [reportDescription, setReportDescription] = useState("");
+
+  const triggerReport = (type, targetId, targetTitle) => {
+    setReportType(type);
+    setReportTargetId(targetId ? String(targetId) : "");
+    setReportTargetTitle(targetTitle || "");
+    setReportReason("");
+    setReportDescription("");
+    setReportOpen(true);
+  };
 
   const handleReportSubmit = async (e) => {
     e.preventDefault();
-    if (!reportReason.trim() || !reportSong) return;
+    if (!reportReason.trim()) return;
     try {
-      await api.post("/moderator/reports", {
-        target_type: "song",
-        target_id: String(reportSong.song_id),
-        reason: reportReason.trim()
+      await api.post("/reports", {
+        report_type: reportType,
+        target_id: reportTargetId || null,
+        reason: reportReason.trim(),
+        description: reportDescription.trim() || null
       });
-      setToast({ open: true, message: `Report for "${reportSong.title}" submitted successfully.`, severity: "success" });
+      setToast({ open: true, message: "Report submitted successfully.", severity: "success" });
       setReportOpen(false);
       setReportReason("");
-      setReportSong(null);
+      setReportDescription("");
     } catch (err) {
       setToast({ open: true, message: err.response?.data?.message || "Failed to submit report", severity: "error" });
     }
@@ -444,6 +485,11 @@ export default function ListenerDashboard() {
   const [selectedArtist, setSelectedArtist] = useState(null);
   const [artistDialogOpen, setArtistDialogOpen] = useState(false);
 
+  // Dynamic details fetching state to bypass pagination limitations
+  const [dynamicAlbumSongs, setDynamicAlbumSongs] = useState([]);
+  const [dynamicArtistSongs, setDynamicArtistSongs] = useState([]);
+  const [dynamicArtistAlbums, setDynamicArtistAlbums] = useState([]);
+
   const handleLogout = () => {
     authService.logout();
     navigate("/login");
@@ -465,16 +511,30 @@ export default function ListenerDashboard() {
     }
   }, [userId, dispatch]);
 
+  // Reset page when search parameters change
+  useEffect(() => {
+    setPage(1);
+  }, [search, selectedCategory, sort, durationFilter, selectedArtistFilter, selectedAlbumFilter, releaseYearFilter]);
+
   // Debounced search & category trigger for server-side database filtering
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
-      dispatch(fetchPublicSongs({ search, category: selectedCategory, sort, duration: durationFilter }));
+      dispatch(fetchPublicSongs({
+        search,
+        category: selectedCategory,
+        artist: selectedArtistFilter,
+        album: selectedAlbumFilter,
+        year: releaseYearFilter,
+        sort,
+        duration: durationFilter,
+        page
+      }));
       dispatch(fetchPublicAlbums({ search }));
       dispatch(fetchPublicArtists({ search }));
     }, 300);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [search, selectedCategory, sort, durationFilter, dispatch]);
+  }, [search, selectedCategory, sort, durationFilter, selectedArtistFilter, selectedAlbumFilter, releaseYearFilter, page, dispatch]);
 
   // Check for new releases from followed artists to trigger push notifications
   useEffect(() => {
@@ -552,18 +612,56 @@ export default function ListenerDashboard() {
   const filteredAlbums = albums;
   const filteredArtists = artists;
 
-  const getAlbumSongs = (albumId) => songs.filter((song) => song.album_id === albumId);
-  const getArtistSongs = (profileId) => songs.filter((song) => song.artist_profile_id === profileId);
-  const getArtistAlbums = (profileId) => albums.filter((album) => album.artist_profile_id === profileId);
-
-  const handleAlbumClick = (album) => {
-    setSelectedAlbum(album);
-    setAlbumDialogOpen(true);
+  const getAlbumSongs = (albumId) => {
+    if (selectedAlbum && selectedAlbum.album_id === albumId && dynamicAlbumSongs.length > 0) {
+      return dynamicAlbumSongs;
+    }
+    return songs.filter((song) => song.album_id === albumId);
   };
 
-  const handleArtistClick = (artist) => {
+  const getArtistSongs = (profileId) => {
+    if (selectedArtist && selectedArtist.artist_profile_id === profileId && dynamicArtistSongs.length > 0) {
+      return dynamicArtistSongs;
+    }
+    return songs.filter((song) => song.artist_profile_id === profileId);
+  };
+
+  const getArtistAlbums = (profileId) => {
+    if (selectedArtist && selectedArtist.artist_profile_id === profileId && dynamicArtistAlbums.length > 0) {
+      return dynamicArtistAlbums;
+    }
+    return albums.filter((album) => album.artist_profile_id === profileId);
+  };
+
+  const handleAlbumClick = async (album) => {
+    setDynamicAlbumSongs([]);
+    setSelectedAlbum(album);
+    setAlbumDialogOpen(true);
+    try {
+      const res = await api.get(`/catalog/songs?album=${album.album_id}&limit=1000`);
+      setDynamicAlbumSongs(res.data.songs || []);
+    } catch (err) {
+      console.error("Error loading album songs:", err);
+    }
+  };
+
+  const handleArtistClick = async (artist) => {
+    setDynamicArtistSongs([]);
+    setDynamicArtistAlbums([]);
     setSelectedArtist(artist);
     setArtistDialogOpen(true);
+    try {
+      const [songsRes, albumsRes] = await Promise.all([
+        api.get(`/catalog/songs?artist=${artist.artist_profile_id}&limit=1000`),
+        api.get(`/catalog/albums?search=${encodeURIComponent(artist.stage_name)}&limit=1000`)
+      ]);
+      setDynamicArtistSongs(songsRes.data.songs || []);
+      const allAlbums = albumsRes.data.albums || [];
+      const artistAlbumsFiltered = allAlbums.filter(a => a.artist_profile_id === artist.artist_profile_id);
+      setDynamicArtistAlbums(artistAlbumsFiltered);
+    } catch (err) {
+      console.error("Error loading artist details:", err);
+    }
   };
 
   const getActiveQueue = () => {
@@ -622,10 +720,11 @@ export default function ListenerDashboard() {
           activeTab={activeTab}
           setActiveTab={setActiveTab}
           handleLogout={handleLogout}
+          triggerReport={triggerReport}
         />
 
         {/* --- Main Dashboard View Space --- */}
-        <Box sx={{ flexGrow: 1, p: 4, overflowY: "auto", backgroundImage: "linear-gradient(#201948 1px, transparent 1px), linear-gradient(90deg, #201948 1px, transparent 1px)", backgroundSize: "30px 30px" }}>
+        <Box sx={{ flexGrow: 1, ml: "260px", p: 4, overflowY: "auto", backgroundImage: "linear-gradient(#201948 1px, transparent 1px), linear-gradient(90deg, #201948 1px, transparent 1px)", backgroundSize: "30px 30px" }}>
           
           {/* Header Dashboard section */}
           <ListenerHeader
@@ -640,7 +739,7 @@ export default function ListenerDashboard() {
             setSearch={setSearch}
           />
 
-          {!selectedPlaylist && activeTab !== 4 && activeTab !== 5 && (
+          {!selectedPlaylist && activeTab !== 4 && activeTab !== 5 && activeTab !== 6 && activeTab !== 7 && (
             <>
               {/* Genres Chips */}
               <CategoryFilter
@@ -678,7 +777,6 @@ export default function ListenerDashboard() {
                 />
               )}
 
-              {/* Tab 0: Songs Grid Display */}
               {activeTab === 0 && (
                 <ListenerHome
                   songs={songs}
@@ -693,12 +791,26 @@ export default function ListenerDashboard() {
                   downloadSong={downloadSong}
                   setSongToAddToPlaylist={setSongToAddToPlaylist}
                   setAddToPlaylistOpen={setAddToPlaylistOpen}
-                  setReportSong={setReportSong}
-                  setReportOpen={setReportOpen}
+                  triggerReport={triggerReport}
                   sort={sort}
                   setSort={setSort}
                   duration={durationFilter}
                   setDuration={setDurationFilter}
+                  page={page}
+                  setPage={setPage}
+                  pagination={pagination}
+                  categories={categories}
+                  albums={albums}
+                  artistFilter={selectedArtistFilter}
+                  setArtistFilter={setSelectedArtistFilter}
+                  albumFilter={selectedAlbumFilter}
+                  setAlbumFilter={setSelectedAlbumFilter}
+                  yearFilter={releaseYearFilter}
+                  setYearFilter={setReleaseYearFilter}
+                  filterOpen={filterOpen}
+                  setFilterOpen={setFilterOpen}
+                  categoryFilter={selectedCategory}
+                  setCategoryFilter={setSelectedCategory}
                 />
               )}
 
@@ -824,6 +936,50 @@ export default function ListenerDashboard() {
                   notificationSettings={notificationSettings}
                 />
               )}
+
+              {activeTab === 6 && (
+                <Box>
+                  <Typography variant="h5" sx={{ fontWeight: "bold", mb: 3, color: "#FFFFFF" }}>
+                    Trash / Deleted Playlists
+                  </Typography>
+                  <Typography variant="body2" sx={{ color: "text.secondary", mb: 3 }}>
+                    Here you can view and restore recently deleted playlists.
+                  </Typography>
+                  {deletedPlaylists.length === 0 ? (
+                    <Card sx={{ p: 4, textAlign: "center", borderRadius: 3, border: "1px solid rgba(162,160,213,0.15)", bgcolor: "background.paper" }}>
+                      <Typography sx={{ color: "text.secondary" }}>No deleted playlists found in trash.</Typography>
+                    </Card>
+                  ) : (
+                    <Grid container spacing={3}>
+                      {deletedPlaylists.map((p) => (
+                        <Grid item xs={12} sm={6} md={4} key={p.id}>
+                          <Card sx={{ p: 3, display: "flex", justifyContent: "space-between", alignItems: "center", borderRadius: 3, border: "1px solid rgba(162,160,213,0.15)", bgcolor: "background.paper" }}>
+                            <Box>
+                              <Typography variant="subtitle1" sx={{ fontWeight: "bold", color: "#FFFFFF" }}>
+                                {p.name}
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                                ID: {p.id}
+                              </Typography>
+                            </Box>
+                            <Button
+                              variant="contained"
+                              color="primary"
+                              onClick={() => handleRestorePlaylist(p.id)}
+                              sx={{ textTransform: "none", borderRadius: 2 }}
+                            >
+                              Restore
+                            </Button>
+                          </Card>
+                        </Grid>
+                      ))}
+                    </Grid>
+                  )}
+                </Box>
+              )}
+              {activeTab === 7 && (
+                <MyReportsPanel />
+              )}
             </>
           )}
         </Box>
@@ -840,6 +996,7 @@ export default function ListenerDashboard() {
         savedAlbums={savedAlbums}
         getAlbumSongs={getAlbumSongs}
         setCurrentSong={setCurrentSong}
+        triggerReport={triggerReport}
       />
 
       {/* --- Artist Dialog Workspace --- */}
@@ -857,6 +1014,7 @@ export default function ListenerDashboard() {
         downloadSong={downloadSong}
         setSongToAddToPlaylist={setSongToAddToPlaylist}
         setAddToPlaylistOpen={setAddToPlaylistOpen}
+        triggerReport={triggerReport}
       />
 
       {/* --- Sticky Media Controller Dashboard Frame --- */}
@@ -923,6 +1081,7 @@ export default function ListenerDashboard() {
         formatRelativeTime={formatRelativeTime}
         handleLikeFeedback={handleLikeFeedback}
         handleOpenFeedbackMenu={handleOpenFeedbackMenu}
+        triggerReport={triggerReport}
       />
 
       {/* Review Actions Menu */}
@@ -934,24 +1093,34 @@ export default function ListenerDashboard() {
         handleDeleteFeedback={handleDeleteFeedback}
       />
 
-      {/* Report Song Dialog */}
-      <Dialog open={reportOpen} onClose={() => setReportOpen(false)} slotProps={{ paper: { sx: { borderRadius: 4, bgcolor: "background.paper", border: "1px solid rgba(162,160,213,0.2)" } } }}>
-        <DialogTitle sx={{ fontWeight: "bold", color: "#FFFFFF" }}>Report Song: {reportSong?.title}</DialogTitle>
+      {/* General Report Dialog */}
+      <Dialog open={reportOpen} onClose={() => setReportOpen(false)} slotProps={{ paper: { sx: { borderRadius: 4, bgcolor: "background.paper", border: "1px solid rgba(162,160,213,0.2)", width: "100%", maxWidth: 450 } } }}>
+        <DialogTitle sx={{ fontWeight: "bold", color: "#FFFFFF", textTransform: "capitalize" }}>
+          Report {reportType}: {reportTargetTitle}
+        </DialogTitle>
         <Box component="form" onSubmit={handleReportSubmit}>
-          <DialogContent>
-            <Typography variant="body2" sx={{ color: "text.secondary", mb: 2 }}>
-              Please provide a reason why you are flagging this song. A moderator will review it shortly.
+          <DialogContent sx={{ display: "flex", flexDirection: "column", gap: 2.5 }}>
+            <Typography variant="body2" sx={{ color: "text.secondary" }}>
+              Please provide a short reason and description why you are flagging this. A moderator will review this report shortly.
             </Typography>
             <TextField
               fullWidth
               required
-              multiline
-              rows={3}
-              label="Reason for flagging"
+              label="Short Reason"
               value={reportReason}
               onChange={(e) => setReportReason(e.target.value)}
               sx={inputStyles}
-              placeholder="e.g. Copyright infringement, offensive content, audio issues..."
+              placeholder="e.g. Copyright infringement, spam, offensive words, app crash..."
+            />
+            <TextField
+              fullWidth
+              multiline
+              rows={3}
+              label="Details / Description"
+              value={reportDescription}
+              onChange={(e) => setReportDescription(e.target.value)}
+              sx={inputStyles}
+              placeholder="Provide any additional context or proof details..."
             />
           </DialogContent>
           <DialogActions sx={{ p: 2.5, borderTop: "1px solid rgba(162,160,213,0.1)" }}>

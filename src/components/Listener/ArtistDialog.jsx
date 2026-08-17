@@ -26,7 +26,8 @@ export default function ArtistDialog({
   downloadedSongs,
   downloadSong,
   setSongToAddToPlaylist,
-  setAddToPlaylistOpen
+  setAddToPlaylistOpen,
+  triggerReport
 }) {
   return (
     <Dialog 
@@ -38,7 +39,7 @@ export default function ArtistDialog({
     >
       <DialogTitle sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
         <IconButton onClick={() => setArtistDialogOpen(false)} sx={{ color: "text.secondary" }}><ArrowBackIcon /></IconButton>
-        <Typography variant="h6" sx={{ fontWeight: "bold", color: "#FFFFFF" }}>{selectedArtist?.stage_name}</Typography>
+        <Typography component="span" variant="h6" sx={{ fontWeight: "bold", color: "#FFFFFF" }}>{selectedArtist?.stage_name}</Typography>
         {selectedArtist?.is_verified && (
           <Tooltip title="Verified Artist" placement="right">
             <CheckCircleIcon sx={{ color: "#01F2EA", fontSize: 18 }} />
@@ -57,13 +58,22 @@ export default function ArtistDialog({
           <Box sx={{ flexGrow: 1 }}>
             <Typography variant="h5" sx={{ fontWeight: "bold", color: "#FFFFFF", mb: 0.5 }}>{selectedArtist?.stage_name}</Typography>
             <Typography variant="body2" sx={{ color: "text.secondary", mb: 2 }}>{selectedArtist?.bio || "No biography details."}</Typography>
-            <Button 
-              variant="contained" 
-              onClick={() => toggleFollowArtist(selectedArtist)} 
-              sx={{ bgcolor: "#CE04F2", color: "#FFF", "&:hover": { bgcolor: "#B003D4" } }}
-            >
-              {followedArtists.some(a => a.artist_profile_id === selectedArtist?.artist_profile_id) ? "Following" : "Follow Artist"}
-            </Button>
+            <Box sx={{ display: "flex", gap: 1.5 }}>
+              <Button 
+                variant="contained" 
+                onClick={() => toggleFollowArtist(selectedArtist)} 
+                sx={{ bgcolor: "#CE04F2", color: "#FFF", "&:hover": { bgcolor: "#B003D4" }, textTransform: "none", fontWeight: "bold" }}
+              >
+                {followedArtists.some(a => a.artist_profile_id === selectedArtist?.artist_profile_id) ? "Following" : "Follow Artist"}
+              </Button>
+              <Button 
+                variant="outlined" 
+                onClick={() => { setArtistDialogOpen(false); triggerReport("artist", selectedArtist.artist_profile_id, selectedArtist.stage_name); }} 
+                sx={{ borderColor: "#EF4444", color: "#EF4444", textTransform: "none", fontWeight: "bold", "&:hover": { bgcolor: "rgba(239,68,68,0.05)", borderColor: "#EF4444" } }}
+              >
+                Report Artist
+              </Button>
+            </Box>
           </Box>
         </Box>
 

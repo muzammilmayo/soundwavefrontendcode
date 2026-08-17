@@ -1,8 +1,12 @@
-import { Box, Typography, Card, CardContent, CircularProgress, Grid, Chip, IconButton, Divider, Tabs, Tab, Button } from "@mui/material";
-import { MusicNote as MusicNoteIcon, Album as AlbumIcon, Comment as CommentIcon, Delete as DeleteIcon, Edit as EditIcon, PlayArrow as PlayArrowIcon, Favorite as FavoriteIcon, Star as StarRateIcon, BarChart as BarChartIcon } from "@mui/icons-material";
+import React, { useState, useEffect } from "react";
+import { Box, Typography, Card, CardContent, CircularProgress, Grid, Chip, IconButton, Divider, Tabs, Tab, Button, TextField, InputAdornment, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from "@mui/material";
+import { MusicNote as MusicNoteIcon, Album as AlbumIcon, Comment as CommentIcon, Delete as DeleteIcon, Edit as EditIcon, PlayArrow as PlayArrowIcon, Favorite as FavoriteIcon, Star as StarRateIcon, BarChart as BarChartIcon, People as PeopleIcon, Search as SearchIcon, PersonAdd as PersonAddIcon } from "@mui/icons-material";
 import api from "../../api";
+import ArtistReportsPanel from "./ArtistReportsPanel";
+import PlatformReportsPanel from "./PlatformReportsPanel";
 
 export default function ArtistContentTabs({ 
+  user,
   contentTab, 
   setContentTab, 
   artistLoading, 
@@ -17,7 +21,11 @@ export default function ArtistContentTabs({
   analytics,
   analyticsLoading,
   fetchArtistSongs,
-  showToast
+  fetchArtistAlbums,
+  showToast,
+  deletedSongs = [],
+  deletedAlbums = [],
+  fetchDeletedItems
 }) {
 
   const handleUpdateSongStatus = async (songId, newStatus) => {
@@ -33,7 +41,7 @@ export default function ArtistContentTabs({
   return (
     <>
       <Tabs
-        value={contentTab}
+        value={contentTab > 4 ? false : contentTab}
         onChange={(e, val) => setContentTab(val)}
         textColor="primary"
         indicatorColor="primary"
@@ -43,6 +51,7 @@ export default function ArtistContentTabs({
         <Tab label="My Albums" icon={<AlbumIcon />} iconPosition="start" />
         <Tab label="Fan Feedback" icon={<CommentIcon />} iconPosition="start" />
         <Tab label="Insights & Analytics" icon={<BarChartIcon />} iconPosition="start" />
+        <Tab label="Trash / Bin" icon={<DeleteIcon />} iconPosition="start" />
       </Tabs>
 
       {/* Content Panels Workspace */}
@@ -83,7 +92,11 @@ export default function ArtistContentTabs({
                   ) : song.status === "archived" ? (
                     <Chip label="Archived" size="small" sx={{ bgcolor: "rgba(245,158,11,0.15)", color: "#F59E0B", fontWeight: "bold", mr: 2 }} />
                   ) : song.status === "moderated" ? (
-                    <Chip label="Moderated / Blocked" size="small" sx={{ bgcolor: "rgba(239,68,68,0.15)", color: "#EF4444", fontWeight: "bold", mr: 2 }} />
+                    <Chip label="Moderated" size="small" sx={{ bgcolor: "rgba(239,68,68,0.15)", color: "#EF4444", fontWeight: "bold", mr: 2 }} />
+                  ) : song.status === "scheduled" ? (
+                    <Chip label={`Scheduled (${song.scheduled_for ? new Date(song.scheduled_for).toLocaleDateString() : 'N/A'})`} size="small" sx={{ bgcolor: "rgba(124,58,237,0.15)", color: "#8B5CF6", fontWeight: "bold", mr: 2 }} />
+                  ) : song.status === "pending_review" ? (
+                    <Chip label="Pending Review" size="small" sx={{ bgcolor: "rgba(59,130,246,0.15)", color: "#3B82F6", fontWeight: "bold", mr: 2 }} />
                   ) : (
                     <Chip label="Draft" size="small" sx={{ bgcolor: "rgba(162,160,213,0.15)", color: "text.secondary", fontWeight: "bold", mr: 2 }} />
                   )}
@@ -92,8 +105,37 @@ export default function ArtistContentTabs({
                   {song.status !== "moderated" && (
                     <Box sx={{ display: "flex", gap: 1, mr: 2 }} onClick={(e) => e.stopPropagation()}>
                       {song.status === "draft" && (
-                        <Button size="small" variant="outlined" color="primary" onClick={() => handleUpdateSongStatus(song.song_id, "published")} sx={{ textTransform: "none", borderRadius: 2, fontSize: "0.72rem", py: 0.2 }}>
-                          Publish
+                        <>
+                          <Button size="small" variant="outlined" color="primary" onClick={() => handleUpdateSongStatus(song.song_id, "published")} sx={{ textTransform: "none", borderRadius: 2, fontSize: "0.72rem", py: 0.2 }}>
+                            Publish
+                          </Button>
+                          <Button size="small" variant="outlined" color="info" onClick={() => handleUpdateSongStatus(song.song_id, "pending_review")} sx={{ textTransform: "none", borderRadius: 2, fontSize: "0.72rem", py: 0.2 }}>
+                            Submit Review
+                          </Button>
+                          <Button size="small" variant="outlined" color="secondary" onClick={async () => {
+                            const date = prompt("Enter scheduled date and time (YYYY-MM-DD HH:mm):", "");
+                            if (date) {
+                              try {
+                                await api.put(`/catalog/songs/${song.song_id}`, { status: "scheduled", scheduled_for: date });
+                                showToast("Song scheduled successfully!", "success");
+                                if (fetchArtistSongs) fetchArtistSongs();
+                              } catch (err) {
+                                showToast(err.response?.data?.message || "Failed to schedule", "error");
+                              }
+                            }
+                          }} sx={{ textTransform: "none", borderRadius: 2, fontSize: "0.72rem", py: 0.2 }}>
+                            Schedule
+                          </Button>
+                        </>
+                      )}
+                      {song.status === "pending_review" && (
+                        <Button size="small" variant="outlined" color="error" onClick={() => handleUpdateSongStatus(song.song_id, "draft")} sx={{ textTransform: "none", borderRadius: 2, fontSize: "0.72rem", py: 0.2 }}>
+                          Cancel Review
+                        </Button>
+                      )}
+                      {song.status === "scheduled" && (
+                        <Button size="small" variant="outlined" color="error" onClick={() => handleUpdateSongStatus(song.song_id, "draft")} sx={{ textTransform: "none", borderRadius: 2, fontSize: "0.72rem", py: 0.2 }}>
+                          Cancel Schedule
                         </Button>
                       )}
                       {song.status === "published" && (
@@ -219,19 +261,21 @@ export default function ArtistContentTabs({
                               <Typography variant="caption" sx={{ color: "text.secondary" }}>Track Review</Typography>
                             </Box>
                           </Box>
-
-                          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1.5 }}>
-                            <Typography sx={{ fontWeight: "bold", fontSize: "0.9rem", color: "#01F2EA" }}>{f.username}</Typography>
-                            <Typography variant="caption" sx={{ color: "text.secondary" }}>{new Date(f.timestamp).toLocaleDateString()}</Typography>
+                          
+                          <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1.5 }}>
+                            <Box sx={{ display: "flex", color: "#FBBF24" }}>
+                              {[...Array(5)].map((_, i) => (
+                                <StarRateIcon key={i} sx={{ fontSize: "1.1rem", color: i < (f.rating || 0) ? "#FBBF24" : "rgba(255,255,255,0.1)" }} />
+                              ))}
+                            </Box>
+                            <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                              by {f.username || "Anonymous Listener"}
+                            </Typography>
                           </Box>
 
-                          <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mb: 1.5 }}>
-                            {[...Array(5)].map((_, i) => (
-                              <StarRateIcon key={i} sx={{ color: i < f.rating ? "#FBBF24" : "rgba(255,255,255,0.1)", fontSize: "1.1rem" }} />
-                            ))}
-                            <Typography variant="caption" sx={{ ml: 1, fontWeight: "bold", color: "text.secondary" }}>({f.rating}/5)</Typography>
-                          </Box>
-                          <Typography variant="body2" sx={{ color: "text.secondary", fontStyle: "italic", lineBreak: "anywhere" }}>"{f.comment}"</Typography>
+                          <Typography variant="body2" sx={{ color: "#FFFFFF", lineHeight: 1.5 }}>
+                            "{f.comment}"
+                          </Typography>
                         </CardContent>
                       </Card>
                     </Grid>
@@ -243,60 +287,27 @@ export default function ArtistContentTabs({
         </Box>
       )}
 
-      {/* TAB 3: Insights & Analytics */}
       {contentTab === 3 && (
         <Box>
           {analyticsLoading ? (
             <Box sx={{ display: "flex", justifyContent: "center", p: 5 }}><CircularProgress /></Box>
           ) : !analytics ? (
-            <Card sx={{ p: 4, textAlign: "center", borderRadius: 3, border: "1px solid rgba(162,160,213,0.15)", bgcolor: "background.paper" }}>
-              <Typography sx={{ color: "text.secondary" }}>No analytics data available.</Typography>
+            <Card sx={{ p: 4, textAlign: "center", borderRadius: 4, border: "1px solid rgba(162,160,213,0.15)", bgcolor: "background.paper" }}>
+              <Typography sx={{ color: "text.secondary" }}>Analytics data could not be retrieved.</Typography>
             </Card>
           ) : (
             <Box sx={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              {/* Stat Cards */}
               <Grid container spacing={3}>
-                <Grid item xs={12} sm={6} md={3}>
-                  <Card sx={{ borderRadius: 4, border: "1px solid rgba(162,160,213,0.15)", bgcolor: "background.paper", textAlign: "center", p: 3 }}>
-                    <Typography variant="body2" sx={{ color: "text.secondary", mb: 1, textTransform: "uppercase", letterSpacing: 1 }}>Total Plays</Typography>
-                    <Typography variant="h3" sx={{ fontWeight: "bold", color: "#01F2EA" }}>{analytics.stats.totalPlays || 0}</Typography>
-                  </Card>
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
-                  <Card sx={{ borderRadius: 4, border: "1px solid rgba(162,160,213,0.15)", bgcolor: "background.paper", textAlign: "center", p: 3 }}>
-                    <Typography variant="body2" sx={{ color: "text.secondary", mb: 1, textTransform: "uppercase", letterSpacing: 1 }}>Song Likes</Typography>
-                    <Typography variant="h3" sx={{ fontWeight: "bold", color: "#CE04F2" }}>{analytics.stats.totalLikes || 0}</Typography>
-                  </Card>
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
-                  <Card sx={{ borderRadius: 4, border: "1px solid rgba(162,160,213,0.15)", bgcolor: "background.paper", textAlign: "center", p: 3 }}>
-                    <Typography variant="body2" sx={{ color: "text.secondary", mb: 1, textTransform: "uppercase", letterSpacing: 1 }}>Followers</Typography>
-                    <Typography variant="h3" sx={{ fontWeight: "bold", color: "#10B981" }}>{analytics.stats.totalFollowers || 0}</Typography>
-                  </Card>
-                </Grid>
-                <Grid item xs={12} sm={6} md={3}>
-                  <Card sx={{ borderRadius: 4, border: "1px solid rgba(162,160,213,0.15)", bgcolor: "background.paper", textAlign: "center", p: 3 }}>
-                    <Typography variant="body2" sx={{ color: "text.secondary", mb: 1, textTransform: "uppercase", letterSpacing: 1 }}>Reviews</Typography>
-                    <Typography variant="h3" sx={{ fontWeight: "bold", color: "#A2A0D5" }}>{analytics.stats.totalReviews || 0}</Typography>
-                  </Card>
-                </Grid>
-              </Grid>
-
-              {/* Leaderboard and Activity */}
-              <Grid container spacing={4}>
-                {/* Top Songs Leaderboard */}
+                {/* Popular songs list */}
                 <Grid item xs={12} md={6}>
-                  <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2, color: "#FFFFFF" }}>🏆 Top Songs Leaderboard</Typography>
+                  <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2, color: "#FFFFFF" }}>🔥 Your Most Popular Tracks</Typography>
                   <Card sx={{ borderRadius: 4, border: "1px solid rgba(162,160,213,0.15)", bgcolor: "background.paper", p: 2 }}>
                     {analytics.topSongs.length === 0 ? (
-                      <Typography sx={{ color: "text.secondary", p: 2 }}>No tracks found.</Typography>
+                      <Typography sx={{ color: "text.secondary", p: 2 }}>No tracks played yet.</Typography>
                     ) : (
                       analytics.topSongs.map((song, i) => (
                         <Box key={song.song_id} sx={{ display: "flex", alignItems: "center", py: 1.5, px: 2, borderBottom: i < analytics.topSongs.length - 1 ? "1px solid rgba(162,160,213,0.1)" : "none" }}>
-                          <Typography sx={{ fontWeight: "bold", color: "#01F2EA", width: 30 }}>#{i + 1}</Typography>
-                          <Box sx={{ width: 40, height: 40, borderRadius: 2, overflow: "hidden", mr: 2, border: "1px solid rgba(162,160,213,0.15)" }}>
-                            {song.cover_image ? <img src={song.cover_image} alt={song.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <MusicNoteIcon sx={{ color: "#01F2EA" }} />}
-                          </Box>
+                          <Typography sx={{ color: "text.secondary", width: 24 }}>{i + 1}</Typography>
                           <Box sx={{ flexGrow: 1 }}>
                             <Typography sx={{ fontWeight: "bold", color: "#FFFFFF" }}>{song.title}</Typography>
                             <Typography variant="caption" sx={{ color: "text.secondary" }}>Status: {song.status}</Typography>
@@ -360,6 +371,326 @@ export default function ArtistContentTabs({
           )}
         </Box>
       )}
+
+      {contentTab === 4 && (
+        <Box>
+          <Typography variant="h5" sx={{ fontWeight: "bold", mb: 3, color: "#FFFFFF" }}>
+            Trash / Recently Deleted Catalog Items
+          </Typography>
+          <Typography variant="body2" sx={{ color: "text.secondary", mb: 4 }}>
+            Here you can restore soft-deleted songs and albums back to your active catalog.
+          </Typography>
+
+          <Grid container spacing={4}>
+            {/* Deleted Songs list */}
+            <Grid item xs={12} md={6}>
+              <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2, color: "#FFFFFF" }}>
+                Deleted Songs
+              </Typography>
+              {!deletedSongs || deletedSongs.length === 0 ? (
+                <Card sx={{ p: 4, borderRadius: 3, border: "1px solid rgba(162,160,213,0.15)", bgcolor: "background.paper" }}>
+                  <Typography sx={{ color: "text.secondary" }}>No deleted songs found.</Typography>
+                </Card>
+              ) : (
+                <Box sx={{ bgcolor: "background.paper", borderRadius: 4, border: "1px solid rgba(162,160,213,0.15)", overflow: "hidden" }}>
+                  {deletedSongs.map((song) => (
+                    <Box key={song.song_id} sx={{ display: "flex", alignItems: "center", px: 3, py: 2, borderBottom: "1px solid rgba(162,160,213,0.1)" }}>
+                      <Box sx={{ flexGrow: 1 }}>
+                        <Typography sx={{ fontWeight: "bold", color: "#FFFFFF" }}>{song.title}</Typography>
+                        <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                          Deleted on {song.deleted_at ? new Date(song.deleted_at).toLocaleString() : "N/A"}
+                        </Typography>
+                      </Box>
+                      <Button
+                        variant="outlined"
+                        color="primary"
+                        onClick={async () => {
+                          try {
+                            await api.post(`/catalog/songs/${song.song_id}/restore`);
+                            showToast(`"${song.title}" restored successfully!`, "success");
+                            if (fetchDeletedItems) fetchDeletedItems();
+                            if (fetchArtistSongs) fetchArtistSongs();
+                          } catch (err) {
+                            showToast(err.response?.data?.message || "Failed to restore", "error");
+                          }
+                        }}
+                        sx={{ textTransform: "none", borderRadius: 2 }}
+                      >
+                        Restore
+                      </Button>
+                    </Box>
+                  ))}
+                </Box>
+              )}
+            </Grid>
+
+            {/* Deleted Albums list */}
+            <Grid item xs={12} md={6}>
+              <Typography variant="h6" sx={{ fontWeight: "bold", mb: 2, color: "#FFFFFF" }}>
+                Deleted Albums
+              </Typography>
+              {!deletedAlbums || deletedAlbums.length === 0 ? (
+                <Card sx={{ p: 4, borderRadius: 3, border: "1px solid rgba(162,160,213,0.15)", bgcolor: "background.paper" }}>
+                  <Typography sx={{ color: "text.secondary" }}>No deleted albums found.</Typography>
+                </Card>
+              ) : (
+                <Box sx={{ bgcolor: "background.paper", borderRadius: 4, border: "1px solid rgba(162,160,213,0.15)", overflow: "hidden" }}>
+                  {deletedAlbums.map((album) => (
+                    <Box key={album.album_id} sx={{ display: "flex", alignItems: "center", px: 3, py: 2, borderBottom: "1px solid rgba(162,160,213,0.1)" }}>
+                      <Box sx={{ flexGrow: 1 }}>
+                        <Typography sx={{ fontWeight: "bold", color: "#FFFFFF" }}>{album.title}</Typography>
+                        <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                          Deleted on {album.deleted_at ? new Date(album.deleted_at).toLocaleString() : "N/A"}
+                        </Typography>
+                      </Box>
+                      <Button
+                        variant="outlined"
+                        color="primary"
+                        onClick={async () => {
+                          try {
+                            await api.post(`/catalog/albums/${album.album_id}/restore`);
+                            showToast(`"${album.title}" restored successfully!`, "success");
+                            if (fetchDeletedItems) fetchDeletedItems();
+                            if (fetchArtistAlbums) fetchArtistAlbums();
+                          } catch (err) {
+                            showToast(err.response?.data?.message || "Failed to restore", "error");
+                          }
+                        }}
+                        sx={{ textTransform: "none", borderRadius: 2 }}
+                      >
+                        Restore
+                      </Button>
+                    </Box>
+                  ))}
+                </Box>
+              )}
+            </Grid>
+          </Grid>
+        </Box>
+      )}
+
+      {/* Team Management Panel Workspace */}
+      {contentTab === 5 && user?.role === "Artist" && (
+        <TeamManagementPanel showToast={showToast} />
+      )}
+
+      {/* Content Reports Panel Workspace */}
+      {contentTab === 6 && (
+        <ArtistReportsPanel showToast={showToast} />
+      )}
+
+      {/* Platform Reports Panel Workspace */}
+      {contentTab === 7 && (
+        <PlatformReportsPanel showToast={showToast} />
+      )}
     </>
+  );
+}
+
+function TeamManagementPanel({ showToast }) {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [moderators, setModerators] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchModerators = async () => {
+    try {
+      const res = await api.get("/artist/moderators");
+      if (res.data.success) {
+        setModerators(res.data.moderators);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchModerators();
+  }, []);
+
+  const handleSearch = async (val) => {
+    setSearchQuery(val);
+    if (!val.trim()) {
+      setSearchResults([]);
+      return;
+    }
+    setSearchLoading(true);
+    try {
+      const res = await api.get(`/artist/search-listeners?q=${encodeURIComponent(val)}`);
+      if (res.data.success) {
+        setSearchResults(res.data.listeners);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSearchLoading(false);
+    }
+  };
+
+  const handleAssign = async (email) => {
+    try {
+      const res = await api.post("/artist/moderators", { email });
+      if (res.data.success) {
+        showToast("Moderator assigned successfully!", "success");
+        setSearchQuery("");
+        setSearchResults([]);
+        fetchModerators();
+      }
+    } catch (err) {
+      showToast(err.response?.data?.message || "Failed to assign moderator", "error");
+    }
+  };
+
+  const handleRemove = async (id) => {
+    try {
+      const res = await api.delete(`/artist/moderators/${id}`);
+      if (res.data.success) {
+        showToast("Moderator removed successfully!", "success");
+        fetchModerators();
+      }
+    } catch (err) {
+      showToast(err.response?.data?.message || "Failed to remove moderator", "error");
+    }
+  };
+
+  return (
+    <Box sx={{ mt: 2 }}>
+      <Grid container spacing={4}>
+        {/* Search & Assign Column */}
+        <Grid item xs={12} md={5}>
+          <Typography variant="h6" sx={{ fontWeight: "bold", color: "#FFFFFF", mb: 2 }}>
+            Add Moderator
+          </Typography>
+          <Card sx={{ p: 3, borderRadius: 4, border: "1px solid rgba(162,160,213,0.15)", bgcolor: "background.paper", boxShadow: "none" }}>
+            <TextField
+              fullWidth
+              variant="outlined"
+              placeholder="Search by username or email..."
+              value={searchQuery}
+              onChange={(e) => handleSearch(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchIcon sx={{ color: "#A2A0D5" }} />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{
+                mb: 3,
+                "& .MuiOutlinedInput-root": {
+                  color: "#FFFFFF",
+                  bgcolor: "rgba(0,0,0,0.2)",
+                  "& fieldset": { borderColor: "rgba(162,160,213,0.3)" },
+                  "&:hover fieldset": { borderColor: "#01F2EA" },
+                  "&.Mui-focused fieldset": { borderColor: "#01F2EA" },
+                },
+              }}
+            />
+
+            {searchLoading ? (
+              <Box sx={{ display: "flex", justifyContent: "center", py: 2 }}><CircularProgress size={24} /></Box>
+            ) : searchResults.length > 0 ? (
+              <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
+                {searchResults.map((user) => (
+                  <Box
+                    key={user.user_id}
+                    sx={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      p: 1.5,
+                      borderRadius: 2,
+                      bgcolor: "rgba(255,255,255,0.02)",
+                      border: "1px solid rgba(162,160,213,0.1)",
+                    }}
+                  >
+                    <Box sx={{ overflow: "hidden", textOverflow: "ellipsis", mr: 1 }}>
+                      <Typography sx={{ fontWeight: "bold", color: "#FFFFFF", fontSize: "0.95rem" }}>
+                        {user.username}
+                      </Typography>
+                      <Typography variant="caption" sx={{ color: "text.secondary" }}>
+                        {user.email}
+                      </Typography>
+                    </Box>
+                    <Button
+                      variant="contained"
+                      color="primary"
+                      size="small"
+                      startIcon={<PersonAddIcon />}
+                      onClick={() => handleAssign(user.email)}
+                      sx={{ textTransform: "none", borderRadius: 2, fontWeight: "bold", flexShrink: 0 }}
+                    >
+                      Assign
+                    </Button>
+                  </Box>
+                ))}
+              </Box>
+            ) : searchQuery.trim() ? (
+              <Typography variant="body2" sx={{ color: "text.secondary", textAlign: "center", py: 2 }}>
+                No active listener users found.
+              </Typography>
+            ) : (
+              <Typography variant="body2" sx={{ color: "text.secondary", textAlign: "center", py: 2 }}>
+                Type to search for active listener users to assign as moderators.
+              </Typography>
+            )}
+          </Card>
+        </Grid>
+
+        {/* List of moderators Column */}
+        <Grid item xs={12} md={7}>
+          <Typography variant="h6" sx={{ fontWeight: "bold", color: "#FFFFFF", mb: 2 }}>
+            Artist Team
+          </Typography>
+          {loading ? (
+            <Box sx={{ display: "flex", justifyContent: "center", py: 4 }}><CircularProgress /></Box>
+          ) : moderators.length === 0 ? (
+            <Card sx={{ p: 4, borderRadius: 4, border: "1px solid rgba(162,160,213,0.15)", bgcolor: "background.paper", textAlign: "center" }}>
+              <Typography sx={{ color: "text.secondary" }}>
+                No moderators assigned yet. Assign a moderator to help manage your catalog!
+              </Typography>
+            </Card>
+          ) : (
+            <TableContainer component={Paper} sx={{ borderRadius: 4, border: "1px solid rgba(162,160,213,0.15)", bgcolor: "background.paper", overflow: "hidden", boxShadow: "none" }}>
+              <Table>
+                <TableHead sx={{ bgcolor: "rgba(255,255,255,0.02)" }}>
+                  <TableRow>
+                    <TableCell sx={{ color: "#01F2EA", fontWeight: "bold", borderBottom: "1px solid rgba(162,160,213,0.15)" }}>Name</TableCell>
+                    <TableCell sx={{ color: "#01F2EA", fontWeight: "bold", borderBottom: "1px solid rgba(162,160,213,0.15)" }}>Email</TableCell>
+                    <TableCell sx={{ color: "#01F2EA", fontWeight: "bold", borderBottom: "1px solid rgba(162,160,213,0.15)" }}>Role</TableCell>
+                    <TableCell sx={{ color: "#01F2EA", fontWeight: "bold", borderBottom: "1px solid rgba(162,160,213,0.15)" }} align="right">Action</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {moderators.map((row) => (
+                    <TableRow key={row.id} sx={{ "&:hover": { bgcolor: "rgba(255,255,255,0.01)" } }}>
+                      <TableCell sx={{ color: "#FFFFFF", borderBottom: "1px solid rgba(162,160,213,0.1)" }}>{row.username}</TableCell>
+                      <TableCell sx={{ color: "#A2A0D5", borderBottom: "1px solid rgba(162,160,213,0.1)" }}>{row.email}</TableCell>
+                      <TableCell sx={{ borderBottom: "1px solid rgba(162,160,213,0.1)" }}>
+                        <Chip label="Moderator" size="small" sx={{ bgcolor: "rgba(1, 242, 234, 0.1)", color: "#01F2EA", fontWeight: "bold" }} />
+                      </TableCell>
+                      <TableCell align="right" sx={{ borderBottom: "1px solid rgba(162,160,213,0.1)" }}>
+                        <Button
+                          variant="outlined"
+                          color="error"
+                          size="small"
+                          onClick={() => handleRemove(row.id)}
+                          sx={{ textTransform: "none", borderRadius: 2, fontWeight: "bold" }}
+                        >
+                          Remove
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+        </Grid>
+      </Grid>
+    </Box>
   );
 }

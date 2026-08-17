@@ -26,6 +26,7 @@ import ArtistDashboard from "./components/Artist/Artist";
 import ArtistProfile from "./components/Artist/profile";
 import DraftSongs from "./components/Artist/DraftSongs";
 
+
 // Admin
 import AdminDashboard from "./components/Admin/AdminDashboard";
 
@@ -33,8 +34,6 @@ import AdminDashboard from "./components/Admin/AdminDashboard";
 import SuperAdminDashboard from "./components/SuperAdmin/SuperAdmin";
 import ManageAdmins from "./components/SuperAdmin/ManageAdmins";
 
-// Moderator
-import ModeratorDashboard from "./components/Moderator/Moderator";
 
 function App() {
   const dispatch = useDispatch();
@@ -62,7 +61,7 @@ function App() {
 
           <Route
             path="/artist/dashboard"
-            element={<ProtectedRoute allowedRoles={["Artist"]}><ArtistDashboard /></ProtectedRoute>}
+            element={<ProtectedRoute allowedRoles={["Artist", "Moderator"]}><ArtistDashboard /></ProtectedRoute>}
           />
           <Route
             path="/artist/drafts"
@@ -104,14 +103,6 @@ function App() {
           }
         />
 
-        <Route
-          path="/Moderator/dashboard"
-          element={
-            <ProtectedRoute allowedRoles={["Moderator"]}>
-              <ModeratorDashboard />
-            </ProtectedRoute>
-          }
-        />
 
         {/* Forgot / Reset Password */}
         <Route path="/forgot-password" element={<ForgotPassword />} />

@@ -73,7 +73,7 @@ export default function Login() {
         } else if (role === "Admin") {
           navigate("/Admin/dashboard");
         } else if (role === "Moderator") {
-          navigate("/Moderator/dashboard");
+          navigate("/moderator/dashboard");
         } else if (role === "Artist") {
           navigate("/artist/dashboard");
         } else if (role === "Listener") {

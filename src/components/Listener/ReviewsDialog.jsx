@@ -7,6 +7,8 @@ import SendIcon from "@mui/icons-material/Send";
 import CommentIcon from "@mui/icons-material/Comment";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
+import FlagIcon from "@mui/icons-material/Flag";
+import PersonIcon from "@mui/icons-material/Person";
 
 export default function ReviewsDialog({
   feedbackOpen,
@@ -28,7 +30,8 @@ export default function ReviewsDialog({
   currentUser,
   formatRelativeTime,
   handleLikeFeedback,
-  handleOpenFeedbackMenu
+  handleOpenFeedbackMenu,
+  triggerReport
 }) {
   return (
     <Dialog 
@@ -53,7 +56,7 @@ export default function ReviewsDialog({
             >
               <ArrowBackIcon />
             </IconButton>
-            <Typography variant="h6" sx={{ fontWeight: "bold", color: "#FFFFFF" }}>
+            <Typography component="span" variant="h6" sx={{ fontWeight: "bold", color: "#FFFFFF" }}>
               Reviews & Comments
             </Typography>
           </Box>
@@ -322,16 +325,35 @@ export default function ReviewsDialog({
                       <Typography variant="caption" sx={{ color: "text.secondary", minWidth: 16 }}>
                         {f.likes || 0}
                       </Typography>
-                      {f.user_id === currentUser?.id && (
-                        <>
-                          <IconButton 
-                            size="small" 
-                            onClick={(e) => handleOpenFeedbackMenu(e, f)}
-                            sx={{ color: "text.secondary", ml: 0.5 }}
-                          >
-                            <MoreVertIcon sx={{ fontSize: 18 }} />
-                          </IconButton>
-                        </>
+                      {f.user_id === currentUser?.id ? (
+                        <IconButton 
+                          size="small" 
+                          onClick={(e) => handleOpenFeedbackMenu(e, f)}
+                          sx={{ color: "text.secondary", ml: 0.5 }}
+                        >
+                          <MoreVertIcon sx={{ fontSize: 18 }} />
+                        </IconButton>
+                      ) : (
+                        <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, ml: 1 }}>
+                          <Tooltip title="Report Comment">
+                            <IconButton 
+                              size="small" 
+                              onClick={() => { setFeedbackOpen(false); triggerReport("comment", f.id, f.comment.length > 25 ? f.comment.substring(0, 25) + "..." : f.comment); }}
+                              sx={{ color: "text.secondary", "&:hover": { color: "#EF4444" } }}
+                            >
+                              <FlagIcon sx={{ fontSize: 16 }} />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Report Commenter User">
+                            <IconButton 
+                              size="small" 
+                              onClick={() => { setFeedbackOpen(false); triggerReport("user", f.user_id, f.username); }}
+                              sx={{ color: "text.secondary", "&:hover": { color: "#EF4444" } }}
+                            >
+                              <PersonIcon sx={{ fontSize: 16 }} />
+                            </IconButton>
+                          </Tooltip>
+                        </Box>
                       )}
                     </Box>
                   </Box>

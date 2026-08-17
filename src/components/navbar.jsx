@@ -35,7 +35,7 @@ export default function Navbar() {
     } else if (role === "Super Admin") {
       dashboardPath = "/SuperAdmin/dashboard";
     } else if (role === "Moderator") {
-      dashboardPath = "/Moderator/dashboard";
+      dashboardPath = "/artist/dashboard";
     }
   }
 

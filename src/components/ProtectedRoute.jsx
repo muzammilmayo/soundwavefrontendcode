@@ -18,9 +18,13 @@ export default function ProtectedRoute({ children, allowedRoles }) {
     return <Navigate to="/" replace />;
   }
 
-  // If role check is specified and fails, redirect to login
+  // If role check is specified and fails, redirect to login unless they are an artist moderator
   if (allowedRoles && !allowedRoles.includes(user.role)) {
-    return <Navigate to="/" replace />;
+    if (allowedRoles.includes("Artist") && user.is_artist_moderator) {
+      // Allow active artist moderators to access artist dashboard
+    } else {
+      return <Navigate to="/" replace />;
+    }
   }
 
   return children;
