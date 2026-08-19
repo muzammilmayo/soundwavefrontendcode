@@ -3,6 +3,7 @@ import { Box, Button, Table, TableBody, TableCell, TableContainer, TableHead, Ta
 
 export default function DashboardTab({
   totalUsersCount,
+  onlineUsersCount,
   SaAdminsCount,
   adminsCount,
   artistsCount,
@@ -17,14 +18,15 @@ export default function DashboardTab({
     <Box>
       <Box sx={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 3 }}>
         {[
-          { title: "Total Users", value: totalUsersCount, color: "#FFFFFF" },
+          { title: "Total Users", value: totalUsersCount, color: "#FFFFFF", tab: "users" },
+          { title: "Online Users", value: onlineUsersCount, color: "#10B981", tab: "online-users" },
           { title: "System Admins", value: adminsCount, color: "#01F2EA" },
-          { title: "Artists Registered", value: artistsCount, color: "#CE04F2" },
-          { title: "Listener Registered", value: listenerCount, color: "#A2A0D5" },
-          { title: "Active Statuses", value: activeUsersCount, color: "#00BCD4" },
-          { title: "Inactive Statuses", value: inactiveUsersCount, color: "#F44336" },
+          { title: "Artists Registered", value: artistsCount, color: "#CE04F2", tab: "artists" },
+          { title: "Listener Registered", value: listenerCount, color: "#A2A0D5", tab: "users" },
+          { title: "Active Statuses", value: activeUsersCount, color: "#00BCD4", tab: "users" },
+          { title: "Inactive Statuses", value: inactiveUsersCount, color: "#F44336", tab: "users" },
         ].map((stat) => (
-          <Card key={stat.title} sx={{ 
+          <Card key={stat.title} onClick={() => stat.tab && setCurrentTab(stat.tab)} sx={{ 
             height: "100%", 
              SaAdminsCount: 1, 
             display: "flex", 
@@ -34,6 +36,7 @@ export default function DashboardTab({
             bgcolor: "background.paper", 
             boxShadow: "0 8px 32px rgba(0,0,0,0.3)", 
             minHeight: 160,
+            cursor: stat.tab ? "pointer" : "default",
             transition: "all 0.25s", 
             "&:hover": { 
               transform: "translateY(-2px)", 

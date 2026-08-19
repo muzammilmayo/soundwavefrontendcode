@@ -58,7 +58,7 @@ export default function AlbumDialog({
             <Typography variant="body2" sx={{ color: "text.secondary", mb: 2 }}>{selectedAlbum?.description || "No description available."}</Typography>
             <Box sx={{ display: "flex", gap: 1.5 }}>
               <Button variant="outlined" startIcon={<BookmarkIcon />} onClick={() => toggleSaveAlbum(selectedAlbum)} sx={{ borderColor: "#01F2EA", color: "#01F2EA", textTransform: "none", fontWeight: "bold" }}>
-                {savedAlbums.some(a => a.album_id === selectedAlbum?.album_id) ? "Saved" : "Save Album"}
+                {savedAlbums.some(a => (a.album_id || a.id) === (selectedAlbum?.album_id || selectedAlbum?.id)) ? "Saved" : "Save Album"}
               </Button>
               <Button variant="outlined" onClick={() => { setAlbumDialogOpen(false); triggerReport("album", selectedAlbum.album_id, selectedAlbum.title); }} sx={{ borderColor: "#EF4444", color: "#EF4444", textTransform: "none", fontWeight: "bold", "&:hover": { bgcolor: "rgba(239,68,68,0.05)", borderColor: "#EF4444" } }}>
                 Report Album

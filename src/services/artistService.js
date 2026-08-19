@@ -46,6 +46,26 @@ const artistService = {
     const res = await api.put(`/artist/songs/${id}`, data);
     return res.data;
   },
+
+  // ── Lyrics API ──────────────────────────────────────────────────────────────
+
+  // Fetch current lyrics + status for a song
+  getLyrics: async (songId) => {
+    const res = await api.get(`/lyrics/songs/${songId}`);
+    return res.data;
+  },
+
+  // Artist saves manually corrected lyrics
+  saveLyrics: async (songId, lyrics) => {
+    const res = await api.put(`/lyrics/songs/${songId}`, { lyrics });
+    return res.data;
+  },
+
+  // Request a fresh Whisper transcription (re-queues a BullMQ job)
+  regenerateLyrics: async (songId) => {
+    const res = await api.post(`/lyrics/songs/${songId}/regenerate`);
+    return res.data;
+  },
 };
 
 export default artistService;

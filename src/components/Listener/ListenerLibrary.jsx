@@ -62,7 +62,7 @@ export default function ListenerLibrary({
           ) : (
             <Box sx={{ bgcolor: "background.paper", borderRadius: 4, border: "1px solid rgba(162,160,213,0.15)", overflow: "hidden" }}>
               {likedSongs.map((song, idx) => (
-                <Box key={song.song_id} onClick={() => setCurrentSong(song)} sx={{ display: "flex", alignItems: "center", px: 3, py: 2, borderBottom: idx < likedSongs.length - 1 ? "1px solid rgba(162,160,213,0.1)" : "none", "&:hover": { bgcolor: "rgba(255,255,255,0.04)" }, cursor: "pointer" }}>
+                <Box key={song.song_id || song.id || idx} onClick={() => setCurrentSong(song)} sx={{ display: "flex", alignItems: "center", px: 3, py: 2, borderBottom: idx < likedSongs.length - 1 ? "1px solid rgba(162,160,213,0.1)" : "none", "&:hover": { bgcolor: "rgba(255,255,255,0.04)" }, cursor: "pointer" }}>
                   <Typography sx={{ color: "text.secondary", width: 30 }}>{idx + 1}</Typography>
                   <Box sx={{ width: 40, height: 40, mr: 2, display: "flex", alignItems: "center", justifyContent: "center", bgcolor: "rgba(255,255,255,0.03)", borderRadius: 2, overflow: "hidden" }}>
                     {song.cover_image ? <Box component="img" src={song.cover_image} sx={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <MusicNoteIcon sx={{ color: "#01F2EA" }} />}
@@ -85,8 +85,8 @@ export default function ListenerLibrary({
             </Card>
           ) : (
             <Grid container spacing={1}>
-              {savedAlbums.map((album) => (
-                <Grid item xs={3} sm={3} md={3} lg={3} key={album.album_id}>
+              {savedAlbums.map((album, idx) => (
+                <Grid item xs={3} sm={3} md={3} lg={3} key={album.album_id || album.id || idx}>
                   <Card onClick={() => handleAlbumClick(album)} sx={{ height: "100%", maxWidth: 120, display: "flex", flexDirection: "column", borderRadius: 2, border: "1px solid rgba(162,160,213,0.15)", bgcolor: "background.paper", cursor: "pointer", transition: "all 0.2s", "&:hover": { transform: "translateY(-4px)", borderColor: "#01F2EA", boxShadow: "0 0 15px rgba(1,242,234,0.2)" } }}>
                     <Box sx={{ aspectRatio: "1/1", width: "100%", bgcolor: "rgba(255,255,255,0.02)", display: "flex", alignItems: "center", justifyContent: "center", position: "relative", overflow: "hidden" }}>
                       {album.cover_image ? <Box component="img" src={album.cover_image} sx={{ width: "100%", height: "100%", objectFit: "cover" }} /> : <AlbumIcon sx={{ color: "#01F2EA", fontSize: 32 }} />}
@@ -121,8 +121,8 @@ export default function ListenerLibrary({
 
       {libraryTab === 2 && (
         <Grid container spacing={3}>
-          {followedArtists.map((art) => (
-            <Grid item xs={6} sm={4} md={3} lg={2} key={art.artist_profile_id}>
+          {followedArtists.map((art, idx) => (
+            <Grid item xs={6} sm={4} md={3} lg={2} key={art.artist_profile_id || art.id || idx}>
               <Card onClick={() => handleArtistClick(art)} sx={{ display: "flex", flexDirection: "column", alignItems: "center", p: 2, borderRadius: 4, border: "1px solid rgba(162,160,213,0.15)", bgcolor: "background.paper", cursor: "pointer" }}>
                 <Box sx={{ width: 80, height: 80, borderRadius: "50%", overflow: "hidden", mb: 1 }}><Box component="img" src={art.profile_image} sx={{ width: "100%", height: "100%", objectFit: "cover" }} /></Box>
                 <Typography variant="body2" sx={{ fontWeight: "bold", color: "#FFFFFF" }}>{art.stage_name}</Typography>

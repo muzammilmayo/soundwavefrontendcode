@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Box, Typography, Card, CardContent, CircularProgress, Grid, Chip, IconButton, Divider, Tabs, Tab, Button, TextField, InputAdornment, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from "@mui/material";
 import { MusicNote as MusicNoteIcon, Album as AlbumIcon, Comment as CommentIcon, Delete as DeleteIcon, Edit as EditIcon, PlayArrow as PlayArrowIcon, Favorite as FavoriteIcon, Star as StarRateIcon, BarChart as BarChartIcon, People as PeopleIcon, Search as SearchIcon, PersonAdd as PersonAddIcon } from "@mui/icons-material";
 import api from "../../api";
 import ArtistReportsPanel from "./ArtistReportsPanel";
 import PlatformReportsPanel from "./PlatformReportsPanel";
+import LyricsStatusBadge from "./LyricsStatusBadge";
 
 export default function ArtistContentTabs({ 
   user,
@@ -25,8 +26,88 @@ export default function ArtistContentTabs({
   showToast,
   deletedSongs = [],
   deletedAlbums = [],
-  fetchDeletedItems
+  fetchDeletedItems,
+  // Lyrics handlers (passed from Artist.jsx)
+  onViewLyrics,
+  onEditLyrics,
+  onRegenerateLyrics,
 }) {
+
+  // ── Lyrics status local mirror (for live polling) ──────────────────────────
+  // Keyed by song_id. Mirrors lyrics_status from props but updates via polling.
+  const [lyricsStatusMap, setLyricsStatusMap] = useState({});
+
+  // Sync the map whenever songs prop changes
+  useEffect(() => {
+    if (!songs || songs.length === 0) return;
+    setLyricsStatusMap((prev) => {
+      const updated = { ...prev };
+      songs.forEach((s) => {
+        // If not in map OR if previous entry is completed/failed/none, sync with fresh prop
+        if (
+          !updated[s.song_id] ||
+          (updated[s.song_id].lyrics_status !== 'pending' && updated[s.song_id].lyrics_status !== 'processing')
+        ) {
+          updated[s.song_id] = {
+            lyrics_status: s.lyrics_status || 'none',
+            lyrics: s.lyrics || null,
+          };
+        }
+      });
+      return updated;
+    });
+  }, [songs]);
+
+  // Poll every 3 seconds for songs that are still pending/processing
+  useEffect(() => {
+    if (!songs || songs.length === 0) return;
+
+    const pendingSongIds = songs
+      .filter((s) => {
+        const mapped = lyricsStatusMap[s.song_id];
+        const status = mapped ? mapped.lyrics_status : (s.lyrics_status || 'none');
+        return status === 'pending' || status === 'processing';
+      })
+      .map((s) => s.song_id);
+
+    if (pendingSongIds.length === 0) return;
+
+    const interval = setInterval(async () => {
+      for (const songId of pendingSongIds) {
+        try {
+          const res = await api.get(`/lyrics/songs/${songId}/status`);
+          if (res.data?.success) {
+            const { status, lyrics } = res.data;
+            setLyricsStatusMap((prev) => ({
+              ...prev,
+              [songId]: { lyrics_status: status, lyrics: lyrics || null },
+            }));
+            // When job finishes, trigger fresh songs fetch so Redux state is up-to-date
+            if (status === 'completed' || status === 'failed') {
+              if (fetchArtistSongs) fetchArtistSongs();
+            }
+          }
+        } catch { /* silent */ }
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [lyricsStatusMap, songs, fetchArtistSongs]);
+
+  // Helper: get the effective status for a song (local map takes priority)
+  const getSongLyricsStatus = useCallback((song) => {
+    const mapped = lyricsStatusMap[song.song_id];
+    if (mapped) return mapped.lyrics_status;
+    return song.lyrics_status || 'none';
+  }, [lyricsStatusMap]);
+
+  // Update local map when a lyrics operation completes (optimistic)
+  const handleLyricsStatusChange = useCallback((songId, newStatus, lyrics) => {
+    setLyricsStatusMap((prev) => ({
+      ...prev,
+      [songId]: { lyrics_status: newStatus, lyrics: lyrics || null },
+    }));
+  }, []);
 
   const handleUpdateSongStatus = async (songId, newStatus) => {
     try {
@@ -151,6 +232,21 @@ export default function ArtistContentTabs({
                     </Box>
                   )}
 
+                  {/* ── Lyrics Status Badge ───────────────────────────── */}
+                  <Box sx={{ mr: 1 }}>
+                    <LyricsStatusBadge
+                      song={{ ...song, lyrics_status: getSongLyricsStatus(song) }}
+                      onView={() => onViewLyrics && onViewLyrics({ ...song, lyrics_status: getSongLyricsStatus(song), lyrics: lyricsStatusMap[song.song_id]?.lyrics || song.lyrics })}
+                      onEdit={() => onEditLyrics && onEditLyrics({ ...song, lyrics_status: getSongLyricsStatus(song), lyrics: lyricsStatusMap[song.song_id]?.lyrics || song.lyrics })}
+                      onRegenerate={async () => {
+                        if (onRegenerateLyrics) {
+                          await onRegenerateLyrics(song);
+                          handleLyricsStatusChange(song.song_id, 'pending', null);
+                        }
+                      }}
+                    />
+                  </Box>
+
                   <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mr: 2, color: "#01F2EA" }}>
                     <PlayArrowIcon sx={{ fontSize: "1.1rem" }} />
                     <Typography sx={{ fontWeight: "bold", fontSize: "0.9rem" }}>
@@ -160,7 +256,7 @@ export default function ArtistContentTabs({
                   <Box sx={{ display: "flex", alignItems: "center", gap: 0.5, mr: 2, color: "#FF2E93" }}>
                     <FavoriteIcon sx={{ fontSize: "1.1rem" }} />
                     <Typography sx={{ fontWeight: "bold", fontSize: "0.9rem" }}>
-                      {song.SongLikes?.length || 0}
+                      {song.SongLikes ? song.SongLikes.length : (Number(song.likes_count) || 0)}
                     </Typography>
                   </Box>
                   <IconButton color="error" size="small" onClick={(e) => { e.stopPropagation(); handleDeleteSong(song.song_id); }} sx={{ ml: 2, "&:hover": { bgcolor: "rgba(239,68,68,0.1)" } }}>

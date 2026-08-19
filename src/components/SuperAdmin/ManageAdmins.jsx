@@ -267,6 +267,18 @@ export default function ManageAdmins() {
 
             <ListItem disablePadding>
               <ListItemButton
+                onClick={() => navigate("/SuperAdmin/dashboard", { state: { tab: "online-users" } })}
+                sx={{ borderRadius: 3, py: 0.6, px: 2, color: "#FFFFFF", "&:hover": { bgcolor: "rgba(255,255,255,0.05)" } }}
+              >
+                <ListItemIcon sx={{ minWidth: 32, color: "#10B981" }}>
+                  <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: "#10B981", boxShadow: "0 0 6px #10B981" }} />
+                </ListItemIcon>
+                <ListItemText primary={<Typography sx={{ fontSize: "0.85rem", fontWeight: 500 }}>Online Users</Typography>} />
+              </ListItemButton>
+            </ListItem>
+
+            <ListItem disablePadding>
+              <ListItemButton
                 onClick={() => navigate("/SuperAdmin/admins")}
                 selected
                 sx={{

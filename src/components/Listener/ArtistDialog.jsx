@@ -64,7 +64,7 @@ export default function ArtistDialog({
                 onClick={() => toggleFollowArtist(selectedArtist)} 
                 sx={{ bgcolor: "#CE04F2", color: "#FFF", "&:hover": { bgcolor: "#B003D4" }, textTransform: "none", fontWeight: "bold" }}
               >
-                {followedArtists.some(a => a.artist_profile_id === selectedArtist?.artist_profile_id) ? "Following" : "Follow Artist"}
+                {followedArtists.some(a => (a.artist_profile_id || a.id || a.artist_id) === (selectedArtist?.artist_profile_id || selectedArtist?.id || selectedArtist?.artist_id)) ? "Following" : "Follow Artist"}
               </Button>
               <Button 
                 variant="outlined" 
@@ -169,13 +169,13 @@ export default function ArtistDialog({
                         sx={{ mr: 2, bgcolor: "rgba(255,255,255,0.05)", color: "text.secondary", height: 20, fontSize: "10px" }} 
                       />
                     )}
-                    <Tooltip title={likedSongs.some(s => s.song_id === song.song_id) ? "Unlike Song" : "Like Song"}>
-                      <IconButton size="small" onClick={(e) => { e.stopPropagation(); toggleLikeSong(song); }} sx={{ color: likedSongs.some(s => s.song_id === song.song_id) ? "#CE04F2" : "text.secondary", mr: 1 }}>
-                        {likedSongs.some(s => s.song_id === song.song_id) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                    <Tooltip title={likedSongs.some(s => (s.song_id || s.id) === (song.song_id || song.id)) ? "Unlike Song" : "Like Song"}>
+                      <IconButton size="small" onClick={(e) => { e.stopPropagation(); toggleLikeSong(song); }} sx={{ color: likedSongs.some(s => (s.song_id || s.id) === (song.song_id || song.id)) ? "#CE04F2" : "text.secondary", mr: 1 }}>
+                        {likedSongs.some(s => (s.song_id || s.id) === (song.song_id || song.id)) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
                       </IconButton>
                     </Tooltip>
-                    <Tooltip title={downloadedSongs.some(s => s.song_id === song.song_id) ? "Song Downloaded" : "Download Song"}>
-                      <IconButton size="small" onClick={(e) => { e.stopPropagation(); downloadSong(song); }} sx={{ color: downloadedSongs.some(s => s.song_id === song.song_id) ? "#01F2EA" : "text.secondary", mr: 1 }}>
+                    <Tooltip title={downloadedSongs.some(s => (s.song_id || s.id) === (song.song_id || song.id)) ? "Song Downloaded" : "Download Song"}>
+                      <IconButton size="small" onClick={(e) => { e.stopPropagation(); downloadSong(song); }} sx={{ color: downloadedSongs.some(s => (s.song_id || s.id) === (song.song_id || song.id)) ? "#01F2EA" : "text.secondary", mr: 1 }}>
                         <DownloadIcon />
                       </IconButton>
                     </Tooltip>
