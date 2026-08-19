@@ -1,12 +1,12 @@
 import { Grid, Card, CardContent, Box, Typography } from "@mui/material";
 import { MusicNote as MusicNoteIcon, Album as AlbumIcon, PlayArrow as PlayArrowIcon, Favorite as FavoriteIcon } from "@mui/icons-material";
 
-export default function ArtistStats({ songs, albums }) {
+export default function ArtistStats({ songs = [], albums = [] }) {
   const stats = [
     { label: "Total Songs", value: songs.length, color: "#01F2EA", icon: <MusicNoteIcon /> },
     { label: "Albums ", value: albums.length, color: "#CE04F2", icon: <AlbumIcon /> },
-    { label: "Total Views", value: songs.reduce((acc, s) => acc + (s.play_count || 0), 0), color: "#10B981", icon: <PlayArrowIcon /> },
-    { label: "Total Likes ", value: songs.reduce((acc, s) => acc + (s.SongLikes?.length || 0), 0), color: "#FF2E93", icon: <FavoriteIcon /> },
+    { label: "Total Views", value: songs.reduce((acc, s) => acc + (Number(s.play_count) || 0), 0), color: "#10B981", icon: <PlayArrowIcon /> },
+    { label: "Total Likes ", value: songs.reduce((acc, s) => acc + (s.SongLikes ? s.SongLikes.length : (Number(s.likes_count) || 0)), 0), color: "#FF2E93", icon: <FavoriteIcon /> },
   ];
 
   return (

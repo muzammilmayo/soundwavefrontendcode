@@ -7,12 +7,12 @@ import "./index.css";
 import "./App.css";
 import './components/home.css';
 
-// Clear legacy localStorage/sessionStorage data on startup to ensure no cache remains
+// Remove stale redux-persist keys left from previous implementation
+// This does NOT clear auth tokens or user data — just removes old cache artifacts
 try {
-  localStorage.clear();
-  sessionStorage.clear();
+  localStorage.removeItem('persist:root');
 } catch (e) {
-  console.warn("Could not clear legacy storage:", e);
+  // storage not available, no-op
 }
 
 ReactDOM.createRoot(document.getElementById("root")).render(

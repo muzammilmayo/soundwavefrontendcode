@@ -105,10 +105,12 @@ export default function ListenerDashboard() {
     notificationSettingsMap = {},
     notificationsMap = {},
     loading,
+    listenerStateLoading,
     error,
     pagination
   } = useSelector((state) => state.catalog);
 
+  const authStatus = useSelector((state) => state.auth.status);
   const user = useSelector((state) => state.auth.user) || {};
   const userId = user.id || "guest";
 
@@ -759,7 +761,7 @@ export default function ListenerDashboard() {
 
           {error && <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>{error}</Alert>}
 
-          {loading ? (
+          {(authStatus === 'loading' || listenerStateLoading) ? (
             <Box sx={{ display: "flex", justifyContent: "center", p: 5 }}><CircularProgress /></Box>
           ) : (
             <>

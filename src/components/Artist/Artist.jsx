@@ -19,6 +19,7 @@ import UploadSongModal from "../../components/Artist/UploadSongModal";
 import CreateAlbumModal from "../../components/Artist/CreateAlbumModal";
 import EditAlbumModal from "../../components/Artist/EditAlbumModal";
 import AlbumDetailModal from "../../components/Artist/AlbumDetailModal";
+import LyricsEditorModal from "../../components/Artist/LyricsEditorModal";
 
 // ===== HARDCODED NEON DARK THEME =====
 const synthTheme = createTheme({
@@ -53,6 +54,10 @@ export default function ArtistDashboard() {
   const [selectedAlbum, setSelectedAlbum] = useState(null); // Used for Album Detail View
   const [editAlbumOpen, setEditAlbumOpen] = useState(false);
   const [editAlbumData, setEditAlbumData] = useState(null);
+
+  // Lyrics Modal State
+  const [lyricsModalOpen, setLyricsModalOpen] = useState(false);
+  const [lyricsModalSong, setLyricsModalSong] = useState(null);
 
   useEffect(() => {
     if (location.state && location.state.tab !== undefined) {
@@ -157,6 +162,26 @@ export default function ArtistDashboard() {
     setCurrentSong(song);
   };
 
+  // ── Lyrics Handlers ────────────────────────────────────────────────────────
+  const handleViewLyrics = (song) => {
+    setLyricsModalSong(song);
+    setLyricsModalOpen(true);
+  };
+
+  const handleEditLyrics = (song) => {
+    setLyricsModalSong(song);
+    setLyricsModalOpen(true);
+  };
+
+  const handleRegenerateLyrics = async (song) => {
+    try {
+      await api.post(`/lyrics/songs/${song.song_id}/regenerate`);
+      showToast("Lyrics regeneration queued!", "success");
+    } catch (err) {
+      showToast(err.response?.data?.message || "Failed to queue regeneration", "error");
+    }
+  };
+
   // Reusable styling shorthand for form fields inside modals
   const textFieldStyles = {
     "& .MuiOutlinedInput-root": {
@@ -219,6 +244,9 @@ export default function ArtistDashboard() {
             deletedSongs={deletedSongs}
             deletedAlbums={deletedAlbums}
             fetchDeletedItems={fetchDeletedItems}
+            onViewLyrics={handleViewLyrics}
+            onEditLyrics={handleEditLyrics}
+            onRegenerateLyrics={handleRegenerateLyrics}
           />
         </Box>
       </Box>
@@ -254,6 +282,18 @@ export default function ArtistDashboard() {
         album={editAlbumData} 
         showToast={showToast} 
         textFieldStyles={textFieldStyles} 
+      />
+
+      {/* Lyrics Editor Modal */}
+      <LyricsEditorModal
+        open={lyricsModalOpen}
+        onClose={() => setLyricsModalOpen(false)}
+        song={lyricsModalSong}
+        showToast={showToast}
+        onStatusChange={(songId, status, lyrics) => {
+          // Optimistically update the song in redux by re-fetching
+          if (status === 'completed') dispatch(fetchArtistSongs());
+        }}
       />
 
       {/* Bottom Player Bar */}

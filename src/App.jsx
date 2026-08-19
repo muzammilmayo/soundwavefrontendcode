@@ -1,7 +1,8 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useEffect } from "react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { refreshAuth } from "./features/auth/authSlice";
+import api from "./api";
 
 import Navbar from "./components/navbar";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -37,9 +38,25 @@ import ManageAdmins from "./components/SuperAdmin/ManageAdmins";
 
 function App() {
   const dispatch = useDispatch();
+  const user = useSelector((state) => state.auth?.user);
+
   useEffect(() => {
     dispatch(refreshAuth());
   }, [dispatch]);
+
+  // Global heartbeat interval — pings server every 30 seconds while logged in
+  useEffect(() => {
+    if (!user) return;
+
+    // Send immediate ping
+    api.post("/auth/heartbeat").catch(() => {});
+
+    const interval = setInterval(() => {
+      api.post("/auth/heartbeat").catch(() => {});
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(interval);
+  }, [user]);
   return (
     <BrowserRouter>
       <Navbar />

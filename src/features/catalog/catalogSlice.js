@@ -238,6 +238,7 @@ const initialState = {
   notificationSettingsMap: {}, // { [userId]: { enabled: true, newSong: true, newAlbum: true } }
   notificationsMap: {}, // user_id -> notifications
   loading: false,
+  listenerStateLoading: false, // false by default; set true only when actively fetching
   error: null,
   pagination: {
     totalRecords: 0,
@@ -262,8 +263,9 @@ const catalogSlice = createSlice({
         state.likedSongsMap[userId] = [];
       }
       const list = state.likedSongsMap[userId];
-      if (list.some(s => s.song_id === song.song_id)) {
-        state.likedSongsMap[userId] = list.filter(s => s.song_id !== song.song_id);
+      const targetId = song?.song_id || song?.id;
+      if (list.some(s => (s.song_id || s.id) === targetId)) {
+        state.likedSongsMap[userId] = list.filter(s => (s.song_id || s.id) !== targetId);
       } else {
         state.likedSongsMap[userId] = [...list, song];
       }
@@ -274,8 +276,9 @@ const catalogSlice = createSlice({
         state.savedAlbumsMap[userId] = [];
       }
       const list = state.savedAlbumsMap[userId];
-      if (list.some(a => a.album_id === album.album_id)) {
-        state.savedAlbumsMap[userId] = list.filter(a => a.album_id !== album.album_id);
+      const targetId = album?.album_id || album?.id;
+      if (list.some(a => (a.album_id || a.id) === targetId)) {
+        state.savedAlbumsMap[userId] = list.filter(a => (a.album_id || a.id) !== targetId);
       } else {
         state.savedAlbumsMap[userId] = [...list, album];
       }
@@ -286,8 +289,9 @@ const catalogSlice = createSlice({
         state.followedArtistsMap[userId] = [];
       }
       const list = state.followedArtistsMap[userId];
-      if (list.some(a => a.artist_profile_id === artist.artist_profile_id)) {
-        state.followedArtistsMap[userId] = list.filter(a => a.artist_profile_id !== artist.artist_profile_id);
+      const targetId = artist?.artist_profile_id || artist?.id || artist?.artist_id;
+      if (list.some(a => (a.artist_profile_id || a.id || a.artist_id) === targetId)) {
+        state.followedArtistsMap[userId] = list.filter(a => (a.artist_profile_id || a.id || a.artist_id) !== targetId);
       } else {
         state.followedArtistsMap[userId] = [...list, artist];
       }
@@ -435,7 +439,11 @@ const catalogSlice = createSlice({
         state.categories = state.categories.filter((c) => c.category_id !== action.payload);
       })
       // Load Listener State
+      .addCase(loadListenerState.pending, (state) => {
+        state.listenerStateLoading = true;
+      })
       .addCase(loadListenerState.fulfilled, (state, action) => {
+        state.listenerStateLoading = false;
         const { userId, state: stateData } = action.payload;
         if (stateData) {
           state.playlistsMap[userId] = stateData.playlists || [];
@@ -445,6 +453,9 @@ const catalogSlice = createSlice({
           state.downloadedSongsMap[userId] = stateData.downloadedSongs || [];
           state.notificationsMap[userId] = stateData.notifications || [];
         }
+      })
+      .addCase(loadListenerState.rejected, (state, action) => {
+        state.listenerStateLoading = false;
       })
       // Feedbacks Thunks
       .addCase(fetchFeedbacks.fulfilled, (state, action) => {

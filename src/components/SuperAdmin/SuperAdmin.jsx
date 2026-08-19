@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import DashboardTab from "../../components/SuperAdmin/DashboardTab";
 import UsersTab from "../../components/SuperAdmin/UsersTab";
+import OnlineUsersTab from "../../components/SuperAdmin/OnlineUsersTab";
 import SongsTab from "../../components/SuperAdmin/SongsTab";
 import ArtistsTab from "../../components/SuperAdmin/ArtistsTab";
 import ReportsTab from "../../components/SuperAdmin/ReportsTab";
@@ -44,6 +45,7 @@ import {
   Chip,
   LinearProgress,
   Tooltip,
+  Badge,
 } from "@mui/material";
 import {
   Home as HomeIcon,
@@ -126,17 +128,19 @@ export default function SuperAdminDashboard() {
     }
   }, [location.state]);
 
-  const fetchUsers = async () => {
-    setLoading(true);
+  const fetchUsers = async (showLoading = true) => {
+    if (showLoading) setLoading(true);
     setError("");
     try {
       const res = await api.get("/superadmin/users");
       setUsers(res.data.users || []);
     } catch (err) {
       console.error(err);
-      setError(err.response?.data?.message || "Failed to load users from database");
+      if (showLoading) {
+        setError(err.response?.data?.message || "Failed to load users from database");
+      }
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
@@ -162,8 +166,15 @@ export default function SuperAdminDashboard() {
   };
 
   useEffect(() => {
-    fetchUsers();
+    fetchUsers(true);
     fetchCatalogData();
+
+    // Auto-refresh users data every 15 seconds to update online status in real time
+    const interval = setInterval(() => {
+      fetchUsers(false);
+    }, 15000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const handleDeleteSong = async (songId) => {
@@ -238,6 +249,8 @@ export default function SuperAdminDashboard() {
   });
 
   const totalUsersCount = users.length;
+  const onlineUsersCount = users.filter((u) => Boolean(u.is_online)).length;
+  const onlineUsers = users.filter((u) => Boolean(u.is_online));
   const adminsCount = users.filter((u) => u.role_name === "Admin").length;
   const artistsCount = users.filter((u) => u.role_name === "Artist").length;
   const listenerCount = users.filter((u) => u.role_name === "Listener").length;
@@ -312,6 +325,54 @@ export default function SuperAdminDashboard() {
                   <PeopleIcon sx={{ fontSize: 18 }} />
                 </ListItemIcon>
                 <ListItemText primary={<Typography sx={{ fontSize: "0.85rem", fontWeight: "bold" }}>Manage Users</Typography>} />
+              </ListItemButton>
+            </ListItem>
+
+            <ListItem disablePadding>
+              <ListItemButton
+                onClick={() => setCurrentTab("online-users")}
+                selected={currentTab === "online-users"}
+                sx={{
+                  borderRadius: 3,
+                  py: 0.6,
+                  px: 2,
+                  bgcolor: currentTab === "online-users" ? "rgba(16, 185, 129, 0.12)" : "transparent",
+                  color: currentTab === "online-users" ? "#10B981" : "#FFFFFF",
+                  "&.Mui-selected": { bgcolor: "rgba(16, 185, 129, 0.12)", color: "#10B981" },
+                  "&:hover": { bgcolor: "rgba(255,255,255,0.05)" },
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 32, color: currentTab === "online-users" ? "#10B981" : "#A2A0D5" }}>
+                  <Box
+                    sx={{
+                      width: 8,
+                      height: 8,
+                      borderRadius: "50%",
+                      bgcolor: "#10B981",
+                      boxShadow: "0 0 6px #10B981",
+                    }}
+                  />
+                </ListItemIcon>
+                <ListItemText
+                  primary={
+                    <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                      <Typography sx={{ fontSize: "0.85rem", fontWeight: "bold" }}>
+                        Online Users
+                      </Typography>
+                      <Chip
+                        label={onlineUsers.length}
+                        size="small"
+                        sx={{
+                          height: 18,
+                          fontSize: "0.7rem",
+                          fontWeight: "bold",
+                          bgcolor: currentTab === "online-users" ? "#10B981" : "rgba(16, 185, 129, 0.2)",
+                          color: currentTab === "online-users" ? "#100B29" : "#10B981",
+                        }}
+                      />
+                    </Box>
+                  }
+                />
               </ListItemButton>
             </ListItem>
 
@@ -442,6 +503,7 @@ export default function SuperAdminDashboard() {
           {currentTab === "dashboard" && (
             <DashboardTab
               totalUsersCount={totalUsersCount}
+              onlineUsersCount={onlineUsersCount}
               SaAdminsCount={1}
               adminsCount={adminsCount}
               artistsCount={artistsCount}
@@ -468,6 +530,14 @@ export default function SuperAdminDashboard() {
               setSelectedUser={setSelectedUser}
               toggleUserStatus={toggleUserStatus}
               setDeleteConfirm={setDeleteConfirm}
+            />
+          )}
+
+          {currentTab === "online-users" && (
+            <OnlineUsersTab
+              onlineUsers={onlineUsers}
+              selectStyles={selectStyles}
+              loading={loading}
             />
           )}
 

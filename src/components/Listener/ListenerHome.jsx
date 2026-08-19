@@ -295,13 +295,13 @@ export default function ListenerHome({
                 <Typography variant="body2" sx={{ color: "text.secondary", mr: 3, fontSize: "0.85rem", whiteSpace: "nowrap" }}>
                   {song.play_count || 0} views
                 </Typography>
-                <Tooltip title={likedSongs.some(s => s.song_id === song.song_id) ? "Unlike Song" : "Like Song"}>
-                  <IconButton size="small" onClick={(e) => { e.stopPropagation(); toggleLikeSong(song); }} sx={{ color: likedSongs.some(s => s.song_id === song.song_id) ? "#CE04F2" : "text.secondary", mr: 1 }}>
-                    {likedSongs.some(s => s.song_id === song.song_id) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                <Tooltip title={likedSongs.some(s => (s.song_id || s.id) === (song.song_id || song.id)) ? "Unlike Song" : "Like Song"}>
+                  <IconButton size="small" onClick={(e) => { e.stopPropagation(); toggleLikeSong(song); }} sx={{ color: likedSongs.some(s => (s.song_id || s.id) === (song.song_id || song.id)) ? "#CE04F2" : "text.secondary", mr: 1 }}>
+                    {likedSongs.some(s => (s.song_id || s.id) === (song.song_id || song.id)) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
                   </IconButton>
                 </Tooltip>
-                <Tooltip title={downloadedSongs.some(s => s.song_id === song.song_id) ? "Song Downloaded" : "Download Song"}>
-                  <IconButton size="small" onClick={(e) => { e.stopPropagation(); downloadSong(song); }} sx={{ color: downloadedSongs.some(s => s.song_id === song.song_id) ? "#01F2EA" : "text.secondary", mr: 1 }}>
+                <Tooltip title={downloadedSongs.some(s => (s.song_id || s.id) === (song.song_id || song.id)) ? "Song Downloaded" : "Download Song"}>
+                  <IconButton size="small" onClick={(e) => { e.stopPropagation(); downloadSong(song); }} sx={{ color: downloadedSongs.some(s => (s.song_id || s.id) === (song.song_id || song.id)) ? "#01F2EA" : "text.secondary", mr: 1 }}>
                     <DownloadIcon />
                   </IconButton>
                 </Tooltip>
